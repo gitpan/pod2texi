@@ -1,0 +1,56 @@
+@node SyslogScan/SendmailUtil, SyslogScan/Summary, SyslogScan/SendmailLineTo, Module List
+@unnumbered utilities for sendmail packages.
+
+
+@unnumberedsec NAME
+
+SendmailUtil.pm -- utilities for sendmail packages.
+
+@unnumberedsec SYNOPSIS
+
+@example
+use SyslogScan::SendmailUtil;
+@end example
+
+@example
+open(FH,"/var/log/syslog");
+my $transfer;
+while ($transfer = SyslogScan::SendmailUtil::getNextMailTranfer(\*FH))
+@{
+   # process the tranfer
+@}
+@end example
+
+@unnumberedsec DESCRIPTION
+
+getNextMailTransfer queries a filehandle pointing to a syslog for the
+next line which is a sendmail @'To:@', @'From:@', and @'Clone:@' lines, and
+returns a SyslogScan::SendmailLineFrom, SyslogScan::SendmailLineTo, or
+SyslogScan::SendmailLineClone object.
+
+@unnumberedsec canonAddress() routine
+
+The canonAddress() routine modifies the address of the Sendmail
+routines to be all-lowercase, remove enclosing brackets, and append
+@'@@localhost@' to local addresses.  Modifying this routine will change
+how SyslogScan canonicalizes.
+
+@unnumberedsec AUTHOR and COPYRIGHT
+
+The author (Rolf Harold Nelson) can currently be e-mailed as
+rolf@@usa.healthnet.org.
+
+This code is Copyright (C) SatelLife, Inc. 1996.  All rights reserved.
+This code is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself.
+
+In no event shall SatelLife be liable to any party for direct,
+indirect, special, incidental, or consequential damages arising out of
+the use of this software and its documentation (including, but not
+limited to, lost profits) even if the authors have been advised of the
+possibility of such damage.
+
+@unnumberedsec SEE ALSO
+
+@xref{SyslogScan/SendmailLineFrom,SyslogScan/SendmailLineFrom},, @xref{SyslogScan/SendmailLineTo,SyslogScan/SendmailLineTo},,
+@xref{SyslogScan/SyslogEntry,SyslogScan/SyslogEntry},

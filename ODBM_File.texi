@@ -1,0 +1,26 @@
+@node ODBM_File, OS2/Attrib, News/Newsrc, Module List
+@unnumbered Tied access to odbm files
+
+
+@unnumberedsec NAME
+
+ODBM_File - Tied access to odbm files
+
+@unnumberedsec SYNOPSIS
+
+@example
+use ODBM_File;
+@end example
+
+@example
+tie(%h, @'ODBM_File@', @'Op.dbmx@', O_RDWR|O_CREAT, 0640);
+@end example
+
+@example
+untie %h;
+@end example
+
+@unnumberedsec DESCRIPTION
+
+See @samp{tie}, @xref{(perl.info)perlfunc,Perlfunc},
+

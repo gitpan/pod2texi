@@ -1,0 +1,107 @@
+@node Pod/Usage, Pod/foo, Pod/Text, Module List
+@unnumbered print a usage message using a script@'s embedded pod documentation
+
+
+@unnumberedsec NAME
+
+pod2usage - print a usage message using a script@'s embedded pod documentation
+
+@unnumberedsec SYNOPSIS
+
+@example
+use Pod::Usage;
+pod2usage();
+pod2usage(2);
+pod2usage(@{EXIT => 2@});
+pod2usage(@{EXIT => 2, VERBOSE => 0@});
+pod2usage(EXIT => 1, VERBOSE => 2, OUTPUT=\*STDERR);
+pod2usage(VERBOSE => 2);
+@end example
+
+@unnumberedsec DESCRIPTION
+
+@strong{pod2usage} will print a usage message for the invoking script (using
+its embedded pod documentation) and then exit the script with the
+specified exit value. It takes a single argument which is either a
+numeric value corresponding to the desired exit status (which defaults
+to 2), or a reference to a hash. If more than one argument is given then
+the entire argument list is assumed to be a hash. If a hash is supplied
+it should contain elements with one or more of the following keys:
+
+@table @asis
+@item @code{EXIT}
+The desired exit status to pass to the @strong{exit()} function.
+
+@item @code{VERBOSE}
+The desired level of "verboseness" to use when printing the usage
+message. If the corresponding value is 0, then only the "SYNOPSIS"
+section of the pod documentation is printed. If the corresponding value
+is 1, then the "SYNOPSIS" section, along with any section entitled
+"OPTIONS", "ARGUMENTS", or "OPTIONS AND ARGUMENTS" is printed.  If the
+corresponding value is 2 or more then the entire manpage is printed.
+
+@item OUTPUT
+A reference to a filehandle, or the pathname of a file to which the
+usage message should be written. The default is @code{\*STDERR} unless the
+exit value is less than 2 (in which case the default is @code{\*STDOUT}).
+
+@item INPUT
+A reference to a filehandle, or the pathname of a file from which the
+invoking script@'s pod documentation should be read.  It defaults to the
+file indicated by $0 ($PROGRAM_NAME for @code{use English;} users).
+
+@end table
+If neither the exit value nor the verbose level is specified, then the
+default is to use an exit value of 2 with a verbose level of 0.
+
+If an exit value is specified but the verbose level is not, then the
+verbose level will default to 1 if the exit value is less than 2 and
+will default to 0 otherwise.
+
+If a verbose level is specified but an exit value is not, then the exit
+value will default to 2 if the verbose level is 0 and will default to 1
+otherwise.
+
+@unnumberedsec EXAMPLE
+
+Most scripts should print some type of usage message to STDERR when a
+command line syntax error is detected. They should also provide an
+option (usually -h or @code{-help}) to print a (possibly more verbose)
+usage message to STDOUT. Some scripts may even wish to go so far as to
+provide a means of printing their complete documentation to STDOUT
+(perhaps by allowing a @code{-man} option). The following example uses
+@strong{pod2usage} in combination with Getopt::Long to do all of these
+things:
+
+@example
+use Pod::Usage;
+use Getopt::Long;
+@end example
+
+@example
+GetOptions("help", "man")  ||  pod2usage(2);
+pod2usage(1)  if ($opt_help);
+pod2usage(VERBOSE => 2)  if ($opt_man);
+@end example
+
+@unnumberedsec CAVEATS
+
+By default, @strong{pod2usage()} will use $0 as the path to the pod input
+file.  Unfortunately, not all systems on which Perl runs will set $0
+properly (although if $0 isn@'t found, @strong{pod2usage()} will search
+@code{$ENV@{PATH@}}).  If this is the case for your system, you may need to
+explicitly specify the path to the pod docs for the invoking script
+using something similar to the following:
+
+@table @asis
+@item 
+@code{pod2usage(EXIT => 2, INPUT => "/path/to/your/pod/docs");}
+
+@end table
+@unnumberedsec AUTHOR
+
+Brad Appleton <Brad_Appleton-GBDA001@@email.mot.com>
+
+Based on code for @strong{Pod::Text::pod2text()} written by
+Tom Christiansen <tchrist@@mox.perl.com>
+

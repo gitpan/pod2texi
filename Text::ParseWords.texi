@@ -1,0 +1,43 @@
+@node Text/ParseWords, Text/Soundex, Text/German, Module List
+@unnumbered parse text into an array of tokens
+
+
+@unnumberedsec NAME
+
+Text::ParseWords - parse text into an array of tokens
+
+@unnumberedsec SYNOPSIS
+
+@example
+use Text::ParseWords;
+@@words = &quotewords($delim, $keep, @@lines);
+@@words = &shellwords(@@lines);
+@@words = &old_shellwords(@@lines);
+@end example
+
+@unnumberedsec DESCRIPTION
+
+&quotewords() accepts a delimiter (which can be a regular expression)
+and a list of lines and then breaks those lines up into a list of
+words ignoring delimiters that appear inside quotes.
+
+The $keep argument is a boolean flag.  If true, the quotes are kept
+with each word, otherwise quotes are stripped in the splitting process.
+$keep also defines whether unprotected backslashes are retained.
+
+A &shellwords() replacement is included to demonstrate the new package.
+This version differs from the original in that it will _NOT_ default
+to using $_ if no arguments are given.  I personally find the old behavior
+to be a mis-feature.
+
+&quotewords() works by simply jamming all of @@lines into a single
+string in $_ and then pulling off words a bit at a time until $_
+is exhausted.
+
+@unnumberedsec AUTHORS
+
+Hal Pomeranz (pomeranz@@netcom.com), 23 March 1994
+
+Basically an update and generalization of the old shellwords.pl.
+Much code shamelessly stolen from the old version (author unknown).
+

@@ -1,0 +1,95 @@
+@node Make, Math/Amoeba, Mail/Util, Module List
+@unnumbered module for processing makefiles 
+
+
+@unnumberedsec NAME
+
+Make - module for processing makefiles 
+
+@unnumberedsec SYNOPSIS
+
+@example
+require Make;
+my $make = Make->new(...);
+$make->parse($file);   
+$make->Script(@@ARGV)
+$make->Make(@@ARGV)
+$make->Print(@@ARGV)
+@end example
+
+@example
+my $targ = $make->Target($name);
+$targ->colon([dependancy...],[command...]);
+$targ->dolon([dependancy...],[command...]);
+my @@depends  = $targ->colon->depend;
+my @@commands = $targ->colon->command;
+@end example
+
+@unnumberedsec DESCRIPTION
+
+Make->new creates an object if @code{new(Makefile => $file)} is specified
+then it is parsed. If not the usual makefile Makefile sequence is 
+used. (If GNU => 1 is passed to new then GNUmakefile is look for first.) 
+
+@code{$make->Make(target...)} @'makes@' the target(s) specified
+(or the first @'real@' target in the makefile).
+
+@code{$make->Print} can be used to @'print@' to current select@'ed stream
+a form of the makefile with all variables expanded. 
+
+@code{$make->Script(target...)} can be used to @'print@' to 
+current select@'ed stream the equivalent bourne shell script
+that a make would perform i.e. the output of @code{make -n}.
+
+There are other methods (used by parse) which can be used to add and 
+manipulate targets and their dependants. There is a hierarchy of classes
+which is still evolving. These classes and their methods will be documented when
+they are a little more stable.
+
+The syntax of makefile accepted is reasonably generic, but I have not re-read
+any documentation yet, rather I have implemented my own mental model of how
+make works (then fixed it...).
+
+In addition to traditional 
+
+@example
+.c.o : 
+	$(CC) -c ...
+@end example
+
+GNU make@'s @'pattern@' rules e.g. 
+
+@example
+%.o : %.c 
+	$(CC) -c ...
+@end example
+
+Likewise a subset of GNU makes $(function arg...) syntax is supported.
+
+Via pmake Make has built perl/Tk from the @code{MakeMaker} generated Makefiles...
+
+@unnumberedsec BUGS
+
+At present new must always find a makefile, and
+@code{$make->parse($file)} can only be used to augment that file.
+
+More attention needs to be given to using the package to write makefiles.
+
+The rules for matching @'dot rules@' e.g. .c.o   and/or pattern rules e.g. %.o : %.c
+are suspect. For example give a choice of .xs.o vs .xs.c + .c.o behaviour
+seems a little odd.
+
+Variables are probably substituted in different @'phases@' of the process
+than in make(1) (or even GNU make), so @'clever@' uses will probably not
+work.
+
+UNIXisms abound. 
+
+@unnumberedsec SEE ALSO 
+
+@samp{pmake} in this node
+
+@unnumberedsec AUTHOR
+
+Nick Ing-Simmons
+

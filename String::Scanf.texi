@@ -1,0 +1,159 @@
+@node String/Scanf, Sx, Storable, Module List
+@unnumbered emulate the sscanf() of the C stdio library
+
+
+@unnumberedsec NAME
+
+sscanf - emulate the sscanf() of the C stdio library
+
+@unnumberedsec SYNOPSIS
+
+@example
+use String::Scanf;	# this will import sscanf() into the
+			# current namespace
+@end example
+
+@example
+@@values = sscanf($scanf_format_string, $scalar_to_scan);
+@end example
+
+@example
+# the default scan target is the $_
+@@values = sscanf($scanf_format_string);
+@end example
+
+@example
+# converting scanf formats to regexps (::format_to_re
+# is never exported to the current namespace)
+@end example
+
+@example
+$regexp_string = String::Scanf::format_to_re($scanf_format_string);
+@end example
+
+@unnumberedsec DESCRIPTION
+
+Perl sscanf() can be used very much like the C stdio sscanf(), for
+detailed sscanf() documentation please refer to your usual
+documentation resources. The supported formats are: @code{[diuoxefgsc]}
+and the character class @code{[]}.
+
+@strong{All} of the format must match. If not, an empty list is returned
+and all the values end up empty.
+
+The c format returns an anonymous list (see perlref)
+containing the numeric values of the characters it matched.
+
+The ::format_to_re() function may be helpful if one wants to
+develop her own parsing routines.
+
+@unnumberedsec FEATURES
+
+Embedded underscores are accepted in numbers just like in Perl, even
+in octal/hexadecimal numbers (Perl does not currently support
+this). Please note the word @strong{embedded}, not leading or trailing.
+
+If the @code{oh} formats are used, the octal/hexadecimal interpretation
+is forced even without the leading @code{0} or @code{0x}.
+
+@unnumberedsec LIMITATIONS
+
+Certain features of the C sscanf() are unsupported:
+
+@example
+* the formats C<[npSC]>
+* in the C<[efg]> formats the C<INF> and various C<NaN>s
+@end example
+
+The numeric formats are scanned in as strings, this meaning that
+numeric overflows may occur. For example: @code{1.2345e67890} will match
+the @code{%g} format but in most machines Perl cannot handle that large
+floating point numbers and bizarre values may end up in the Perl
+variable. Similar caveats apply for integer-type numbers. Results of
+such huge numbers (or very tiny numbers, say, @code{1.24345e-67890}) are
+implementation-defined, which translates quite often as @emph{garbage}.
+NOTE: if you really want @strong{Big} numbers please consider
+using the @code{Math::BigInt} and @code{Math::BigFloat}, these packages come
+standard with Perl 5, or the @code{Math::Pari} package, available from
+CPAN.
+
+For Perl <integers> and @emph{floating point numbers} are the same thing.
+Also, the possible @code{hl} modifiers for the @emph{integers} mean nothing:
+they are accepted but still they do nothing because Perl does not care
+about short/long integer differences.
+
+The character class format is not so rigorously checked for
+correctness that an illegal character class definition could
+not be sneaked in. For example @code{[z-a,X]} is a @code{bad} example:
+perfectly illegal as a character class but @code{String::Scanf} will
+happily accept it. Beware.
+
+The ::format_to_re() only does the scanf format -> regular expression
+conversion. It ignores tricky things like the c format (see above)
+and the %n$ argument reordering. If you want these, you may as well use
+the full ::sscanf().
+
+@unnumberedsec EXAMPLES
+
+@example
+# business as usual
+@end example
+
+@example
+($i, $s, $x) = sscanf(@'%d %3s %g@', @' -5_678     abc 3.14e-99 9@');
+@end example
+
+@example
+# @'skip leading whitespace@': $x becomes 42 despite the leading space
+# @'the illegal character@': $y becomes @'ab@' despite the @'3@'
+# @'c@' format: $z becomes [120 100], the numeric values of @'x@'
+# and @'d@' (assuming ASCII or ISO Latin 1)
+@end example
+
+@example
+($x, $y, $z) = sscanf(@'%i%3[a-e]%2c@', @' 42acxde@');
+@end example
+
+@example
+# reordering the arguments: $a becomes 34, $b becomes 12
+@end example
+
+@example
+($a, $b) = sscanf(@'%2$d %1$d@', @'12 34@');
+@end example
+
+@example
+# converting scanf formats to regexps
+@end example
+
+@example
+$re = String::Scanf::format_to_re(@'%x@');
+@end example
+
+More examples in the test set @code{t/scanf.t}.
+
+@unnumberedsec INTERNALS
+
+The Perl @code{sscanf()} turns the C-@code{stdio} style @code{sscanf()} format
+string into a Perl regexp (see perlre) which captures the wanted
+values into submatches and returns the submatches as a list.
+
+Originally written for purposes of debugging but also useful
+for educational purposes:
+
+@example
+String::Scanf::debug(1);	# turn on debugging: shows the regexps
+			# used and the possible reordering list
+			# and the character (%c) conversion targets
+String::Scanf::debug(0);		# turn off debugging
+print String::Scanf::debug(), "\n";	# the current debug status
+@end example
+
+@unnumberedsec VERSION
+
+v1.1, $Id: Scanf.pm,v 1.8 1995/12/27 08:32:28 jhi Exp $
+
+@unnumberedsec AUTHOR
+
+Jarkko Hietaniemi, @code{Jarkko.Hietaniemi@@iki.fi}
+

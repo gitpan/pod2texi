@@ -1,0 +1,96 @@
+@node Storable, String/Scanf, Statistics/LTU, Module List
+@unnumbered persistency for perl data structures
+
+
+@unnumberedsec NAME
+
+Storable - persistency for perl data structures
+
+@unnumberedsec SYNOPSIS
+
+@example
+use Storable;
+store \%table, @'file@';
+$hashref = retrieve(@'file@');
+@end example
+
+@unnumberedsec DESCRIPTION
+
+The Storable package brings you persistency for your perl data structures
+containing SCALAR, ARRAY, HASH or REF objects, i.e. anything that can be
+convenientely stored to disk and retrieved at a later time.
+
+It can be used in the regular procedural way by calling @code{store} with
+a reference to the object to store, and providing a file name. The routine
+returns undef for I/O problems or other internal error, a true value
+otherwise. Serious errors are propagated as a die exception.
+
+To retrieve data stored to disk, you use @code{retrieve} with a file name,
+and the objects stored into that file are recreated into memory for you,
+and a @emph{reference} to the root object is returned. In case an I/O error
+occurred while reading, undef is returned instead. Other serious
+errors are propagated via die.
+
+Since storage is performed recursively, you might want to stuff references
+to objects that share a lot of common data into a single array or hash
+table, and then store that object. That way, when you retrieve back the
+whole thing, the objects will continue to share what they originally shared.
+
+At the cost of a slight header overhead, you may store to an already
+opened file descriptor using the @code{store_fd} routine, and retrieve
+from a file via @code{retrieve_fd}. Those names aren@'t imported by default,
+so you will have to do that explicitely if you need those routines.
+The file descriptor name you supply must be fully qualified.
+
+When using @code{retrieve_fd}, objects are retrieved in sequence, one
+object (i.e. one recursive tree) per associated @code{store_fd}.
+
+If you@'re more from the object-oriented camp, you can inherit from
+Storable and directly store your objects by invoking @code{store} as
+a method.
+
+@unnumberedsec SPEED
+
+The heart of Storable is written in C for decent speed. Extra low-level
+optimization have been made when manipulating perl internals, to
+sacrifice encapsulation for the benefit of a greater speed.
+
+Storage is usually faster than retrieval since the latter has to
+allocate the objects from memory and perform the relevant I/Os, whilst
+the former mainly performs I/Os.
+
+On my HPUX machine, I can store 200K in 0.8 seconds, and I can retrieve
+the same data in 1.1 seconds, approximatively.
+
+@unnumberedsec WARNING
+
+If you@'re using references as keys within your hash tables, you@'re bound
+to disapointment when retrieving your data. Indeed, Perl stringifies
+references used as hash table keys. If you later wish to access the
+items via another reference stringification (i.e. using the same
+reference that was used for the key originally to record the value into
+the hash table), it will work because both references stringify to the
+same string.
+
+It won@'t work accross a @code{store} and @code{retrieve} operations however, because
+the addresses in the retrieved objects, which are part of the stringified
+references, will probably differ from the original addresses. The
+topology of your structure is preserved, but not hidden semantics
+like those.
+
+@unnumberedsec BUGS
+
+You can@'t store GLOB, CODE, FORMLINE, etc... If you can define
+semantics for those operations, feel free to enhance Storable so that
+it can deal with those.
+
+Due to the aforementionned optimizations, Storable is at the mercy
+of perl@'s internal redesign or structure changes. If that bothers
+you, you can try convincing Larry that what is used in Storable
+should be documented and consistently kept in future revisions.
+As I said, you may try.
+
+@unnumberedsec AUTHOR
+
+Raphael Manfredi @file{<ram@@hptnos02.grenoble.hp.com>}
+

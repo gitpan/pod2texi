@@ -1,0 +1,77 @@
+@node HTML/QuickCheck, HTML/Stream, HTML/Parser, Module List
+@unnumbered a simple and fast HTML syntax checking package for perl 4 and perl 5
+
+
+@unnumberedsec NAME
+
+HTMLQuickCheck.pm -- a simple and fast HTML syntax checking package for
+perl 4 and perl 5
+
+@unnumberedsec SYNOPSIS          require @'HTMLQuickCheck.pm@';
+
+@example
+&HTML@'QuickCheck@'OK($html_text) || die "Bad HTML: $HTML@'QuickCheck@'Error";
+@end example
+
+@example
+or for perl 5:
+HTML::QuickCheck::OK($html_text) || 
+        die "Bad HTML: $HTML::QuickCheck::Error";
+@end example
+
+@unnumberedsec DESCRIPTION
+
+The objective of the package is to provide a fast and essential HTML check
+(esp. for CGI scripts where response time is important) to prevent a piece
+of user input HTML code from messing up the rest of a file, i.e., to
+minimize and localize any possible damage created by including a piece of
+user input HTML text in a dynamic document.
+
+HTMLQuickCheck checks for unmatched < and >, unmatched tags and improper
+nesting, which could ruin the rest of the document.  Attributes and
+elements with optional end tags are not checked, as they should not cause
+disasters with any decent browsers (they should ignore any unrecognized
+tags and attributes according to the standard).  A piece of HTML that
+passes HTMLQuickCheck may not necessarily be valid HTML, but it would be
+very unlikely to screw others but itself. A valid piece of HTML that
+doesn@'t pass the HTMLQuickCheck is however very likely to screw many
+browsers(which are obviously broken in terms of strict conformance).
+
+HTMLQuickCheck currently supports HTML 1.0, 2.x (draft), 3.0 (draft) and
+netscape extensions (1.1).
+
+@unnumberedsec EXAMPLE
+
+@example
+htmlchk, a simple html checker:
+@end example
+
+@example
+#!/usr/local/bin/perl
+require @'HTMLQuickCheck.pm@';
+undef $/;
+print &HTML@'QuickCheck@'OK(<>) ? "HTML OK\n" : 
+        "Bad HTML:\n", $HTML@'QuickCheck@'Error;
+__END__
+@end example
+
+@example
+Usage: 
+htmlchk [html_file]
+@end example
+
+@unnumberedsec AUTHOR
+
+Luke Y. Lu <ylu@@mail.utexas.edu>
+
+@unnumberedsec SEE ALSO
+
+HTML docs at <URL:http://www.w3.org/hypertext/WWW/MarkUp/MarkUp.html>;
+HTML validation service at <URL:http://www.halsoft.com/html/>;
+perlSGML package at <URL:http://www.oac.uci.edu/indiv/ehood/perlSGML.html>;
+weblint at <URL:http://www.khoros.unm.edu/staff/neilb/weblint.html>
+
+@unnumberedsec BUGS
+
+Please report them to the author.
+

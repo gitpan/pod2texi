@@ -1,0 +1,162 @@
+@node SyslogScan/Usage, SyslogScan/WhereIs, SyslogScan/SyslogEntry, Module List
+@unnumbered encapsulates the total volumes of mail broadcast, sent, and received through sendmail by a single user or group.
+
+
+@unnumberedsec NAME
+
+SyslogScan::Usage -- encapsulates the total volumes of mail broadcast,
+sent, and received through sendmail by a single user or group.
+
+SyslogScan::Volume -- encapsulates a number of messages along with a
+total number of bytes
+
+@unnumberedsec SYNOPSIS
+
+# $summary is a SyslogScan::Summary object
+
+use SyslogScan::Usage;
+my $usage = $$summary@{@'john_doe@@foo.com@'@};
+$usage -> dump();
+
+use SyslogScan::Volume;
+my $broadcastVolume = $usage -> getBroadcastVolume();
+my $sendVolume = $usage -> getSendVolume();
+my $receiveVolume = $usage -> getReceiveVolume();
+
+print "John Doe sent $$sendVolume[0] messages with $$sendVolume[1] bytes\n";
+
+@unnumberedsec DESCRIPTION
+
+@unnumberedsubsec Broadcast, Send, and Receive
+
+Volume of messages received has the obvious meaning.  Volume of
+messages sent and volume of messages broadcast require more
+explanation.
+
+If I send out a message which has three recipients, then for the
+purposes of the SyslogScan modules, I am @emph{broadcasting} the message
+once, but I am @emph{sending} it three times.
+
+@unnumberedsubsec Usage methods
+
+@table @asis
+@item new() method
+Creates a new, empty Usage object.
+
+@item addUsage() method and deepCopy() method
+@example
+# $usage1 is 4 messages of 100 bytes Received
+# $usage2 is 1 message of 35 bytes Received
+@end example
+
+@example
+my $usageTotal = $usage1 -> deepCopy();
+# $usageTotal is 4 messages of 100 bytes Received
+@end example
+
+@example
+$usageTotal -> addUsage($usage2);
+# $usageTotal is 5 messages of 135 bytes Received
+@end example
+
+Note that because we used deepCopy, @emph{$usage1} is still 4 messages of
+100 bytes.
+
+@item registerBroadcast, registerSend, registerReceive methods
+@example
+my $usage = new SyslogScan::Usage();
+$usage -> registerSend(512);
+$usage -> registerSend(34);
+$usage -> registerBroadcast(34);
+# $usage is now 2 messages, 546 bytes Sent,
+# and 1 message, 34 bytes Broadcast
+@end example
+
+@itemx getBroadcastVolume, getSendVolume, getReceiveVolume methods
+Returns deep copy of the applicable SyslogScan::Volume objects.
+
+@item static deepCopy method
+Returns deep copy of the whole SyslogScan::Usage object.
+
+@item static dump
+Returns a string containing (Message,Bytes) pairs for Broadcast, Send,
+and Receive volumes.
+
+@end table
+@unnumberedsubsec Volume methods
+
+@table @asis
+@item new() method
+Creates a new Volume object of 0 messages, 0 bytes.
+
+@item deepCopy() method
+Creates a new Volume object with the same number of messages and bytes
+as the current Volume object.
+
+@item addVolume(), addSize() methods
+addVolume() adds the volume of a second Volume object onto the volume
+of the current Volume object.
+
+addSize() adds on one message of the given size.
+
+@example
+use SyslogScan::Volume;
+@end example
+
+@example
+my $volume1 = new SyslogScan::Volume();
+$volume1 -> addSize(512);
+@end example
+
+@example
+my $volume2 = $volume1 -> deepCopy();
+# $volume2 is 1 message, 512 bytes
+@end example
+
+@example
+$volume2 -> addSize(31);
+# $volume2 is 2 messages, 543 bytes
+@end example
+
+@example
+$volume2 -> addVolume($volume1);
+# $volume2 is 3 messages, 1055 bytes
+@end example
+
+@example
+$volume2 -> addVolume($volume2);
+# $volume2 is 6 messages, 2110 bytes
+@end example
+
+@item getMessageCount, getByteCount
+Gets the number of messages and the total number of bytes, respectively.
+
+@item dump()
+Returns the string "getMessageCount(),getByteCount()"
+
+@end table
+@unnumberedsubsec Volume internals
+
+A Volume is simply a two-element array of ($messages, $bytes).
+
+$$volume[0] is the number of messages
+$$volume[1] is the number of bytes
+
+@unnumberedsec AUTHOR and COPYRIGHT
+
+The author (Rolf Harold Nelson) can currently be e-mailed as
+rolf@@usa.healthnet.org.
+
+This code is Copyright (C) SatelLife, Inc. 1996.  All rights reserved.
+This code is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself.
+
+In no event shall SatelLife be liable to any party for direct,
+indirect, special, incidental, or consequential damages arising out of
+the use of this software and its documentation (including, but not
+limited to, lost profits) even if the authors have been advised of the
+possibility of such damage.
+
+@unnumberedsec SEE ALSO
+
+@xref{SyslogScan/Summary,SyslogScan/Summary},

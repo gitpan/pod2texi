@@ -1,0 +1,20 @@
+@node ExtUtils/MM_OS2, ExtUtils/MM_Unix, ExtUtils/Liblist, Module List
+@unnumbered methods to override UN*X behaviour in ExtUtils::MakeMaker
+
+
+@unnumberedsec NAME
+
+ExtUtils::MM_OS2 - methods to override UN*X behaviour in ExtUtils::MakeMaker
+
+@unnumberedsec SYNOPSIS
+
+@example
+use ExtUtils::MM_OS2; # Done internally by ExtUtils::MakeMaker if needed
+@end example
+
+@unnumberedsec DESCRIPTION
+
+See ExtUtils::MM_Unix for a documentation of the methods provided
+there. This package overrides the implementation of these methods, not
+the semantics.
+

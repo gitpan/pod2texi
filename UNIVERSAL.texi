@@ -1,0 +1,67 @@
+@node UNIVERSAL, URI/Escape, Tk/WaitBox, Module List
+@unnumbered base class for ALL classes (blessed references)
+
+
+@unnumberedsec NAME
+
+UNIVERSAL - base class for ALL classes (blessed references)
+
+@unnumberedsec SYNOPSIS
+
+@example
+use UNIVERSAL qw(isa);
+@end example
+
+@example
+$yes = isa($ref, "HASH");
+$io = $fd->isa("IO::Handle");
+$sub = $obj->can(@'print@');
+@end example
+
+@unnumberedsec DESCRIPTION
+
+@code{UNIVERSAL} is the base class which all bless references will inherit from,
+see @xref{(perl.info)perlobj,Perlobj},
+
+@code{UNIVERSAL} provides the following methods
+
+@table @asis
+@item isa ( TYPE )
+isa returns @emph{true} if @code{REF} is blessed into package @code{TYPE}
+or inherits from package @code{TYPE}.
+
+isa can be called as either a static or object method call.
+
+@item can ( METHOD )
+can checks if the object has a method called @code{METHOD}. If it does
+then a reference to the sub is returned. If it does not the undef
+is returned.
+
+can can be called as either a static or object method call.
+
+@item VERSION ( [ REQUIRE ] )
+VERSION will return the value of the variable @code{$VERSION} in the
+package the object is blessed into. If @code{REQUIRE} is given then
+it will do a comparison and die if the package version is not
+greater than or equal to @code{REQUIRE}.
+
+VERSION can be called as either a static or object method call.
+
+@end table
+@code{UNIVERSAL} also optionally exports the following subroutines
+
+@table @asis
+@item isa ( REF, TYPE )
+isa returns @emph{true} if the first argument is a reference and either
+of the following statements is true.
+
+@table @asis
+@item 
+@code{REF} is a blessed reference and is blessed into package @code{TYPE}
+or inherits from package @code{TYPE}
+
+@item 
+@code{REF} is a reference to a @code{TYPE} of perl variable (er @'HASH@')
+
+@end table
+@end table

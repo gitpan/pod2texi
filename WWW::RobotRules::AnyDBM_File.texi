@@ -1,0 +1,45 @@
+@node WWW/RobotRules/AnyDBM_File, WWW/Search, WWW/RobotRules, Module List
+@unnumbered Persistent RobotRules
+
+
+@unnumberedsec NAME
+
+WWW::RobotRules::AnyDBM_File - Persistent RobotRules
+
+@unnumberedsec SYNOPSIS
+
+@example
+require WWW::RobotRules::AnyDBM_File;
+require LWP::RobotUA;
+@end example
+
+@example
+# Create a robot useragent that uses a diskcaching RobotRules
+my $rules = new WWW::RobotRules::AnyDBM_File @'my-robot/1.0@', @'cachefile@';
+my $ua = new WWW::RobotUA @'my-robot/1.0@', @'me@@foo.com@', $rules;
+@end example
+
+@example
+# Then just use $ua as usual
+$res = $ua->request($req);
+@end example
+
+@unnumberedsec DESCRIPTION
+
+This is a subclass of @emph{WWW::RobotRules} that uses the AnyDBM_File
+package to implement persistent diskcaching of @file{robots.txt} and host
+visit information.
+
+The constructor (the new() method) takes an extra argument specifying
+the name of the DBM file to use.  If the DBM file already exists, then
+you can specify undef as agent name as the name can be obtained from
+the DBM database.
+
+@unnumberedsec SE ALSO
+
+@xref{WWW/RobotRules,WWW/RobotRules},, @xref{LWP/RobotUA,LWP/RobotUA},
+
+@unnumberedsec AUTHORS
+
+Hakan Ardo <hakan@@munin.ub2.lu.se>, Gisle Aas <aas@@sn.no>
+

@@ -1,0 +1,97 @@
+@node Term/ReadLine, Test/Harness, Term/ReadKey, Module List
+@unnumbered Perl interface to various @code{readline} packages. If no real package is found, substitutes stubs instead of basic functions.
+
+
+@unnumberedsec NAME
+
+Term::ReadLine - Perl interface to various @code{readline} packages. If
+no real package is found, substitutes stubs instead of basic functions.
+
+@unnumberedsec SYNOPSIS
+
+@example
+use Term::ReadLine;
+$term = new Term::ReadLine @'Simple Perl calc@';
+$prompt = "Enter your arithmetic expression: ";
+$OUT = $term->OUT || STDOUT;
+while ( defined ($_ = $term->readline($prompt)) ) @{
+  $res = eval($_), "\n";
+  warn $@@ if $@@;
+  print $OUT $res, "\n" unless $@@;
+  $term->addhistory($_) if /\S/;
+@}
+@end example
+
+@unnumberedsec DESCRIPTION
+
+This package is just a front end to some other packages. At the moment
+this description is written, the only such package is Term-ReadLine,
+available on CPAN near you. The real target of this stub package is to
+set up a common interface to whatever Readline emerges with time.
+
+@unnumberedsec Minimal set of supported functions
+
+All the supported functions should be called as methods, i.e., either as 
+
+@example
+$term = new Term::ReadLine @'name@';
+@end example
+
+or as 
+
+@example
+$term->addhistory(@'row@');
+@end example
+
+where $term is a return value of Term::ReadLine->Init.
+
+@table @asis
+@item ReadLine
+returns the actual package that executes the commands. Among possible
+values are @code{Term::ReadLine::Gnu}, @code{Term::ReadLine::Perl},
+@code{Term::ReadLine::Stub Exporter}.
+
+@item new
+returns the handle for subsequent calls to following
+functions. Argument is the name of the application. Optionally can be
+followed by two arguments for IN and @code{OUT} filehandles. These
+arguments should be globs.
+
+@item @code{readline}
+gets an input line, @emph{possibly} with actual @code{readline}
+support. Trailing newline is removed. Returns undef on @code{EOF}.
+
+@item @code{addhistory}
+adds the line to the history of input, from where it can be used if
+the actual @code{readline} is present.
+
+@item IN, $@code{OUT}
+return the filehandles for input and output or undef if @code{readline}
+input and output cannot be used for Perl.
+
+@item @code{MinLine}
+If argument is specified, it is an advice on minimal size of line to
+be included into history.  undef means do not include anything into
+history. Returns the old value.
+
+@item @code{findConsole}
+returns an array with two strings that give most appropriate names for
+files for input and output using conventions @code{"<$in"}, @code{">out"}.
+
+@item Features
+Returns a reference to a hash with keys being features present in
+current implementation. Several optional features are used in the
+minimal interface: @code{appname} should be present if the first argument
+to new is recognized, and @code{minline} should be present if
+@code{MinLine} method is not dummy.  @code{autohistory} should be present if
+lines are put into history automatically (maybe subject to
+@code{MinLine}), and @code{addhistory} if @code{addhistory} method is not dummy.
+
+@end table
+Actually @code{Term::ReadLine} can use some other package, that will
+support reacher set of commands.
+
+@unnumberedsec EXPORTS
+
+None
+

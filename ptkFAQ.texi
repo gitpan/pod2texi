@@ -1,0 +1,12 @@
+@node ptkFAQ, sigtrap, overload, Module List
+@unnumbered ptkFAQ
+
+
+@unnumberedsec NAME
+
+ptkFAQ
+
+@unnumberedsec AUTHOR 
+
+Peter Prymmer pvhp@@lns62.lns.cornell.edu
+

@@ -1,0 +1,313 @@
+@node CGI/MiniSvr, CGI/Out, CGI/Imagemap, Module List
+@unnumbered Adds to CGI::Base the ability for a CGI script to become a mini http server.
+
+
+@unnumberedsec NAME
+
+CGI::MiniSvr - Adds to CGI::Base the ability for a CGI script to become
+a mini http server.
+
+@unnumberedsec SYNOPSIS
+
+@example
+@end example
+
+@example
+use CGI::MiniSvr;
+	
+$cgi = new CGI::MiniSvr;
+$cgi = new CGI::MiniSvr $port_or_path;
+$cgi = new CGI::MiniSvr $port_or_path, $timeout_mins;
+	
+$cgi->port;               # return MiniSvr port number with leading colon
+@end example
+
+@example
+$cgi->spawn;              # fork/detach from httpd
+	
+$cgi->get;                # get input
+	
+$cgi->pass_thru($host, $port);
+$cgi->redirect($url);
+	
+$cgi->done;               # end @'page@' and close connection (high-level)
+$cgi->close;              # just close connection (low-level)
+@end example
+
+See also the CGI::Base methods.
+
+@unnumberedsec DESCRIPTION
+
+This file implements the CGI::MiniSvr object. This object represents an
+alternative interface between the application and an HTTP deamon.
+
+In a typical CGI scenario the interface is just a collection of
+environment variables passed to a process which then generated some
+outout and exits. The CGI::Base class implements this standard
+interface.
+
+The CGI::MiniSvr class inherits from CGI::Base and extends it to
+implement a @'mini http daemon@' which can be spawned (forked) from a CGI
+script in order to maintain state information for a client @'session@'.
+
+This is very useful. It neatly side-steps many of the painful issues
+involved in writing real-world multi-screen applications using the
+standard CGI interface (namely saving and restoring state between
+screens).
+
+Another use for the MiniSvr is to allow cgi scripts to produce output
+pages with dynamically generated in-line graphics (for example). To do
+this the script would spawn a MiniSvr and refer to its port number in
+the URL@'s for the embedded images. The MiniSvr would then sit on the
+port, with a relatively short timeout, ready to serve the requests for
+those images.  Once all the images have been served the MiniSvr would
+simply exit.
+
+Like the CGI::Base module the CGI::MiniSvr module does not do any
+significant data parsing. Higher level query processing (forms etc) is
+performed by the CGI::Request module.
+
+Note that the implementation of these modules means that you should
+invoke @code{new CGI::Base;} before @code{new CGI::MiniSvr;}. This is the
+natural order anyway and so should not be a problem.
+
+@unnumberedsubsec WARNING!
+
+This module is @strong{not} a good solution to many problems! It is only a good
+solution to some. It should only be used by those who understand why it
+is @strong{not} a good solution to many problems!
+
+For those who don@'t see the pitfalls of the mini server approach,
+consider just this one example:  what happens to your machine if new
+@'sessions@' start, on average, faster than abandoned ones timeout?
+
+Security and short-lifespan URL@'s are some of the other problems.
+
+If in doubt don@'t use it! If you do then don@'t blame me for any of the
+problems you may (will) experience. @strong{You have been warned!}
+
+@unnumberedsubsec DIRECT ACCESS USAGE
+
+In this mode the MiniSvr creates an internet domain socket and returns
+to the client a page with URL@'s which contain the MiniSvr@'s own port
+number.
+
+@example
+$q = GetRequest();      # get initial request
+$cgi = new CGI::MiniSvr;# were going to switch to CGI::MiniSvr later
+$port = $cgi->port;     # get our port number (as @':NNNN@') for use in URL@'s
+$me = "http://$SERVER_NAME$port$SCRIPT_NAME"; # build my url
+print "Hello... <A HREF="$me?INSIDE"> Step Inside ...</A>\r\n";
+$cgi->done(1);          # flush out page, include debugging
+$cgi->spawn and exit 0; # fork, original cgi process exits
+CGI::Query::Interface($cgi); # default to new interface
+@end example
+
+@example
+while($q = GetQuery() or $cgi->exit)@{ # await request/timeout
+   ...
+@}
+@end example
+
+@unnumberedsubsec INDIRECT ACCESS USAGE
+
+In this mode the MiniSvr creates a unix domain socket and returns to the
+client a page with a hidden field containing the path to the socket.
+
+@example
+$q = GetRequest(); # get initial request
+$path = $q->param(@'_minisvr_socket_path@');
+if ($path) @{
+    # just pass request on to our mini server
+    $q->cgi->pass_thru(@'@', $path) or (...handle timeout...)
+    $q->cgi->done;
+@} else @{
+    # launch new mini server
+    $path = "/tmp/cgi.$$";
+    $cgi = new CGI::MiniSvr $path; # unix domain socket
+    # code here mostly same as @'DIRECT ACCESS@' above except that
+    # the returned page has an embedded field _minisvr_socket_path
+    # set to $path
+    ...
+@}
+@end example
+
+@unnumberedsubsec SUBCLASSING THE MINISVR
+
+In some cases you may wish to have more control over the behaviour of
+the mini-server, such as handling some requests at a low level without
+disturbing the application.  Subclassing the server is generally a good
+approach. Use something like this:
+
+@example
+#   Define a specialised subclass of the MiniSvr for this application
+@{
+  package CGI::MiniSvr::FOO;
+  use CGI::MiniSvr;
+  @@ISA = qw(CGI::MiniSvr);
+@end example
+
+@example
+# Default behaviour for everything except GET requests for .(gif|html|jpg)
+# Note that we must take great care not to: a) try to pass_thru to ourselves
+# (it would hang), or b) pass_thru to the server a request which it will
+# try to satisfy by starting another instance of this same script!
+@end example
+
+@example
+sub method_GET @{
+    my $self = shift;
+    if ($self->@{SCRIPT_NAME@} =~ m/\.(gif|jpg|html)$/)@{
+        $self->pass_thru(@'@', $self->@{ORIG_SERVER_PORT@});
+        $self->done;
+        return @'NEXT@';
+    @}
+    1;
+@}
+# ... other overriding methods can be defined here ...
+  @}
+@end example
+
+Once defined you can use your new customised mini server by changing:
+
+@example
+$cgi = new CGI::MiniSvr;
+@end example
+
+into:
+
+@example
+$cgi = new CGI::MiniSvr::FOO;
+@end example
+
+With the example code above any requests for gif, jpg or html will be
+forwarded to the server which originally invoked this script. The application
+no longer has to deal with them. @emph{Note:} this is just an example usage
+for the mechanism, you would typically generate pages in which any
+embedded images had URL@'s which refer explicitly to the main httpd.
+
+With a slight change in the code above you can arrange for the handling
+of the pass-thru to occur in a subprocess. This frees the main process
+to handle other requests. Since the MiniSvr typically only exists for
+one process, forking off a subprocess to handle a request is only
+useful for browsers such as Netscape which make multiple parallel
+requests for inline images.
+
+@example
+if ($self->@{SCRIPT_NAME@} =~ m/\.(gif|html|jpg)$/)@{
+    if ($self->fork == 0) @{
+        $self->pass_thru(@'@', $self->@{ORIG_SERVER_PORT@});
+        $self->exit;
+    @}
+    $self->done;
+    return @'NEXT@';
+@}
+@end example
+
+Note that forking can be expensive. It might not be worth doing for
+small images.
+
+@unnumberedsubsec FEATURES
+
+Object oriented and sub-classable.
+
+Transparent low-level peer validation (no application involvement
+but extensible through subclassing).
+
+Transparent low-level pass_thru/redirecting of URL@'s the application
+is not interested in  (no application involvement but extensible
+through subclassing).
+
+Effective timeout mechanism with default and per-call settings.
+
+Good emulation of standard CGI interface (for code portability).
+
+@unnumberedsubsec RECENT CHANGES
+
+@enumerate
+@item 
+and 2.3
+Slightly improved documentation. Added a basic fork() method. Fixed
+timeout to throw an exception so it@'s reliable on systems which restart
+system calls. Socket/stdio/filehandle code improved. Cleaned up
+done/close relationship. Added experimental support for optionally
+handling requests by forking on a case-by-case basis. This is handy for
+serving multiple simultaneous image requests from Netscape for example.
+Added notes about the MiniSvr, mainly from discussions with Jack Shirazi
+Removed old explicit port searching code from _new_inet_socket().
+Improved SIGPIPE handling (see CGI::Base).
+
+@item 
+Fixed (worked around) a perl/stdio bug which affected POST handling.
+Changed some uses of map to foreach. Slightly improved debugging.
+Added support for any letter case in HTTP headers. Enhanced test code.
+
+@item 
+Added more documentation and examples. The max pending connections
+parameter for listen() can now be specified as a parameter to new().
+SIGPIPE now ignored by default. Simplified inet socket code with ideas
+from Jack Shirazi. Improved server Status-Line header handling. Fixed
+validate_peer() error handling and redirect().  Simplified get_vars()
+by splitting into get_valid_connection() and read_headers(). Moved
+example method_GET() out of MiniSvr and into the test script.
+
+The module file can be run as a cgi script to execute a demo/test. You
+may need to chmod +x this file and teach your httpd that it can execute
+*.pm files.
+
+@item 
+Added note about possible use of MiniSvr to serve dynamically generated
+in-line images. Added optional DoubleFork mechanism to spawn which
+might be helpful for buggy httpd@'s, off by default.
+
+@item 
+Added support for an @'indirect, off-net, access@' via a local UNIX
+domain socket in the file system. Now uses strict. ORIG_* values now
+stored within object and not exported as globals (Base CGI vars
+remain unchanged).  See CGI::Base for some more details.
+
+@end enumerate
+@unnumberedsubsec FUTURE DEVELOPMENTS
+
+Full pod documentation.
+
+None of this is perfect. All suggestions welcome.
+
+Test unix domain socket mechanism.
+
+Issue/problem - the handling of headers. Who outputs them and when? We
+have a sequence of: headers, body, end, read, headers, body, end, read
+etc. The problem is that a random piece of code can@'t tell if the
+headers have been output yet. A good solution will probably have to
+wait till we have better tools for writing HTML and we get away from
+pages of print statements.
+
+A method for setting PATH_INFO and PATH_TRANSLATED to meaningful values
+would be handy.
+
+@unnumberedsubsec AUTHOR, COPYRIGHT and ACKNOWLEDGEMENTS
+
+This code is Copyright (C) Tim Bunce 1995. All rights reserved.
+This program is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself.
+
+This module includes ideas from Pratap Pereira
+<pereira@@ee.eng.ohio-state.edu>, Jack Shirazi <js@@biu.icnet.uk> and
+others.
+
+IN NO EVENT SHALL THE AUTHORS BE LIABLE TO ANY PARTY FOR DIRECT,
+INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING OUT
+OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION (INCLUDING, BUT NOT
+LIMITED TO, LOST PROFITS) EVEN IF THE AUTHORS HAVE BEEN ADVISED OF
+THE POSSIBILITY OF SUCH DAMAGE.
+
+@unnumberedsubsec SEE ALSO
+
+CGI::Base, CGI::Request, URI::URL
+
+@unnumberedsubsec SUPPORT
+
+Please use comp.infosystems.www.* and comp.lang.perl.misc for support.
+Please do _NOT_ contact the author directly. I@'m sorry but I just don@'t
+have the time.
+

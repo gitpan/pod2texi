@@ -1,0 +1,106 @@
+@node AutoLoader, AutoSplit, AtExit, Module List
+@unnumbered load functions only on demand
+
+
+@unnumberedsec NAME
+
+AutoLoader - load functions only on demand
+
+@unnumberedsec SYNOPSIS
+
+@example
+package FOOBAR;
+use Exporter;
+use AutoLoader;
+@@ISA = qw(Exporter AutoLoader);
+@end example
+
+@unnumberedsec DESCRIPTION
+
+This module tells its users that functions in the FOOBAR package are
+to be autoloaded from @file{auto/$AUTOLOAD.al}.  See
+@samp{"Autoloading"}, @xref{(perl.info)perlsub,Perlsub}, and @samp{"Autoloading"}, @xref{AutoSplit,AutoSplit},.
+
+@unnumberedsubsec __END__
+
+The module using the autoloader should have the special marker __END__
+prior to the actual subroutine declarations. All code that is before the
+marker will be loaded and compiled when the module is used. At the marker,
+perl will cease reading and parsing. See also the AutoSplit module, a
+utility that automatically splits a module into a collection of files for
+autoloading.
+
+When a subroutine not yet in memory is called, the AUTOLOAD function
+attempts to locate it in a directory relative to the location of the module
+file itself. As an example, assume @file{POSIX.pm} is located in 
+@file{/usr/local/lib/perl5/POSIX.pm}. The autoloader will look for perl
+subroutines for this package in @file{/usr/local/lib/perl5/auto/POSIX/*.al}.
+The @code{.al} file is named using the subroutine name, sans package.
+
+@unnumberedsubsec Loading Stubs
+
+The AutoLoader module provide a special import() method that will
+load the stubs (from @file{autosplit.ix} file) of the calling module.
+These stubs are needed to make inheritance work correctly for class
+modules.
+
+Modules that inherit from AutoLoader should always ensure that they
+override the AutoLoader->import() method.  If the module inherit from
+Exporter like shown in the @emph{synopis} section this is already taken
+care of.  For class methods an empty import() would do nicely:
+
+@example
+package MyClass;
+use AutoLoader;        # load stubs
+@@ISA=qw(AutoLoader);
+sub import @{@}          # hide AutoLoader::import
+@end example
+
+You can also set up autoloading by importing the AUTOLOAD function
+instead of inheriting from AutoLoader:
+
+@example
+package MyClass;
+use AutoLoader;        # load stubs
+*AUTOLOAD = \&AutoLoader::AUTOLOAD;
+@end example
+
+@unnumberedsubsec Package Lexicals
+
+Package lexicals declared with my in the main block of a package using
+the AutoLoader will not be visible to auto-loaded functions, due to the
+fact that the given scope ends at the __END__ marker. A module using such
+variables as package globals will not work properly under the AutoLoader.
+
+The vars pragma (see @samp{"vars"}, @xref{(perl.info)perlmod,Perlmod},) may be used in such situations
+as an alternative to explicitly qualifying all globals with the package
+namespace. Variables pre-declared with this pragma will be visible to any
+autoloaded routines (but will not be invisible outside the package,
+unfortunately).
+
+@unnumberedsubsec AutoLoader vs. SelfLoader
+
+The AutoLoader is a counterpart to the SelfLoader module. Both delay
+the loading of subroutines, but the SelfLoader accomplishes the goal via
+the @code{__DATA__} marker rather than __END__. While this avoids the use of
+a hierarchy of disk files and the associated open/close for each routine
+loaded, the SelfLoader suffers a disadvantage in the one-time parsing of
+the lines after @code{__DATA__}, after which routines are cached. SelfLoader
+can also handle multiple packages in a file.
+
+AutoLoader only reads code as it is requested, and in many cases should be
+faster, but requires a machanism like AutoSplit be used to create the
+individual files.  The ExtUtils::MakeMaker will invoke AutoSplit
+automatically if the AutoLoader is used in a module source file.
+
+@unnumberedsec CAVEAT
+
+On systems with restrictions on file name length, the file corresponding to a
+subroutine may have a shorter name that the routine itself. This can lead to
+conflicting file names. The AutoSplit package warns of these potential
+conflicts when used to split a module.
+
+Calling foo($1) for the autoloaded function foo() might not work as
+expected, because the AUTOLOAD function of AutoLoader clobbers the
+regexp variables.  Invoking it as foo("$1") avoids this problem.
+

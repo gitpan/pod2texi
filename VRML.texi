@@ -1,0 +1,53 @@
+@node VRML, VRML/VRML1, URI/URL, Module List
+@unnumbered implements VRML primitives and extensions
+
+
+@unnumberedsec NAME
+
+VRML.pm - implements VRML primitives and extensions
+
+@unnumberedsec SYNOPSIS
+
+@example
+use VRML;
+@end example
+
+@example
+$vrml = new VRML (1.0);
+$vrml->browser(@'Live3D@');
+$vrml->cube(@'5 3 1@',@'-50 -10 0@',@'yellow@');
+$vrml->print;
+
+OR with the same result
+
+use VRML;
+@end example
+
+@example
+VRML
+->version(1.0)
+->browser(@'Live3D@')
+->cube(@'5 3 1@',@'-50 -10 0@',@'yellow@')
+->print;
+@end example
+
+@unnumberedsec DESCRIPTION
+
+@itemize @bullet
+@item $VRML::content_type; # for CGI scripts only
+
+content_type is @code{@'x-world/x-vrml@'} for VRML 1.0 and 1.1
+
+or @code{@'model/vrml@'} for VRML 2.0
+
+@end itemize
+@unnumberedsec SEE ALSO
+
+VRML::VRML1
+
+VRML::VRML1::Standard
+
+@unnumberedsec AUTHOR
+
+Hartmut Palm @file{<palm@@gfz-potsdam.de>}
+

@@ -1,0 +1,24 @@
+@node Filter/Util/Exec, Filter/cpp, Filter/Util/Call, Module List
+@unnumbered exec source filter
+
+
+@unnumberedsec NAME
+
+Filter::Util::Exec - exec source filter
+
+@unnumberedsec DESCRIPTION
+
+This module is provides the interface to allow the creation of @emph{Source
+Filters} which use a Unix coprocess.
+
+See @xref{Filter/exec,Filter/exec},, @xref{Filter/cpp,Filter/cpp}, and @xref{Filter/sh,Filter/sh}, for examples of
+the use of this module.
+
+@unnumberedsec AUTHOR
+
+Paul Marquess 
+
+@unnumberedsec DATE
+
+11th December 1995.
+

@@ -1,0 +1,139 @@
+@node HTTP/Daemon, HTTP/Date, HTML/TreeBuilder, Module List
+@unnumbered a simple http server class
+
+
+@unnumberedsec NAME
+
+HTTP::Daemon - a simple http server class
+
+@unnumberedsec SYNOPSIS
+
+@example
+use HTTP::Daemon;
+use HTTP::Status;
+@end example
+
+@example
+$d = new HTTP::Daemon;
+print "Please contact me at: <URL:", $d->url, ">\n";
+while ($c = $d->accept) @{
+    $r = $c->get_request;
+    if ($r) @{
+	  if ($r->method eq @'GET@' and $r->url->path eq "/xyzzy") @{
+            # this is *not* recommened practice
+	      $c->send_file_response("/etc/passwd");
+	  @} else @{
+	      $c->send_error(RC_FORBIDDEN)
+	  @}
+    @}
+    $c = undef;  # close connection
+@}
+@end example
+
+@unnumberedsec DESCRIPTION
+
+Instances of the @emph{HTTP::Daemon} class are HTTP/1.1 servers that
+listens on a socket for incoming requests. The @emph{HTTP::Daemon} is a
+sub-class of IO::Socket::INET, so you can do socket operations
+directly on it.
+
+The accept() method will return when a connection from a client is
+available. The returned value will be a reference to a object of the
+@emph{HTTP::Daemon::ClientConn} class which is another IO::Socket::INET
+subclass. Calling the get_request() method on this object will read
+data from the client and return an @emph{HTTP::Request} object reference.
+
+This HTTP daemon does not fork(2) for you.  Your application, i.e. the
+user of the @emph{HTTP::Daemon} is reponsible for forking if that is
+desirable.  Also note that the user is responsible for generating
+responses that conforms to the HTTP/1.1 protocol.  The
+@emph{HTTP::Daemon::ClientConn} provide some methods that make this easier.
+
+@unnumberedsec METHODS
+
+The following is a list of methods that are new (or enhanced) relative
+to the IO::Socket::INET base class.
+
+@table @asis
+@item $d = new HTTP::Daemon
+The object constructor takes the same parameters as the
+IO::Socket::INET constructor.  It can also be called without
+specifying any parameters. The daemon will then set up a listen queue
+of 5 connections and allocate some random port number.  A server
+that want to bind to some specific address on the standard HTTP port
+will be constructed like this:
+
+@example
+$d = new HTTP::Daemon
+      LocalAddr => @'www.someplace.com@',
+      LocalPort => 80;
+@end example
+
+@item $c = $d->accept
+Same as @emph{IO::Socket::accept} but will return an
+@emph{HTTP::Daemon::ClientConn} reference.  It will return undef if you
+have specified a timeout and no connection is made within that time.
+
+@item $d->url
+Returns a URL string that can be used to access the server root.
+
+@end table
+The @emph{HTTP::Daemon::ClientConn} is also a IO::Socket::INET
+subclass. Instances of this class are returned by the accept() method
+of the @emph{HTTP::Daemon}.  The following additional methods are
+provided:
+
+@table @asis
+@item $c->get_request
+Will read data from the client and turn it into a @emph{HTTP::Request}
+object which is then returned. Will return undef if reading of the
+request failed.  If it fails, then the @emph{HTTP::Daemon::ClientConn}
+object ($c) should be discarded.
+
+The $c->get_request method support HTTP/1.1 content bodies, including
+@emph{chunked} transfer encoding with footer and @emph{multipart/*} types.
+
+@item $c->send_status_line( [$code, [$mess, [$proto]]] )
+Sends the status line back to the client.
+
+@item $c->send_basic_header( [$code, [$mess, [$proto]]] )
+Sends the status line and the "Date:" and "Server:" headers back to
+the client.
+
+@item $c->send_response( [$res] )
+Takes a @emph{HTTP::Response} object as parameter and send it back to the
+client as the response.
+
+@item $c->send_redirect( $loc, [$code, [$entity_body]] )
+Sends a redirect response back to the client.  The location ($loc) can
+be an absolute or a relative URL. The $code must be one the redirect
+status codes, and it defaults to "301 Moved Permanently"
+
+@item $c->send_error( [$code, [$error_message]] )
+Send an error response back to the client.  If the $code is missing a
+"Bad Request" error is reported.  The $error_message is a string that
+is incorporated in the body of the HTML entity body.
+
+@item $c->send_file_response($filename)
+Send back a response with the specified $filename as content.  If the
+file happen to be a directory we will generate a HTML index for it.
+
+@item $c->send_file($fd);
+Copies the file back to the client.  The file can be a string (which
+will be interpreted as a filename) or a reference to a glob.
+
+@item $c->daemon
+Return a reference to the corresponding @emph{HTTP::Daemon} object.
+
+@end table
+@unnumberedsec SEE ALSO
+
+@xref{IO/Socket,IO/Socket},, @xref{Apache,Apache},
+
+@unnumberedsec COPYRIGHT
+
+Copyright 1996, Gisle Aas
+
+This library is free software; you can redistribute it and/or
+modify it under the same terms as Perl itself.
+

@@ -1,0 +1,446 @@
+@node Mail/Folder, Mail/Folder/Emaul, Mail/Field, Module List
+@unnumbered A folder-independant interface to email folders.
+
+
+@unnumberedsec NAME
+
+Mail::Folder - A folder-independant interface to email folders.
+
+@strong{WARNING: This code is in alpha release. Expect the interface to change}
+
+@unnumberedsec SYNOPSIS
+
+@code{use Mail::Folder;}
+
+@unnumberedsec DESCRIPTION
+
+This base class, and it@'s subclasses provide an object-oriented
+interface to email folders independant of the underlying folder
+implementation.
+
+There are currently two folder interfaces provided with this package:
+
+@table @asis
+@item Mail::Folder::Emaul
+@itemx Mail::Folder::Mbox
+@end table
+Here@'s a snippet of code that retrieves the third message from a
+mythical emaul folder and outputs it to stdout:
+
+@example
+use Mail::Folder::Emaul;
+@end example
+
+@example
+$folder = new Mail::Folder(@'emaul@', "mythicalfolder");
+$message = $folder->get_message(3);
+$message->print(\*STDOUT);
+$folder->close;
+@end example
+
+@unnumberedsec METHODS
+
+@unnumberedsubsec new([%options])
+
+@unnumberedsubsec new($folder_name [, %options])
+
+Create a new, empty @strong{Mail::Folder} object.  If @code{$folder_name} is
+specified, then the open method will be automatically called with
+that argument.
+
+Options are specified as hash items using key and value pairs.
+Currently, the only builtin option is @code{Create}, which is used by
+open.
+
+@unnumberedsubsec open($folder_name)
+
+Open the given folder and populate internal data structures with
+information about the messages in the folder.  If the @code{Create} option
+is set, then the folder will be created if it does not already exist.
+
+The readonly attribute will be set if the underlying folder interface
+determines that the folder is readonly.
+
+@unnumberedsubsec close
+
+Perform any housecleaning to affect a @'closing@' of the folder.  It
+does not perform an implicit sync.  Make sure you do a sync
+before the close if you want the pending deletes, appends, updates,
+and the like to be performed on the folder.
+
+@unnumberedsubsec sync
+
+Synchronize the folder with the internal data structures.  The folder
+interface will process deletes, updates, appends, refiles, and dups.
+It also reads in any new messages that have arrived in the folder
+since the last time it was either opened or synced.
+
+@unnumberedsubsec pack
+
+For folder formats that may have holes in the message number sequence
+(like mh) this will rename the files in the folder so that there are
+no gaps in the message number sequence.  For folder formats that won@'t
+have these holes (like mbox) it does nothing.
+
+@unnumberedsubsec get_message($msg_number)
+
+Retrieve a message.  Returns a reference to a @strong{Mail::Internet} object.
+
+@unnumberedsubsec get_header($msg_number)
+
+Retrieve a message header.  Returns a reference to a @strong{Mail::Internet} object.
+
+@unnumberedsubsec append_message($message_ref)
+
+Add a message to a folder.  Given a reference to a @strong{Mail::Internet}
+object, append it to the end of the folder.  The result is not
+committed to the original folder until a sync is performed.
+
+@unnumberedsubsec update_message($msg_number, $message_ref)
+
+Replaces the message identified by @code{$msg_number} with the contents of
+the message in reference to a @strong{Mail::Internet} object $message_ref.
+The result is not committed to the original folder until a sync is
+performed.
+
+@unnumberedsubsec refile($msg_number, $folder_ref)
+
+Moves a message from one folder to another.  Note that this method
+uses @code{delete_message} and @code{append_message} so the changes will show
+up in the folder objects, but will need a syncs performed in order
+for the changes to show up in the actual folders.
+
+@unnumberedsubsec dup($msg_number, $folder_ref)
+
+Copies a message to a folder.  Works like @code{refile}, but doesn@'t
+delete the original message.  Note that this method uses
+@code{append_message} so the change will show up in the folder object, but
+will need a sync performed in order for the change to show up in
+the actual folder.
+
+@unnumberedsubsec init
+
+This is a stub entry called by new.  The primary purpose is to
+provide a method for subclasses to override for initialization to be
+performed at constructor time.  It is called after the object members
+variables have been initialized and before the optional call to
+open.  The new method will return undef if the init method
+returns @code{0}.
+
+@unnumberedsubsec delete_message($msg_number)
+
+Mark a message for deletion.  The actual deletion will be done by the
+sync method.  The actual delete in the original folder is not
+performed until a sync is performed.
+
+@unnumberedsubsec message_list
+
+Returns a list of the message numbers in the folder.
+
+@unnumberedsubsec first_message
+
+Returns the message number of the first message in the folder.
+
+@unnumberedsubsec last_message
+
+Returns the message number of the last message in the folder.
+
+@unnumberedsubsec next_message($msg_number)
+
+Returns the message number of the next message in the folder relative
+to @code{$msg_number}.  It returns @code{0} is there is no next message
+(ie. at the end of the folder).
+
+@unnumberedsubsec prev_message($msg_number)
+
+Returns the message number of the previous message in the folder
+relative to @code{$msg_number}.  It returns @code{0} is there is no previous
+message (ie. at the beginning of the folder).
+
+@unnumberedsubsec first_labeled_message($label)
+
+Returns the message number of the first message in the folder that has
+the label $label associated with it.  Returns @code{0} is there are no
+messages with the given label.
+
+@unnumberedsubsec first_labeled_message($label)
+
+Returns the message number of the last message in the folder that has
+the label $label associated with it.  Returns @code{0} if there are no
+messages with the given label.
+
+@unnumberedsubsec next_labeled_message($msg_number, $label)
+
+Returns the message number of the next message (relative to
+@code{$msg_number}) in the folder that has the label @code{$label} associated
+with it.  It returns @code{0} is there is no next message with the given
+label.
+
+@unnumberedsubsec prev_labeled_message($msg_number, $label)
+
+Returns the message number of the previous message (relative to
+@code{$msg_number}) in the folder that has the label @code{$label} associated
+with it.  It returns @code{0} is there is no previous message with the
+given label.
+
+@unnumberedsubsec current_message
+
+@unnumberedsubsec current_message($msg_number)
+
+When called with no arguments returns the message number of the
+current message in the folder.  When called with an argument set the
+current message number for the folder to the value of the argument.
+
+For folder mechanisms that provide persistant storage of the current
+message, the underlying folder interface will update that storage.
+For those that don@'t changes to current_message will be affect
+while the folder is open.
+
+@unnumberedsubsec sort($func_ref)
+
+Returns a sorted list of messages.  It works conceptually similar to
+the regular perl sort.  The @code{$func_ref} that is passed to sort
+must be a reference to a function.  The function will be passed two
+@strong{Mail::Internet} message references containing only the headers and
+it must return an integer less than, equal to, or greater than 0,
+depending on how the elements of the array are to be ordered.
+
+@unnumberedsubsec select($func_ref)
+
+Returns a list of message numbers that match a set of criteria.  The
+method is passed a reference to a function that is used to determine
+the match criteria.  The function will be passed a reference to a
+@strong{Mail::Internet} message object containing only a header.
+
+@unnumberedsubsec add_label($msg_number, $label)
+
+Associates @code{$label} with @code{$msg_number}.  The label must have a
+length > 0 and should be a printable string, although there are
+currently no requirements for this.
+
+@code{add_label} will return @code{0} if @code{$label} is of zero length,
+otherwise it returns 1.
+
+The persistant storage of labels is dependant on the underlying folder
+interface.  Some folder interfaces may not support arbitrary labels.
+In this case, the labels will not exist when the folder is reopened.
+
+There are a few standard labels that have implied meaning.  Unless
+stated, these labels are not actually acted on my the module
+interface, rather represent a standard set of labels for MUAs to use.
+
+@itemize @bullet
+@item deleted
+
+This is used by the @code{delete_message} and sync to process the
+deletion of messages.  These will not be reflected in any persistant
+storage of message labels.
+
+@item edited
+
+This tag is added by update_message to reflect that the message has
+been altered.  This behaviour may go away.
+
+@item seen
+
+This means that the message has been viewed by the user.  This should
+only be set by MUAs that present the entire message body to the user.
+
+@item filed
+@item replied
+@item forwarded
+@item printed
+@end itemize
+@unnumberedsubsec delete_label($msg_number, $label)
+
+
+Deletes the association of @code{$label} with @code{$msg_number}.
+
+Returns @code{0} if the label @code{$label} wasn@'t associated with
+@code{$msg_number}, otherwise returns a 1.
+
+@unnumberedsubsec clear_label($label)
+
+Deletes the association of @code{$label} for all of the messages in the
+folder.
+
+Returns the quantity of messages that were associated with the label
+before they were cleared.
+
+@unnumberedsubsec label_exists($msg_number, $label)
+
+Returns 1 if the label @code{$label} is associated with @code{$msg_number}
+otherwise returns @code{0}.
+
+@unnumberedsubsec list_labels($msg_number)
+
+Returns a list of the labels that are associated with @code{$msg_number}.
+
+@unnumberedsubsec list_all_labels
+
+Returns a list of all the labels that are associated with the messages
+in the folder.
+
+@unnumberedsubsec select_label($label)
+
+Returns a list of message numbers that have the given label @code{$label}
+associated with them.
+
+@unnumberedsubsec foldername
+
+Returns the name of the folder that the object has open.
+
+@unnumberedsubsec message_exists($msg_number)
+
+Returns 1 if the folder object contains a reference for
+@code{$msg_number}, otherwise returns @code{0}.
+
+@unnumberedsubsec set_readonly
+
+Sets the @code{readonly} attribute for the folder.  This will cause the
+sync command to not perform any updates to the actual folder.
+
+@unnumberedsubsec is_readonly
+
+Returns 1 if the @code{readonly} attribute for the folder is set,
+otherwise returns @code{0}.
+
+@unnumberedsubsec get_option($option)
+
+Returns the setting for the given option.  Returns undef if the
+option does not exist.
+
+@unnumberedsubsec set_option($option, $value)
+
+Set @code{$option} to $value.
+
+@unnumberedsec WRITING A FOLDER INTERFACE
+
+The start of a new folder interface module should start with something
+along the lines of the following chunk of code:
+
+@example
+package Mail::Folder::YOUR_FOLDER_TYPE;
+@@ISA = qw(Mail::Folder);
+use Mail::Folder;
+@end example
+
+@example
+Mail::Folder::register_folder_type(Mail::Folder::YOUR_FOLDER_TYPE,
+				       @'your_folder_type_name@');
+@end example
+
+In general, writing a folder interface consists of writing a set of
+methods that overload some of the native ones in @code{Mail::Folder}.
+Below is a list of the methods and specific tasks that each must
+perform.  See the code of the folder interfaces provides with the
+package for specific examples.
+
+If you go about writing a folder interface and find that something is
+missing from this documentation, please let me know.
+
+@unnumberedsubsec open
+
+@itemize @bullet
+@item Call the superclass new method.
+@item Call set_readonly if folder isn@'t writable.
+@item Call @code{remember_message} for each message in the folder.
+@item Call sort_message_list.
+@item Initialize current_message.
+@item Initialize any message labels from the folder@'s persistant storage.
+@end itemize
+@unnumberedsubsec close
+
+@itemize @bullet
+@item Call the superclass close method.
+@end itemize
+@unnumberedsubsec sync
+
+@itemize @bullet
+@item Call the superclass sync method.
+@item Lock the folder.
+@item Absorb any new messages
+@item Perform any pending deletes and updates.
+@item Update the folder@'s persistant storage of current message.
+@item Update the folder@'s persistant storage of message labels.
+@item Unlock the folder.
+@end itemize
+@unnumberedsubsec pack
+
+@itemize @bullet
+@item Call the superclass pack method.
+@item Perform the guts of the pack
+@item Renumber the @code{Messages} member of $self.
+@item Call sort_message_list
+@item Don@'t forget to reset current_message based on the renumbering.
+@end itemize
+@unnumberedsubsec get_header
+
+@itemize @bullet
+@item Call the superclass get_header method.
+@item Return the cached entry if it exists.
+@item Extract the header into a @code{Mail::Internet} object.
+@item Cache it.
+@end itemize
+@unnumberedsubsec get_message
+
+@itemize @bullet
+@item Call the superclass get_message method.
+@item Extract the message into a @code{Mail::Internet} object.
+@end itemize
+@unnumberedsubsec update_message
+
+@itemize @bullet
+@item Call the superclass update_message method.
+@item Replace the specified message in the working copy of the folder.
+@end itemize
+@unnumberedsubsec create
+
+@itemize @bullet
+@item Create a folder in a manner specific to the folder interface.
+@end itemize
+@unnumberedsubsec init
+
+
+This isn@'t really a method that needs to be overloaded.  It is a
+method that is called by new to perform any initialization specific
+to the folder interface.  For example of a typical use, see the
+init routine in Mail::Folder::Mbox.
+
+@unnumberedsec FOLDER INTERFACE METHODS
+
+These routines are intended for use by implementers of finder
+interfaces.
+
+@unnumberedsubsec register_folder_type($class, $type)
+
+Registers a folder interface with Mail::Folder.
+
+@unnumberedsubsec sort_message_list
+
+This is used to resort the internal sorted list of messages.  It needs
+to be called whenever the list of messages is changed.  It@'s a
+separate routine to allow large updates to the list of messages (like
+during an open) with only one trailing call to
+sort_message_list.
+
+@unnumberedsubsec cache_header($msg_number, $header_ref)
+
+Associates @code{$header_ref} with @code{$msg_number} in the object@'s internal
+header cache.
+
+@unnumberedsubsec invalidate_header($msg_number)
+
+Clobbers the header cache entry for @code{$msg_number}.
+
+@unnumberedsec AUTHOR
+
+Kevin Johnson <@file{kjj@@primenet.com}>
+
+@unnumberedsec COPYRIGHT
+
+Copyright (c) 1996 Kevin Johnson <kjj@@primenet.com>.
+
+All rights reserved. This program is free software; you can
+redistribute it and/or modify it under the same terms as Perl itself.
+

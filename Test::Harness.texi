@@ -1,0 +1,104 @@
+@node Test/Harness, Text/Abbrev, Term/ReadLine, Module List
+@unnumbered run perl standard test scripts with statistics
+
+
+@unnumberedsec NAME
+
+Test::Harness - run perl standard test scripts with statistics
+
+@unnumberedsec SYNOPSIS
+
+use Test::Harness;
+
+runtests(@@tests);
+
+@unnumberedsec DESCRIPTION
+
+Perl test scripts print to standard output @code{"ok N"} for each single
+test, where @code{N} is an increasing sequence of integers. The first line
+output by a standard test script is @code{"1..M"} with @code{M} being the
+number of tests that should be run within the test
+script. Test::Harness::runtests(@@tests) runs all the testscripts
+named as arguments and checks standard output for the expected
+@code{"ok N"} strings.
+
+After all tests have been performed, runtests() prints some
+performance statistics that are computed by the Benchmark module.
+
+@unnumberedsubsec The test script output
+
+Any output from the testscript to standard error is ignored and
+bypassed, thus will be seen by the user. Lines written to standard
+output containing @code{/^(not\s+)?ok\b/} are interpreted as feedback for
+runtests().  All other lines are discarded.
+
+It is tolerated if the test numbers after ok are omitted. In this
+case Test::Harness maintains temporarily its own counter until the
+script supplies test numbers again. So the following test script
+
+@example
+print <<END;
+1..6
+not ok
+ok
+not ok
+ok
+ok
+END
+@end example
+
+will generate 
+
+@example
+FAILED tests 1, 3, 6
+Failed 3/6 tests, 50.00% okay
+@end example
+
+The global variable $Test::Harness::verbose is exportable and can be
+used to let runtests() display the standard output of the script
+without altering the behavior otherwise.
+
+@unnumberedsec EXPORT
+
+@code{&runtests} is exported by Test::Harness per default.
+
+@unnumberedsec DIAGNOSTICS
+
+@table @asis
+@item @code{All tests successful.\nFiles=%d,  Tests=%d, %s}
+If all tests are successful some statistics about the performance are
+printed.
+
+@item @code{FAILED tests %s\n\tFailed %d/%d tests, %.2f%% okay.}
+For any single script that has failing subtests statistics like the
+above are printed.
+
+@item @code{Test returned status %d (wstat %d)}
+Scripts that return a non-zero exit status, both @code{$? >> 8} and $? are
+printed in a message similar to the above.
+
+@item @code{Failed 1 test, %.2f%% okay. %s}
+@itemx @code{Failed %d/%d tests, %.2f%% okay. %s}
+If not all tests were successful, the script dies with one of the
+above messages.
+
+@end table
+@unnumberedsec SEE ALSO
+
+See @xref{Benchmark,Benchmark}, for the underlying timing routines.
+
+@unnumberedsec AUTHORS
+
+Either Tim Bunce or Andreas Koenig, we don@'t know. What we know for
+sure is, that it was inspired by Larry Wall@'s TEST script that came
+with perl distributions for ages. Current maintainer is Andreas
+Koenig.
+
+@unnumberedsec BUGS
+
+Test::Harness uses $^X to determine the perl binary to run the tests
+with. Test scripts running via the shebang (@code{#!}) line may not be
+portable because $^X is not consistent for shebang scripts across
+platforms. This is no problem when Test::Harness is run with an
+absolute path to the perl binary or when $^X can be found in the path.
+

@@ -1,0 +1,79 @@
+@node Math/Brent, Math/Complex, Math/BigInteger, Module List
+@unnumberedsec SYNOPSIS
+
+@example
+use Math::Brent qw(FindMinima BracketMinimum Brent Minimise1D);
+my ($x,$y)=Minimise1D($guess,$scale,\&func,$tol,$itmax);
+my ($ax,$bx,$cx,$fa,$fb,$fc)=BracketMinimum($ax,$bx,$cx,\&func);
+my ($x,$y)=Brent($ax,$bx,$cx,\&func,$tol,$itmax);
+@end example
+
+@unnumberedsec DESCRIPTION
+
+This is an implementation of Brents method for One-Dimensional
+minimisation of a function without using derivatives. This algorithm
+cleverly uses both the Golden Section Search and parabolic
+interpolation.
+
+The main function @strong{Brent}, given a function reference @strong{\&func} and a
+bracketing triplet of abcissas @strong{$ax}, @strong{$bx}, @strong{$cx} (such that
+@strong{$bx} is between @strong{$ax} and @strong{$cx} and @strong{func($bx)} is less than both
+@strong{func($ax)} and @strong{func($cx)}), isolates the minimum to a fractional
+precision of about @strong{$tol} using Brents method. A maximum number of
+iterations @strong{$itmax} may be specified for this search - it defaults to
+100. Returned is an array consisting of the abcissa of the minum and
+the function value there.
+
+The function @strong{BracketMinimum}, given a function @strong{\&func} and
+distinct initial points @strong{$ax} and @strong{$bx} searches in the downhill
+direction (defined by the function as evaluated at the initial points)
+and returns an array of the three points @strong{$ax}, @strong{$bx}, @strong{$cx} which
+bracket the minimum of the function and the function values at those
+points.
+
+The function @strong{Minimise1D} provides a simple interface to the above
+two routines. Given a function @strong{\&func}, an initial guess for its
+minimum, and its scaling (@strong{$guess},@strong{$scale}) this routine isolates
+the minimum to a fractional precision of about @strong{$tol} using Brents
+method. A maximum number of iterations @strong{$itmax} may be specified for
+this search - it defaults to 100. It returns an array consisting of
+the abcissa of the minum and the function value there.
+
+@unnumberedsec EXAMPLE
+
+@example
+use Math::Brent qw(Minimise1D);
+sub func @{
+  my $x=shift ;
+  return $x ? sin($x)/$x: 1;
+@}
+   my ($x,$y)=Minimise1D(1,1,\&func,1e-7);
+   print "Minimum is func($x)=$y\n";
+@end example
+
+produces the output
+
+@example
+Minimum is func(5.236068)=-.165388470697432
+
+=head1 HISTORY
+@end example
+
+$Log: Brent.pm,v $
+Revision 1.1  1995/12/26 10:06:36  willijar
+Initial revision
+
+@unnumberedsec BUGS
+
+Let me know of any problems.
+
+@unnumberedsec AUTHOR
+
+John A.R. Williams <J.A.R.Williams@@aston.ac.uk>
+
+@unnumberedsec SEE ALSO
+
+"Numerical Recipies: The Art of Scientific Computing"
+W.H. Press, B.P. Flannery, S.A. Teukolsky, W.T. Vetterling.
+Cambridge University Press. ISBN 0 521 30811 9.
+

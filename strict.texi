@@ -1,0 +1,97 @@
+@node strict, subs, sigtrap, Module List
+@unnumbered Perl pragma to restrict unsafe constructs
+
+
+@unnumberedsec NAME
+
+strict - Perl pragma to restrict unsafe constructs
+
+@unnumberedsec SYNOPSIS
+
+@example
+use strict;
+@end example
+
+@example
+use strict "vars";
+use strict "refs";
+use strict "subs";
+use strict "untie";
+@end example
+
+@example
+use strict;
+no strict "vars";
+@end example
+
+@unnumberedsec DESCRIPTION
+
+If no import list is supplied, all possible restrictions are assumed.
+(This is the safest mode to operate in, but is sometimes too strict for
+casual programming.)  Currently, there are four possible things to be
+strict about:  "subs", "vars", "refs", and "untie".
+
+@table @asis
+@item @code{strict refs}
+This generates a runtime error if you 
+use symbolic references (see @xref{(perl.info)perlref,Perlref},).
+
+@example
+use strict @'refs@';
+$ref = \$foo;
+print $$ref;	# ok
+$ref = "foo";
+print $$ref;	# runtime error; normally ok
+@end example
+
+@item @code{strict vars}
+This generates a compile-time error if you access a variable that wasn@'t
+localized via @code{my()} or wasn@'t fully qualified.  Because this is to avoid
+variable suicide problems and subtle dynamic scoping issues, a merely
+local() variable isn@'t good enough.  See @samp{my}, @xref{(perl.info)perlfunc,Perlfunc}, and
+@samp{local}, @xref{(perl.info)perlfunc,Perlfunc},.
+
+@example
+use strict @'vars@';
+$X::foo = 1;	 # ok, fully qualified
+my $foo = 10;	 # ok, my() var
+local $foo = 9;	 # blows up
+@end example
+
+The local() generated a compile-time error because you just touched a global
+name without fully qualifying it.
+
+@item @code{strict subs}
+This disables the poetry optimization, generating a compile-time error if
+you try to use a bareword identifier that@'s not a subroutine, unless it
+appears in curly braces or on the left hand side of the "=>" symbol.
+
+@example
+use strict @'subs@';
+$SIG@{PIPE@} = Plumber;   	# blows up
+$SIG@{PIPE@} = "Plumber"; 	# just fine: bareword in curlies always ok
+$SIG@{PIPE@} = \&Plumber; 	# preferred form
+@end example
+
+@item @code{strict untie}
+This generates a runtime error if any references to the object returned
+by tie (or tied) still exist when untie is called. Note that
+to get this strict behaviour, the @code{use strict @'untie@'} statement must
+be in the same scope as the untie. See @samp{tie}, @xref{(perl.info)perlfunc,Perlfunc},,
+@samp{untie}, @xref{(perl.info)perlfunc,Perlfunc},, @samp{tied}, @xref{(perl.info)perlfunc,Perlfunc}, and @samp{tied}, @xref{(perl.info)perltie,Perltie},.
+
+@example
+use strict @'untie@';
+$a = tie %a, @'SOME_PKG@';
+$b = tie %b, @'SOME_PKG@';
+$b = 0;
+tie %c, PKG;
+$c = tied %c;
+untie %a ;		# blows up, $a is a valid object reference.
+untie %b;		# ok, $b is not a reference to the object.
+untie %c ;		# blows up, $c is a valid object reference.
+@end example
+
+@end table
+See @samp{Pragmatic Modules}, @xref{(perl.info)perlmod,Perlmod},.
+

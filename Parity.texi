@@ -1,0 +1,61 @@
+@node Parity, Penguin/Easy, Pari, Module List
+@unnumbered Parity (mark/space) handling functions
+
+
+@unnumberedsec NAME
+
+String::Parity, setEvenParity, setOddParity, showParity, EvenBytes,
+OddBytes, isEvenParity, isOddParity - Parity (mark/space) handling functions
+
+@unnumberedsec SYNOPSIS
+
+@example
+use String::Parity;
+@end example
+
+@unnumberedsec DESCRIPTION
+
+@table @asis
+@item setEvenParity LIST
+Copies the elements of LIST to a new list and converts the new elements to
+strings of bytes with even parity. In array context returns the new list.
+In scalar context joins the elements of the new list into a single string
+and returns the string.
+
+@item setOddParity LIST
+Does the same as the setEvenParity function, but converts to strings with
+odd parity.
+
+@item showParity LIST
+Does the same as the setEvenParity function, but converts bytes with even
+parity to @'e@' and other bytes to @'o@'.
+
+@item EvenBytes LIST
+Returns the number of even parity bytes in the elements of LIST.
+
+@item OddBytes LIST
+Returns the number of odd parity bytes in the elements of LIST.
+
+@item isEvenParity LIST
+Returns TRUE if the LIST contains no byte with odd parity, FALSE otherwise.
+
+@item isOddParity LIST
+Returns TRUE if the LIST contains no byte with even parity, FALSE otherwise.
+
+@end table
+@unnumberedsec NOTES
+
+Don@'t use this module unless you have to communicate with some old device
+or protocol. Help the world and make your application 8 bit clean. Use the
+internationally standardized ISO-8859-1 character set.
+
+@unnumberedsec AUTHOR
+
+Winfried Koenig <win@@in.rhein-main.de>
+
+@example
+Copyright (c) 1995 Winfried Koenig. All rights reserved.
+This program is free software; you can redistribute it
+and/or modify it under the same terms as Perl itself.
+@end example
+

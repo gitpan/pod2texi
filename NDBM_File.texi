@@ -1,0 +1,26 @@
+@node NDBM_File, NNML/Server, Msql/RDBMS, Module List
+@unnumbered Tied access to ndbm files
+
+
+@unnumberedsec NAME
+
+NDBM_File - Tied access to ndbm files
+
+@unnumberedsec SYNOPSIS
+
+@example
+use NDBM_File;
+@end example
+
+@example
+tie(%h, @'NDBM_File@', @'Op.dbmx@', O_RDWR|O_CREAT, 0640);
+@end example
+
+@example
+untie %h;
+@end example
+
+@unnumberedsec DESCRIPTION
+
+See @samp{tie}, @xref{(perl.info)perlfunc,Perlfunc},
+

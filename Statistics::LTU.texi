@@ -1,0 +1,219 @@
+@node Statistics/LTU, Storable, Statistics/ChiSquare, Module List
+@unnumbered An implementation of Linear Threshold Units
+
+
+@unnumberedsec NAME
+
+Statistics::LTU -  An implementation of Linear Threshold Units
+
+@unnumberedsec SYNOPSIS
+
+@example
+use Statistics::LTU;
+@end example
+
+@example
+my $acr_ltu = new Statistics::LTU::ACR(3, 1);    # 3 attributes, scaled
+@end example
+
+@example
+$ltu->train([1,3,2],  $LTU_PLUS);
+$ltu->train([-1,3,0], $LTU_MINUS);
+...
+print "LTU looks like this:\n";
+$ltu->print;
+@end example
+
+@example
+print "[1,5,2] is in class ";
+if ($ltu->test([1,5,2]) > $LTU_THRESHOLD) @{ print "PLUS" @}
+	                                 else @{ print "MINUS" @};
+@end example
+
+@example
+$ltu->save("ACR.saved") or die "Save failed!";
+$ltu2 = restore Statistics::LTU("ACR.saved");
+@end example
+
+@unnumberedsec EXPORTS
+
+For readability, LTU.pm exports three scalar constants: $LTU_PLUS (+1),
+$LTU_MINUS (-1) and $LTU_THRESHOLD (0).
+
+@unnumberedsec DESCRIPTION
+
+Statistics::LTU defines methods for creating, destroying, training and
+testing Linear Threshold Units.  A linear threshold unit is a 1-layer
+neural network, also called a perceptron.  LTU@'s are used
+to learn classifications from examples.
+
+An LTU learns to distinguish between two classes based on the data
+given to it.  After training on a number of examples, the LTU can then
+be used to classify new (unseen) examples.  Technically, LTU@'s learn
+to distinguish two classes by fitting a hyperplane between examples; if
+the examples have n features, the hyperplane will have n dimensions.
+In general, the LTU@'s weights will converge to a define the separating
+hyperplane.
+
+The LTU.pm file defines an uninstantiable base class, LTU, and four
+other instantiable classes built on top of LTU.  The four 
+individual classes differs in the training rules used:
+
+@table @asis
+@item ACR - Absolute Correction Rule
+@itemx TACR - Thermal Absolute Correction Rule (thermal annealing)
+@itemx LMS - Least Mean Squares rule
+@itemx RLS - Recursive Least Squares rule
+@end table
+Each of these training rules behaves somewhat differently.  Exact
+details of how these work are beyond the scope of this document; see
+the additional documentation file (@file{ltu.doc}) for discussion.
+
+@unnumberedsec SCALARS
+
+$LTU_PLUS and $LTU_MINUS (+1 and -1, respectively) may be passed to the
+@strong{train} method.  $LTU_THRESHOLD (set to zero) may be used to compare
+values returned from the test method.
+
+@unnumberedsec METHODS
+
+Each LTU has the following methods:
+
+@table @asis
+@item @strong{new TYPE(n_features, scaling)}
+Creates an LTU of the given @code{TYPE}.  @code{TYPE} must be one of:
+
+@table @asis
+@item Statistics::LTU::ACR,
+@itemx Statistics::LTU::TACR,
+@itemx Statistics::LTU::LMS,   =item Statistics::LTU::RLS.  
+@end table
+@code{n_features} sets the number of attributes in the examples.  If @code{scaling}
+is 1, the LTU will automatically scale the input features to the range (-1,
++1).  For example:
+
+@example
+$ACR_ltu = new Statistics::LTU::ACR(5, 1);
+@end example
+
+creates an LTU that will train using the absolute correction rule.  It
+will have 5 variables and scale features automatically.
+
+@item copy
+Copies the LTU and returns the copy.
+
+@item destroy
+Destroys the LTU (undefines its substructures).  This method is kept
+for compatibility; it@'s probably sufficient simply to call
+@strong{undef($ltu)}.
+
+@item print
+Prints a human-readable description of the LTU, including the weights.
+
+@item save(filename)
+Saves the LTU to the file @emph{filename}.  All the weights and necessary
+permanent data are saved.  Returns 1 if the LTU was saved
+successfully, else 0.
+
+@item @strong{restore LTU(filename)}
+Static method.  Creates and returns a new LTU from @emph{filename}.
+The new LTU will be of the same type.
+
+@item test(instance)
+Tests the LTU on @emph{instance}, the instance vector, which must be a
+reference to an array.  Returns the raw (non-thresholded) result.
+A typical use of this is:
+
+@example
+if ($ltu->test($instance) >= $LTU_PLUS) @{
+   # instance is in class 1
+@} else @{
+   # instance is in class 2
+@}
+@end example
+
+@item @strong{correctly_classifies(instance, realclass)}
+Tests the LTU against an instance vector @emph{instance}, which must be a
+reference to an array.  @emph{realclass} must be a number.  Returns 1 if
+the LTU classifies @emph{instance} in the same class as @emph{realclass}.
+Technically: Returns 1 iff instance is on the @emph{realclass} side of the
+LTU@'s hyperplane.
+
+@item weights
+Returns a reference to a copy of the LTU@'s weights.
+
+@item set_origin_restriction(orig)
+Sets LTU@'s origin restriction to @emph{orig}, which should be 1 or 0.  If
+an LTU is origin-restricted, its hyperplane must pass through the
+origin (ie, so its intercept is zero).  This is usually used for
+preference predicates, whose classifications must be symmetrical.
+
+@item is_cycling(n)
+Returns 1 if the LTU@'s weights seem to be cycling.  This is a
+heuristic test, based on whether the LTU@'s weights have been pushed
+out in the past n training instances.  See comments with the code.
+
+@item version
+Returns the version of the LTU implementation.
+
+@end table
+In addition to the methods above, each of the four classes of LTU defines a
+@strong{train} method.  The @strong{train} method "trains" the LTU that an instance
+belongs in a particular class.  For each @strong{train} method, @emph{instance} must
+be a reference to an array of numbers, and value must be a number.  For
+convenience, two constants are defined: @code{$LTU_PLUS} and @code{$LTU_MINUS}, set
+to +1 and -1 respectively.  These can be given as arguments to the @strong{train}
+method.  A typical @strong{train} call looks like:
+
+@example
+$ltu->train([1,3,-5], $Statistics_LTU_PLUS);
+@end example
+
+which trains the LTU that the instance vector (1,3,-5) should 
+be in the PLUS class.  
+
+@itemize @bullet
+@item For ACR: 	@strong{train(instance, value)}
+
+Returns 1 iff the LTU already classified the instance correctly, else 0.
+
+@item For RLS: 	@strong{train(instance, value)}
+
+Returns undef.
+
+@item For LMS: 	@strong{train(instance, value, rho)}
+
+Returns 1 if the LTU already classified the @emph{instance} correctly,
+else 0.  @emph{Rho} determines how much the weights are adjusted on each
+training instance.  It must be a positive number.
+
+@item For TACR: 	@strong{train(instance, value, temperature, rate)}
+
+Uses the thermal perceptron (absolute correction) rule to train the
+specified linear threshold unit on a particular instance_vector.  The
+instance_vector is a vector of numbers; each number is one
+attribute. The desired_value should be either $LTU_PLUS (for positive
+instances) or $LTU_MINUS (for negative instances).  The @emph{temperature}
+and @emph{rate} must be floating point numbers.
+
+This method returns 1 if the linear threshold unit already classified
+the instance correctly, otherwise it returns 0.  The TACR rule only
+trains on instances that it does not already classify correctly.
+
+@end itemize
+@unnumberedsec AUTHOR
+
+fawcett@@nynexst.com (Tom Fawcett)
+
+LTU.pm is based on a C implementation by James Callan at the
+University of Massachusetts.  His version has been in use for a long
+time, is stable, and seems to be bug-free.  This Perl module was
+created by Tom Fawcett, and any bugs you find were probably introduced
+in translation.  Send bugs, comments and suggestions to 
+@emph{fawcett@@nynexst.com}.
+
+@unnumberedsec BUGS
+
+None known.  This Perl module has been moderately exercised but I
+don@'t guarantee anything.
+

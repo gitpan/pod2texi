@@ -1,0 +1,107 @@
+@node HTML/Parser, HTML/QuickCheck, HTML/Parse, Module List
+@unnumbered SGML parser class
+
+
+@unnumberedsec NAME
+
+HTML::Parser - SGML parser class
+
+@unnumberedsec SYNOPSIS
+
+@example
+require HTML::Parser;
+$p = HTML::Parser->new;  # should really a be subclass
+$p->parse($chunk1);
+$p->parse($chunk2);
+#...
+$p->eof;                 # signal end of document
+@end example
+
+@example
+# Parse directly from file
+$p->parse_file("foo.html");
+# or
+open(F, "foo.html") || die;
+$p->parse_file(\*F);
+@end example
+
+@unnumberedsec DESCRIPTION
+
+The @code{HTML::Parser} will tokenize a HTML document when the $p->parse()
+method is called.  The document to parse can be supplied in arbitrary
+chunks.  Call $p->eof() the end of the document to flush any remaining
+text.  The return value from parse() is a reference to the parser
+object.
+
+The $p->parse_file() method can be called to parse text from a file.
+The argument can be a filename or an already opened file handle. The
+return value from parse_file() is a reference to the parser object.
+
+In order to make the parser do anything interesting, you must make a
+subclass where you override one or more of the following methods as
+appropriate:
+
+@table @asis
+@item $self->declaration($decl)
+This method is called when a @emph{markup declaration} has been
+recognized.  For typical HTML documents, the only declaration you are
+likely to find is <!DOCTYPE ...>.  The initial "<!" and ending ">" is
+not part of the string passed as argument.  Comments are removed and
+entities have @strong{not} been expanded yet.
+
+@item $self->start($tag, $attr, $attrseq, $origtext)
+This method is called when a complete start tag has been recognized.
+The first argument is the tag name (in lower case) and the second
+argument is a reference to a hash that contain all attributes found
+within the start tag.  The attribute keys are converted to lower case.
+Entities found in the attribute values are already expanded.  The
+third argument is a reference to an array with the lower case
+attribute keys in the original order.  The fourth argument is the
+original HTML text.
+
+@item $self->end($tag)
+This method is called when an end tag has been recognized.  The
+argument is the lower case tag name.
+
+@item $self->text($text)
+This method is called when plain text in the document is recognized.
+The text is passed on unmodified and might contain multiple lines.
+Note that for efficiency reasons entities in the text are @strong{not}
+expanded.  You should call HTML::Entities::decode($text) before you
+process the text any further.
+
+@item $self->comment($comment)
+This method is called as comments are recognized.  The leading and
+trailing "--" sequences have been stripped off the comment text.
+
+@end table
+The default implementation of these methods does nothing, @emph{i.e.,} the
+tokens are just ignored.
+
+There is really nothing in the basic parser that is HTML specific, so
+it is likely that the parser can parse many kinds of SGML documents,
+but SGML has many obscure features (not implemented by this module)
+that prevent us from renaming this module as @code{SGML::Parse}.
+
+@unnumberedsec BUGS
+
+You can instruct the parser to parse comments the way Netscape does it
+by calling the netscape_buggy_comment() method with a TRUE argument.
+This means that comments will always be terminated by the first
+occurence of "-->".
+
+@unnumberedsec SEE ALSO
+
+@xref{HTML/TreeBuilder,HTML/TreeBuilder},, @xref{HTML/HeadParser,HTML/HeadParser},, @xref{HTML/Entities,HTML/Entities},
+
+@unnumberedsec COPYRIGHT
+
+Copyright 1996 Gisle Aas. All rights reserved.
+
+This library is free software; you can redistribute it and/or
+modify it under the same terms as Perl itself.
+
+@unnumberedsec AUTHOR
+
+Gisle Aas <aas@@sn.no>
+

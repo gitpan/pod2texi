@@ -1,0 +1,94 @@
+@node AutoSplit, B/Xref, AutoLoader, Module List
+@unnumbered split a package for autoloading
+
+
+@unnumberedsec NAME
+
+AutoSplit - split a package for autoloading
+
+@unnumberedsec SYNOPSIS
+
+@example
+perl -e @'use AutoSplit; autosplit_lib_modules(@@ARGV)@' ...
+@end example
+
+@example
+use AutoSplit; autosplit($file, $dir, $keep, $check, $modtime);
+@end example
+
+for perl versions 5.002 and later:
+
+@example
+perl -MAutoSplit -e @'autosplit($ARGV[0], $ARGV[1], $k, $chk, $modtime)@' ...
+@end example
+
+@unnumberedsec DESCRIPTION
+
+This function will split up your program into files that the AutoLoader
+module can handle. It is used by both the standard perl libraries and by
+the MakeMaker utility, to automatically configure libraries for autoloading.
+
+The @code{autosplit} interface splits the specified file into a hierarchy 
+rooted at the directory @code{$dir}. It creates directories as needed to reflect
+class hierarchy, and creates the file @file{autosplit.ix}. This file acts as
+both forward declaration of all package routines, and as timestamp for the
+last update of the hierarchy.
+
+The remaining three arguments to @code{autosplit} govern other options to the
+autosplitter. If the third argument, @emph{$keep}, is false, then any pre-existing
+@code{.al} files in the autoload directory are removed if they are no longer
+part of the module (obsoleted functions). The fourth argument, @emph{$check},
+instructs @code{autosplit} to check the module currently being split to ensure
+that it does include a use specification for the AutoLoader module, and
+skips the module if AutoLoader is not detected. Lastly, the @emph{$modtime}
+argument specifies that @code{autosplit} is to check the modification time of the
+module against that of the @code{autosplit.ix} file, and only split the module
+if it is newer.
+
+Typical use of AutoSplit in the perl MakeMaker utility is via the command-line
+with:
+
+@example
+perl -e @'use AutoSplit; autosplit($ARGV[0], $ARGV[1], 0, 1, 1)@'
+@end example
+
+Defined as a Make macro, it is invoked with file and directory arguments;
+@code{autosplit} will split the specified file into the specified directory and
+delete obsolete @code{.al} files, after checking first that the module does use
+the AutoLoader, and ensuring that the module is not already currently split
+in its current form (the modtime test).
+
+The @code{autosplit_lib_modules} form is used in the building of perl. It takes
+as input a list of files (modules) that are assumed to reside in a directory
+@strong{lib} relative to the current directory. Each file is sent to the 
+autosplitter one at a time, to be split into the directory @strong{lib/auto}.
+
+In both usages of the autosplitter, only subroutines defined following the
+perl special marker __END__ are split out into separate files. Some
+routines may be placed prior to this marker to force their immediate loading
+and parsing.
+
+@unnumberedsec CAVEATS
+
+Currently, AutoSplit cannot handle multiple package specifications
+within one file.
+
+@unnumberedsec DIAGNOSTICS
+
+AutoSplit will inform the user if it is necessary to create the top-level
+directory specified in the invocation. It is preferred that the script or
+installation process that invokes AutoSplit have created the full directory
+path ahead of time. This warning may indicate that the module is being split
+into an incorrect path.
+
+AutoSplit will warn the user of all subroutines whose name causes potential
+file naming conflicts on machines with drastically limited (8 characters or
+less) file name length. Since the subroutine name is used as the file name,
+these warnings can aid in portability to such systems.
+
+Warnings are issued and the file skipped if AutoSplit cannot locate either
+the __END__ marker or a "package Name;"-style specification.
+
+AutoSplit will also emit general diagnostics for inability to create
+directories or files.
+

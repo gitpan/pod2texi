@@ -1,0 +1,110 @@
+@node HTML/LinkExtor, HTML/Parse, HTML/HeadParser, Module List
+@unnumbered Extract links from an HTML document
+
+
+@unnumberedsec NAME
+
+HTML::LinkExtor - Extract links from an HTML document
+
+@unnumberedsec SYNPOSIS
+
+@example
+require HTML::LinkExtor;
+$p = HTML::LinkExtor->new(\&cb, "http://www.sn.no/");
+sub cb @{
+    my($tag, %links);
+    print "$tag @@@{[%links]@}\n";
+@}
+$p->parse_file("index.html");
+@end example
+
+@unnumberedsec DESCRIPTION
+
+The @emph{HTML::LinkExtor} (link extractor) is an HTML parser that takes a
+callback routine as parameter.  This routine is then called as the
+various link attributes are recognized.
+
+The @emph{HTML::LinkExtor} is a subclass of @emph{HTML::Parser}. This means
+that the document should be given to the parser by calling the
+$p->parse() or $p->parse_file() methods.
+
+@unnumberedsubsec $p = HTML::LinkExtor->new([$callback[, $base]])
+
+The constructor takes two optional argument. The first is a reference
+to a callback routine. It will be called as links are found. If a
+callback is not provided, then links are just accumulated internally
+and can be retrieved by calling the $p->links() method. The $base is
+an optional base URL used to absolutize all URLs found.
+
+The callback is called with the lowercase tag name as first argument,
+and then all link attributes as separate key/value pairs.  All
+non-link attributes are removed.
+
+@unnumberedsubsec @@links = $p->links
+
+Return links found in the document as an array.  Each array element
+contains an anonymous array with the follwing values:
+
+@example
+[$tag, $attr => $url1, $attr2 => $url2,...]
+@end example
+
+Note that $p->links will always be empty if a callback routine was
+provided when the @xref{HTML/LinkExtor,HTML/LinkExtor}, was created.
+
+@unnumberedsec EXAMPLE
+
+This is an example showing how you can extract links as a document
+is received using LWP:
+
+@example
+use LWP::UserAgent;
+use HTML::LinkExtor;
+use URI::URL;
+@end example
+
+@example
+$url = "http://www.sn.no/";  # for instance
+$ua = new LWP::UserAgent;
+@end example
+
+@example
+# Set up a callback that collect image links
+my @@imgs = ();
+sub callback @{
+   my($tag, %attr) = @@_;
+   return if $tag ne @'img@';  # we only look closer at <img ...>
+   push(@@imgs, values %attr);
+@}
+@end example
+
+@example
+# Make the parser.  Unfortunately, we don@'t know the base yet (it might
+# be diffent from $url)
+$p = HTML::LinkExtor->new(\&callback);
+@end example
+
+@example
+# Request document and parse it as it arrives
+$res = $ua->request(HTTP::Request->new(GET => $url), sub @{$p->parse($_[0])@});
+@end example
+
+@example
+# Expand all image URLs to absolute ones
+my $base = $res->base;
+@@imgs = map @{ $_ = url($_, $base)->abs; @} @@imgs;
+@end example
+
+@example
+# Print them out
+print join("\n", @@imgs), "\n";
+@end example
+
+@unnumberedsec SEE ALSO
+
+@xref{HTML/Parser,HTML/Parser},
+
+@unnumberedsec AUTHOR
+
+Gisle Aas <aas@@sn.no>
+

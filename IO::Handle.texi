@@ -1,0 +1,188 @@
+@node IO/Handle, IO/Pipe, IO/File, Module List
+@unnumbered supply object methods for I/O handles
+
+
+@unnumberedsec NAME
+
+IO::Handle - supply object methods for I/O handles
+
+@unnumberedsec SYNOPSIS
+
+@example
+use IO::Handle;
+@end example
+
+@example
+$fh = new IO::Handle;
+if ($fh->open "< file") @{
+    print <$fh>;
+    $fh->close;
+@}
+@end example
+
+@example
+$fh = new IO::Handle "> FOO";
+if (defined $fh) @{
+    print $fh "bar\n";
+    $fh->close;
+@}
+@end example
+
+@example
+$fh = new IO::Handle "file", "r";
+if (defined $fh) @{
+    print <$fh>;
+    undef $fh;       # automatically closes the file
+@}
+@end example
+
+@example
+$fh = new IO::Handle "file", O_WRONLY|O_APPEND;
+if (defined $fh) @{
+    print $fh "corge\n";
+    undef $fh;       # automatically closes the file
+@}
+@end example
+
+@example
+$pos = $fh->getpos;
+$fh->setpos $pos;
+@end example
+
+@example
+$fh->setvbuf($buffer_var, _IOLBF, 1024);
+@end example
+
+@example
+autoflush STDOUT 1;
+@end example
+
+@unnumberedsec DESCRIPTION
+
+@code{IO::Handle} is the base class for all other IO handle classes.
+A @code{IO::Handle} object is a reference to a symbol (see the Symbol package)
+
+@unnumberedsec CONSTRUCTOR
+
+@table @asis
+@item new ()
+Creates a new @code{IO::Handle} object.
+
+@item new_from_fd ( FD, MODE )
+Creates a @code{IO::Handle} like new does.
+It requires two parameters, which are passed to the method fdopen;
+if the fdopen fails, the object is destroyed. Otherwise, it is returned
+to the caller.
+
+@end table
+@unnumberedsec METHODS
+
+If the C function setvbuf() is available, then @code{IO::Handle::setvbuf}
+sets the buffering policy for the IO::Handle.  The calling sequence
+for the Perl function is the same as its C counterpart, including the
+macros @code{_IOFBF}, @code{_IOLBF}, and @code{_IONBF}, except that the buffer
+parameter specifies a scalar variable to use as a buffer.  WARNING: A
+variable used as a buffer by @code{IO::Handle::setvbuf} must not be
+modified in any way until the IO::Handle is closed or until
+@code{IO::Handle::setvbuf} is called again, or memory corruption may
+result!
+
+See @xref{(perl.info)perlfunc,Perlfunc}, for complete descriptions of each of the following
+supported @code{IO::Handle} methods, which are just front ends for the
+corresponding built-in functions:
+  
+    close
+    fileno
+    getc
+    gets
+    eof
+    read
+    truncate
+    stat
+    print
+    printf
+    sysread
+    syswrite
+
+See @xref{(perl.info)perlvar,Perlvar}, for complete descriptions of each of the following
+supported @code{IO::Handle} methods:
+
+@example
+autoflush
+output_field_separator
+output_record_separator
+input_record_separator
+input_line_number
+format_page_number
+format_lines_per_page
+format_lines_left
+format_name
+format_top_name
+format_line_break_characters
+format_formfeed
+format_write
+@end example
+
+Furthermore, for doing normal I/O you might need these:
+
+@table @asis
+@item $fh->getline
+This works like <$fh> described in @samp{"I}, @xref{(perl.info)perlop,Perlop},
+except that it@'s more readable and can be safely called in an
+array context but still returns just one line.
+
+@item $fh->getlines
+This works like <$fh> when called in an array context to
+read all the remaining lines in a file, except that it@'s more readable.
+It will also croak() if accidentally called in a scalar context.
+
+@item $fh->fdopen ( FD, MODE )
+fdopen is like an ordinary open except that its first parameter
+is not a filename but rather a file handle name, a IO::Handle object,
+or a file descriptor number.
+
+@item $fh->write ( BUF, LEN [, OFFSET @}\] )
+write is like write found in C, that is it is the
+opposite of read. The wrapper for the perl write function is
+called @code{format_write}.
+
+@item $fh->opened
+Returns true if the object is currently a valid file descriptor.
+
+@end table
+Lastly, a special method for working under -T and setuid/gid scripts:
+
+@table @asis
+@item $fh->untaint
+Marks the object as taint-clean, and as such data read from it will also
+be considered taint-clean. Note that this is a very trusting action to
+take, and appropriate consideration for the data source and potential
+vulnerability should be kept in mind.
+
+@end table
+@unnumberedsec NOTE
+
+A @code{IO::Handle} object is a GLOB reference. Some modules that
+inherit from @code{IO::Handle} may want to keep object related variables
+in the hash table part of the GLOB. In an attempt to prevent modules
+trampling on each other I propose the that any such module should prefix
+its variables with its own name separated by _@'s. For example the IO::Socket
+module keeps a timeout variable in @'io_socket_timeout@'.
+
+@unnumberedsec SEE ALSO
+
+@xref{(perl.info)perlfunc,Perlfunc},, 
+@samp{"I}, @xref{(perl.info)perlop,Perlop},,
+@samp{"FileHandle"}, @xref{POSIX,POSIX},
+
+@unnumberedsec BUGS
+
+Due to backwards compatibility, all filehandles resemble objects
+of class @code{IO::Handle}, or actually classes derived from that class.
+They actually aren@'t.  Which means you can@'t derive your own 
+class from @code{IO::Handle} and inherit those methods.
+
+@unnumberedsec HISTORY
+
+Derived from FileHandle.pm by Graham Barr <@file{bodg@@tiuk.ti.com}>
+

@@ -1,0 +1,44 @@
+@node WWW/SearchResult, Xbase, WWW/Search/AltaVista, Module List
+@unnumbered class for results returned from WWW::Search
+
+
+@unnumberedsec NAME
+
+WWW::SearchResult - class for results returned from WWW::Search
+
+@unnumberedsec DESCRIPTION
+
+A framework for returning the results of @code{WWW::Search}.
+
+@unnumberedsec SEE ALSO
+
+@xref{WWW/Search,WWW/Search},
+
+@unnumberedsec METHODS AND FUNCTIONS
+
+@unnumberedsubsec new
+
+To create a new WWW::SearchResult, call
+    $search = new WWW::SearchResult();
+
+@unnumberedsubsec url
+
+Return url.  Note that there may be a list of urls, see also methods
+urls and add_url.
+
+@unnumberedsubsec urls
+
+Return a reference to an array of urls.
+There is also a distinguished URL (url).
+See also add_url.
+
+@unnumberedsubsec add_url
+
+Add a URL to the list.
+
+@unnumberedsubsec title, description
+
+Set or get attributes of the result.
+In the future, these attributes might expand to include
+size and change-date.
+

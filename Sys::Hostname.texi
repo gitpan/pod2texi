@@ -1,0 +1,30 @@
+@node Sys/Hostname, Sys/Syslog, Symbol, Module List
+@unnumbered Try every conceivable way to get hostname
+
+
+@unnumberedsec NAME
+
+Sys::Hostname - Try every conceivable way to get hostname
+
+@unnumberedsec SYNOPSIS
+
+@example
+use Sys::Hostname;
+$host = hostname;
+@end example
+
+@unnumberedsec DESCRIPTION
+
+Attempts several methods of getting the system hostname and
+then caches the result.  It tries @code{syscall(SYS_gethostname)},
+@code{@`hostname@`}, @code{@`uname -n@`}, and the file @file{/com/host}.
+If all that fails it croaks.
+
+All nulls, returns, and newlines are removed from the result.
+
+@unnumberedsec AUTHOR
+
+David Sundstrom <@file{sunds@@asictest.sc.ti.com}>
+
+Texas Instruments
+

@@ -1,0 +1,45 @@
+@node Text/Wrap, Tie/Dir, Text/Template, Module List
+@unnumbered line wrapping to form simple paragraphs
+
+
+@unnumberedsec NAME
+
+Text::Wrap - line wrapping to form simple paragraphs
+
+@unnumberedsec SYNOPSIS 
+
+@example
+use Text::Wrap
+@end example
+
+@example
+print wrap($initial_tab, $subsequent_tab, @@text);
+@end example
+
+@example
+use Text::Wrap qw(wrap $columns);
+@end example
+
+@example
+$columns = 132;
+@end example
+
+@unnumberedsec DESCRIPTION
+
+Text::Wrap is a very simple paragraph formatter.  It formats a
+single paragraph at a time by breaking lines at word boundries.
+Indentation is controlled for the first line ($initial_tab) and
+all subsquent lines ($subsequent_tab) independently.  $Text::Wrap::columns
+should be set to the full width of your output device.
+
+@unnumberedsec EXAMPLE
+
+@example
+print wrap("\t","","This is a bit of text that forms 
+	a normal book-style paragraph");
+@end example
+
+@unnumberedsec AUTHOR
+
+David Muir Sharnoff <@file{muir@@idiom.com}>
+

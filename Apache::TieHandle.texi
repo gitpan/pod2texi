@@ -1,0 +1,37 @@
+@node Apache/TieHandle, Archie, Apache/SSI, Module List
+@unnumbered tie stdio to Apache@'s i/o methods
+
+
+@unnumberedsec NAME
+
+Apache::TieHandle - tie stdio to Apache@'s i/o methods
+
+@unnumberedsec SYNOPSIS
+
+@example
+use Apache::TieHandle ();
+@end example
+
+@example
+tie *STDOUT => @'Apache::TieHash@';
+@end example
+
+@example
+print "Content-type: text/html\n\n" .
+     "Ah, just like CGI\n";
+@end example
+
+@unnumberedsec DESCRIPTION
+
+This module tie@'s stdio filehandles to Apache@'s i/o methods.
+
+*** NOTE ***
+This is experimental, you must apply Sven Verdoolaege@'s patch 
+@'pp_hot.patch@' for it to work
+
+@unnumberedsec AUTHOR
+
+Well, Doug MacEachern wrote it, but it wouldn@'t be possible without
+the efforts of Larry Wall and the fearless perl5-porters who 
+implemented tie@'d filehandles...
+

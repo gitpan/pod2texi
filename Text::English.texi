@@ -1,0 +1,53 @@
+@node Text/English, Text/German, Text/Abbrev, Module List
+@unnumbered Porter@'s stemming algorithm
+
+
+@unnumberedsec NAME
+
+Text::English - Porter@'s stemming algorithm
+
+@unnumberedsec SYNOPSIS
+
+@example
+use Text::English;
+@@stems = Text::English::stem( @@words );
+@end example
+
+@unnumberedsec DESCRIPTION
+
+This routine applies the Porter Stemming Algorithm to its parameters,
+returning the stemmed words.
+It is derived from the C program "stemmer.c"
+as found in freewais and elsewhere, which contains these notes:
+
+@example
+Purpose:    Implementation of the Porter stemming algorithm documented 
+            in: Porter, M.F., "An Algorithm For Suffix Stripping," 
+            Program 14 (3), July 1980, pp. 130-137.
+Provenance: Written by B. Frakes and C. Cox, 1986.
+@end example
+
+I have re-interpreted areas that use Frakes and Cox@'s "WordSize"
+function. My version may misbehave on short words starting with "y",
+but I can@'t think of any examples.
+
+The step numbers correspond to Frakes and Cox, and are probably in
+Porter@'s article (which I@'ve not seen).
+Porter@'s algorithm still has rough spots (e.g current/currency, -ings words),
+which I@'ve not attempted to cure, although I have added
+support for the British -ise suffix.
+
+@unnumberedsec NOTES
+
+This is version 0.1. I would welcome feedback, especially improvements
+to the punctuation-stripping step.
+
+@unnumberedsec AUTHOR
+
+Ian Phillipps <ian@@unipalm.pipex.com>
+
+@unnumberedsec COPYRIGHT
+
+Copyright Public IP Exchange Ltd (PIPEX).
+Available for use under the same terms as perl.
+

@@ -1,0 +1,47 @@
+@node I18N/Collate, IO, HTTPD/UserAdmin, Module List
+@unnumbered compare 8-bit scalar data according to the current locale
+
+
+@unnumberedsec NAME
+
+I18N::Collate - compare 8-bit scalar data according to the current locale
+
+@unnumberedsec SYNOPSIS
+
+@example
+use I18N::Collate;
+setlocale(LC_COLLATE, @'locale-of-your-choice@'); 
+$s1 = new I18N::Collate "scalar_data_1";
+$s2 = new I18N::Collate "scalar_data_2";
+@end example
+
+@unnumberedsec DESCRIPTION
+
+This module provides you with objects that will collate 
+according to your national character set, provided that the 
+POSIX setlocale() function is supported on your system.
+
+You can compare $s1 and $s2 above with
+
+@example
+$s1 le $s2
+@end example
+
+to extract the data itself, you@'ll need a dereference: $$s1
+
+This uses POSIX::setlocale(). The basic collation conversion is done by
+strxfrm() which terminates at NUL characters being a decent C routine.
+collate_xfrm() handles embedded NUL characters gracefully.  Due to cmp
+and overload magic, @code{lt}, @code{le}, @code{eq}, @code{ge}, and @code{gt} work also.  The
+available locales depend on your operating system; try whether @code{locale
+-a} shows them or man pages for "locale" or "nlsinfo" or
+the direct approach @code{ls /usr/lib/nls/loc} or @code{ls
+/usr/lib/nls}.  Not all the locales that your vendor supports
+are necessarily installed: please consult your operating system@'s
+documentation and possibly your local system administration.
+
+The locale names are probably something like
+@code{"xx_XX.(ISO)?8859-N"} or @code{"xx_XX.(ISO)?8859N"}, for example
+@code{"fr_CH.ISO8859-1"} is the Swiss (CH) variant of French (fr),
+ISO Latin (8859) 1 (-1) which is the Western European character set.
+

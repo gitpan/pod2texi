@@ -1,0 +1,27 @@
+@node DCE/login_base, DCE/rgybase, DCE/UUID, Module List
+@unnumbered Constants from sec_login_*.h 
+
+
+@unnumberedsec NAME
+
+DCE::login_base - Constants from sec_login_*.h 
+
+@unnumberedsec SYNOPSIS
+
+@example
+use DCE::login_base;
+@end example
+
+@unnumberedsec DESCRIPTION
+
+These constant methods are inherited by DCE::Login, a developer should not 
+need to use this module and it@'s methods directly.
+
+@unnumberedsec AUTHOR
+
+h2xs
+
+@unnumberedsec SEE ALSO
+
+perl(1), DCE::Login(3), DCE::Registry(3).
+

@@ -1,0 +1,744 @@
+@node Resources, SDBM_File, Remedy/Ar, Module List
+@unnumbered handling application defaults in Perl.
+
+
+@unnumberedsec NAME 
+
+Resources - handling application defaults in Perl.
+
+@unnumberedsec SYNOPSIS
+
+@example
+use Resources;
+@end example
+
+@example
+$res = new Resources;
+$res = new Resources "resfile";
+@end example
+
+@unnumberedsec DESCRIPTION
+
+Resources are a way to specify information of interest to program or
+packages. 
+
+Applications use resource files to specify and document the values of
+quantities or attributes of interest.
+
+Resources can be loaded from or saved to resource files. Methods are
+provided to search, modify and create resources.
+
+Packages use resources to hardwire in their code the default values for
+their attributes, along with documentation for the attibutes themselves.
+
+Packages inherit resources when subclassed, and the resource names are
+updated dynamically to reflect a class hierarchy.
+
+Methods are provided for interactive resource inspection and editing.
+
+@unnumberedsubsec 1. Resource inheritance
+
+Package attributes are inherited from base and member classes, their names are
+dynamically updated to reflect the inheritance, and values specified in
+derived/container classes override those inherited from base/member classes.
+
+More precisely, there a few rules governing the inheritance of resource
+names and values, and they will be explained by way of examples.
+
+As far as resource names, the rules are:
+
+@table @asis
+@item Base class
+If Vehicle has a "speed" property, then it can use a resource named 
+"vehicle.speed" to specify its default value.
+
+@item Derived class
+If Car @strong{is a} Vehicle, then Car has a "car.speed" resource automagically
+defined by inheritance from the base class.
+
+@item Container class
+If Car @strong{has a} member object called Tire, and Tire has a "tire.pressure"
+resource, then Car inherits a "car.tire.pressure" resource from the member
+class.
+
+@item Application class
+All resources of Car objects used by a program named "race" have the prefix
+"race." prepended to their names, e.g. "race.car.speed",
+"race.car.tire.pressure", etc.
+
+@end table
+With regard to assigning values to resources, the rules are:
+
+@table @asis
+@item Specification in a file
+Resources specified in a resource file always override hardcoded resources
+(with the exception of "hidden" resources, see below).
+
+@item Inheritance
+Resources defined in a derived class (like Car) override those specified in
+a base class. Likewise, resources defined in a container class override
+those specified in the members. 
+
+In the above example, a default value for "car.speed" in Car overrides the
+value of "vehicle.speed" in any Car object, otherwise "car.speed" assumes the
+value of "vehicle.speed".  Same for "car.tire.pressure".
+
+@end table
+@unnumberedsubsec 2. Resource Files.
+
+A resource specification in a (text) resource file is a line of the form:
+
+@example
+sequence: value
+@end example
+
+There may be any number of whitespaces between the name and the colon
+character, and between the colon and the value. 
+
+@table @asis
+@item sequence can have four forms:
+@example
+(1) word
+@end example
+
+A @strong{word} not containing whitespaces, colons (@':@'), dots (@'.@') or asterisks
+(@'*@'), nor starting with an underscore (@'_@').
+
+Or, recursively:
+
+@example
+(2) word.sequence   
+(3) word*sequence   
+(4) *sequence
+@end example
+
+The asterisks in a resource name act as wildcards, matching any sequence of
+characters. 
+
+For cases (3) or (4) the @strong{word} must be or match the current application
+class, otherwise the resource specification is silently ignored (this means
+that an applications loads from a file only its own resources, and those whose
+application class is a wildcard).
+
+No distinction is made between uppercase and lowercase letters.
+
+@item value can be:
+An unadorned word or a quoted sequence of whitespace-separated words. Both
+single (@' @') and double quotes quotes (" ") are allowed, and they must be
+paired.  
+
+Any @emph{constant} scalar constructor in Perl, including anon references to
+constant arrays or hashes.  
+
+The special words @strong{yes}, @strong{true}, no, @strong{false} (case insensitive) are
+treated as boolean resources and converted 1 and 0, unless they are quoted.
+
+@end table
+Examples of valid resource specifications:
+
+@example
+car*brand       : Ferrari    # A word.
+car.price       : 200K       # Another word
+car.name        : @'312 BB@'   # A quoted sentence
+car*runs*alot   : yes        # A boolean, converted to 1.
+car*noise*lotsa : @'yes@'      # yes, taken verbatim
+car.size        : [1, [2, 3]]           # An anon array.
+car.lett        : @{"P"=>1, "Q"=>[2, 3]@} # An anon hash.
+@end example
+
+Examples of illegal resource names:
+
+@example
+car pedal    # Whitespace in the name.
+.carpedal    # Leading dot in name.
+car._pedal   # Leading underscore in _dog.
+carpedal*    # Trailing asterisk.
+carpedal.    # Trailing dot.
+@end example
+
+A resource file may contain comments: anything from a hash (@'#@') character to
+the end of a line is ignored, unless the hash character appears inside a
+quoted value string.
+
+Resource specifications may be split across successive lines, by terminating
+the split lines with a backslash, as per cpp(1).
+
+@unnumberedsubsec 3. The Resources hash
+
+A non-my hash named %Resources can be used to specify the default values for
+the attributes of a package in its source code, along with documentation for
+the attributes themselves. The documentation itself is "dynamical" (as opposed
+to the static, pod-like variety) in that it follows a class hyerarchy and is
+suitable for interactive display and editing.
+
+The %Resources hash is just a hash of 
+
+@example
+$Name => [$Value, $Doc]
+@end example
+
+things. Each hash key @strong{$Name} is a resource name in the above sequence
+form. Each hash value is a reference to an anon array @strong{[$Value, $Doc]}, with
+@strong{$Doc} being an optional resource documentation.
+
+The resource $Name @emph{cannot} contain wildcard (@'*@') or colon (@':@') characters,
+nor start or end with a dot (@'.@'). Also, it must @emph{not} be prefixed with the
+package name (since this is automatically prepended by the @strong{merge} method,
+see below). Names starting with an underscore (@'_@') character are special in
+that they define "hidden" resources. These may not be specified in resource
+files, nor dynamically viewed/edited: they come handy to specify global
+parameters when you do not want to use global application-wide variables,
+and/or want to take advantage of the inheritance mechanism.
+
+The resource $Value can be any @emph{constant} scalar Perl constructor, including
+references to arrays and/or hashes of constants (or references
+thereof). Boolean values must be specified as 1 or 0.
+
+The resource documentation is a just string of any length: it will be
+appropriately broken into lines for visualization purposes. It can also be
+missing, in which case an inherited documentation is used (if any exists, see
+the @strong{merge} method below).
+
+The content of a resource hash is registered in a global Resource object using
+the @strong{merge} method.
+
+Here is an example of deafults specification for a package.
+
+@example
+package Car;
+@@ISA = qw( Vehicle );
+use vars qw( %Resources );
+@end example
+
+@example
+%Resources = (
+    brand    => ["FIAT", "The carmaker"],
+    noise    => ["Ashtmatic", "Auditory feeling"],
+    sucks    => [1, "Is it any good?"],
+	 nuts     => [ @{ on => 2, off => [3, 5] @}, "Spares"],
+	 @'_ghost@' => [0, "Hidden. Mr. Invisible"] 
+	 @'tire.flat@' => [0],
+);
+@end example
+
+The last line overrides a default in member class Tire. The corresponding
+doc string is supposedly in the source of that class. The last two hash keys
+are quoted because of the non alphanumeric characters in them.
+
+@unnumberedsubsec 4. Objects and resources
+
+The recommended way to use resources with Perl objects is to pass a
+Resource object to the "new" method of a package.  The method itself will
+merge the passed resources with the package defaults, and the passed resource
+will override the defaults where needed.
+
+Resource inheritance via subclassing is then easily achieved via the @strong{merge}
+method, as shown in the EXAMPLES section. 
+
+@unnumberedsubsec 5. Methods in class Resources
+
+@unnumberedsubsec 5.1. Creation and initialization
+
+@table @asis
+@item @strong{new Resources ($resfile);}
+Creates a new resource database, initialized with the defaults for
+class Resources (see below for a list of them).
+
+If a nonempty file name is specified in $resfile, it initializes the object
+with the content of the so named resource file. For safe (non overwriting)
+loading, see the @strong{load} method below.
+
+If the special file name "_RES_NODEFAULTS" is specified, the object is created
+completely empty, with not even the Resources class defaults in it.
+
+Returns the new object, or undef in case of error.
+
+@item @strong{load($resfile, $nonew);}
+Loads resources from a file named $resfile into a resource database. 
+
+The $nonew argument controls whether loading of non already defined resurces is
+allowed. If it is true, safe loading is performed: attempting to load
+non-wildcarded resource names that do not match those already present in the
+database causes an error. This can be useful if you want to make sure that
+only pre-defined resources (for which you presumably have hardwired defaults)
+are loaded. It can be a safety net against typos in a resource file.
+
+Use is made of @strong{Safe::reval} to parse values specified through Perl
+constructors (only constants, anon hashes and anon arrays are allowed).
+
+Returns 1 if ok, 0 if error.
+
+@item @strong{merge($class, @@memberclasses);}
+Merges the %Resources hash of the package defining $class with
+those of its @@memberclasses, writing the result in the resource database.
+
+The merging reflects the resource inheritance explained above: the %Resources
+of all base classes and member classes of $class are inherited along the
+way. Eventually all these resources have their names prefixed with the name of
+the package in which $class is defined (lowercased and stripped of all
+foo::bar:: prefixes), and with the application class as well.
+
+In the above example, the defaults of a Car object will be renamed, after
+merging as:
+
+@example
+car.brand, car.noise, ..., 
+car.tire.flat
+@end example
+
+and for a Civic object, where Civic is a (i.e. ISA) Car, they will be
+translated instead as
+
+@example
+civic.brand, civic.noise, ..., 
+civic.tire.flat
+@end example
+
+Finally, the application name ($0, a.k.a $PROGRAM_NAME in English) is 
+prepended to all resource names, so, if the above Civic package is used
+by a Perl script named "ilove.pl", the final names after merging are
+
+@example
+ilove.civic.brand, ilove.civic.noise, ..., 
+ilove.civic.tire.flat
+@end example
+
+The new names are the ones to use when accessing these resources by name.
+
+The resource values are inherited accoring to the rules previously indicated,
+hence with resource files having priority over hardcoded defaults, nnd derived
+or container classes over base or member classes.
+
+Returns 1 if for success, otherwise 0.
+
+@end table
+@unnumberedsubsec 5.2. Looking up resources
+
+The values and documentation strings stored in a Resource object can be
+accessed by specifying their names in three basic ways:
+
+@table @asis
+@item directly ("byname" methods)
+As in "my.nice.cosy.couch" .
+
+@item by a pattern ("bypattern" methods)
+As in "m??nice.*" .
+
+@item hierarchically ("byclass" methods)
+If class Nice @strong{is a} Cosy, then asking for "couch" in package Cosy gets you
+the value/doc of "my.couch". If, instead, Nice @strong{has a} Cosy member, that the
+method gets you "my.nice.cosy.couch". This behaviour is essential for the
+proper initialization of subclassed and member packages, as explained in
+detail below.
+
+@end table
+It is also possible to retrieve the whole content of a resource database
+("names" and "each" methods)
+
+Note that all the resource lookup methods return named (non "wildcarded")
+resources only. Wildcarded resources (i.e. those specified in resource files,
+and whose names contain one or more @'*@') are best thought as placeholders, to
+be used when the value of an actual named resource is set. 
+
+For example, a line in a resource file like
+
+@example
+*background : yellow
+@end example
+
+fixes to yellow the color of all resources whose name ends with "background".
+However, your actual packages will never worry about unless they really need
+a background. In this case they either have a "background" resource in
+their defaults hash, or subclass a package that has one.
+
+@table @asis
+@item valbyname($name);
+Retrieves the value of a named resource from a Resource database. The $name
+argument is a string containing a resource name with no wildcards. 
+
+Returns the undefined value if no such resource is defined.
+
+@item docbyname($name);
+Retrieves the documentation string of a named resource from a Resource
+database. The $name argument is a string containing a resource name with no
+wildcards. 
+
+Returns the undefined value if no such resource is defined.
+
+@item bypattern($pattern);
+Retrieves the full names, values and documentation strings of all the named
+(non wildcarded) resources whose name matches the given $pattern. The pattern
+itself is string containing a Perl regular expression, @emph{not} enclosed in
+slashes.
+
+Returns a new Resource object containing only the matching resources, or 
+the undefined value if no matches are found.
+
+@item valbypattern($pattern);
+Retrieves the full names and values of all named (non wildcarded) resources
+whose name matches the given pattern. 
+
+Returns a new Resource object containing only names and values of the matching
+resources (i.e. with undefined doc strings), or the undefined value if no
+matches are found.
+
+@item docbypattern($pattern);
+Retrieves the full names and documentation strings of all named (non
+wildcarded) resources whose name matches the given pattern.
+
+Returns a new Resource object containing only names and docs of the matching
+resources (i.e. with undefined resource values), or the undefined value if no
+matches are found.
+
+@item @strong{byclass($object, $suffix);}
+To properly initialize the attributes of a package via resources we need a
+way to know whether the package defaults (contained in its %Resources hash)
+have been overridden by a derived or container class.  For example, to set
+a field like $dog->@{Weight@} in a Dog object, we must know if this $dog
+is being subclassed by Poodle or Bulldog, or if it is a member of Family,
+since all these other classes might override whatever "weight" default is
+defined in the %Resources hash of Dog.pm. 
+
+This information must of course be gathered at runtime: if you tried to name
+explicitly a resource like "family.dog.weight" inside Dog.pm all the OOP
+crowd would start booing at you. Your object would not be reusable anymore,
+being explicitly tied to a particular container class. After all we do use
+objects mainly because we want to easily reuse code...
+
+Enter the "by class" resource lookup methods: @strong{byclass}, @strong{valbyclass} and
+@strong{docbyclass}.
+
+Given an $object and a resource $suffix (i.e. a resource name stripped of all
+container and derived class prefixes), the @strong{byclass} method returns a 3
+element list containing the name/value/doc of that resource in $object. The
+returned name will be fully qualified with all derived/container classes, up
+to the application class.
+
+For example, in a program called "bark", the statements
+
+@example
+$dog = new Dog ($res); # $res is a Resources database
+($name,$value,$doc) = $res->byclass($dog, "weight");
+@end example
+
+will set $name, $value and $doc equal to those of the "bark.poodle.weight"
+resource, if this Dog is subclassed by Poodle, and to those of
+"bark.family.dog.weight", if it is a member of Family instead.
+
+The passed name suffix must not contain wildcards nor dots.
+
+Be careful not to confuse the "byclass" with the "byname" and "bypattern"
+retrieval methods: they are used for two radically different goals. See the
+EXAMPLES section for more.
+
+Returns the empty list if no resources are found for the given suffix,
+or if the suffix is incorrect.
+
+@item @strong{namebyclass($obj, $suffix);}
+As the @strong{byclass} method above, but returns just the resource name (i.e. the
+suffix with all the subclasses prepended).
+
+@item @strong{valbyclass($obj, $suffix);}
+As the @strong{byclass} method above, but returns just the resource value.
+
+@item docbyclass($suffix);
+As the @strong{byclass} method above, but returns just the resource documentation.
+
+@item each;
+Returns the next name/[value,doc] pair of the named (non wildcarded) resources
+in a resource database, exactly as the each Perl routine. 
+
+@item names;
+Returns a list of the names of all named (non-wildcarded) resources in a
+resource database, or undef if the databasee is empty.
+
+@end table
+@unnumberedsubsec 5.3. Assigning and removing Resources
+
+@table @asis
+@item @strong{put($name, $value, $doc);}
+Writes the value and doc of a resource in the database.  It is possible to
+specify an empty documentation string, but name and value must be defined.
+
+Wildcards (@'*@' characters) are allowed in the $name, but the $doc is ignored
+in this case (documentation is intended for single resources, not for sets
+of them).
+
+The value is written unchanged unless the resource database already
+contains a wildcarded resource whose name includes $name (foo*bar
+includes foo.bar, foo.baz.bar, etc.). In this case the value of the
+wildcarded resource overrides the passed $value.
+
+Returns 1 if ok, 0 if error.
+
+@item removebyname($name);
+Removes the named (non wildcarded) resources from the database.
+
+Returns 1 if OK, 0 if the resource is not found in the database.
+
+@item removebypattern($name);
+Removes from the database all resources (both named @emph{and} wildcarded) whose
+name mathes $pattern. An exactly matching name must be specified for
+wildcarded resources (foo*bar to remove foo*bar).
+
+Returns the number of removed resources.
+
+@end table
+@unnumberedsubsec 5.6. Viewing and editing resources.
+
+@table @asis
+@item view;
+Outputs the current content of a Resource object by piping to a pager program.
+
+The environment variable $ENV@{RESPAGER@}, the resource "resources.pager" and
+the environment variable $ENV@{PAGER@} are looked up, in this very order, to
+find the pager program. Defaults to @strong{/bin/more} if none of them is found.
+
+The output format is the same of a resource file, with the resource names
+alphabetically ordered, and the resource documentation strings written
+as comments.
+
+Returns 1 if ok, 0 if error.
+
+@item edit($nonew);
+Provides dynamical resource editing of a Resource object via an external
+editor program. Only resource names and values can be edited (anyway, what is
+the point of editing a resource comment on the fly?).
+
+The environment variables $ENV@{RESEDITOR@} and the resource "resouces.editor",
+are looked up, in this very order, to find the editor program. Defaults to
+@strong{/bin/vi} if none is found.
+
+The editor buffer is initialized in the same format of a resource file, with
+the resource names alphabetically ordered, and the resource documentation
+strings written as comments. The temporary file specified by the
+"resources.tmpfil" resource is used to initialize the editor, or
+@'/tmp/resedit<pid>@' if that resource is undefined.
+
+When the editor is exited (after saving the buffer) the method attempts to
+reload the edited resources. If an error is found the initial object is left
+unchanged, a warning with the first offending line in the file is printed, and
+the method returns with undef. Controlled resource loading is obtained by
+specifying a true value for the $nonew argument (see @strong{load}).
+
+If the loading is successful, a new (edited) resource object is returned,
+which can be assigned to the old one for replacement. 
+
+After a successful edit, the value of the resource "resources.updates" (which
+is always defined to 0 whenever a new resource is created) is increased by
+one. This is meant to notify program the and/or packages of the resource
+change, so they can proceed accordingly if they wish.
+
+@end table
+@unnumberedsubsec 5.5. Miscellaneous methods
+
+@table @asis
+@item write($filename);
+Outputs all resources of a resource database into a resource file (overwriting
+it). 
+
+The resource documentation strings are normally written as comments, so the
+file itself is immediately available for resource loading. However, if the
+boolean resource "resources.writepod" is true, then the (non wildcarded)
+resources are output in POD format for your documentational pleasure.
+
+As usual in Perl, the filename can allo be of the form "|command", in which
+case the output is piped into "comma1nd".
+
+For resources whose value is a reference to an anon array or hash, it produces
+the appropriate constant Perl contructor by reverse parsing. The parser itself
+is available as a separate method named @strong{_parse} (see package source for
+documentation).
+
+Returns 1 if ok, 0 if error.
+
+@end table
+@unnumberedsubsec 5. Resources of Resources
+
+As you may have guessed at this point, the default configuration of this
+package itself is defined by resources. The resource class is, of course,
+"resources" (meaning that all the names have a leading "resources.").
+
+To prevent chaos, however, these resources cannot be subclassed. This should
+not be a problem in normal applications, since the Resource package itself is
+not meant to be subclassed, but to help building a hierarchy of classes
+instead.
+
+The currently recognized resources, and their default values, are:
+
+@table @asis
+@item resources.appclass : "$PROGRAM_NAME"
+The application name of this Resource object. 
+
+@item resources.editor : /bin/vi
+Resource editor. 
+
+@item resources.mergeclass : true
+Boolean. True to merge with class inheritance.
+
+@item resources.pager : /bin/more
+Resource pager. 
+
+@item resources.separator : @':@'
+Pattern separating names from values in resource files. 
+
+@item resources.tmpfil : @'@'
+Editor temporary file. 
+
+@item resources.updates : 0
+Number of resource updates. 
+
+@item resources.verbosity : 1
+True to print warnings. 
+
+@item resources.viewcols : 78
+Width of view/edit window. 
+
+@item resources.writepod : false
+Boolean. True if the write method should output in POD format. 
+
+@end table
+@unnumberedsec EXAMPLES
+
+Here is an example of resource inheritance.
+HotDog is a subclass of Food, and has a member Wiener whichi happens to be a
+Food as well. 
+
+The subclass has defaults for two resources defined by the base classes
+("edible" and "wiener.mustard"), and their values will override the base
+class defaults.
+
+Remember that after merging all resources names are prefixed with the current
+class name.
+
+@example
+use Resources;
+package Food;
+%Resources = ( 
+  edible => [1, "Can it be eaten."], 
+  tasty  => ["sort_of",  "D@'ya like it?"],
+);
+
+sub new @{
+   my ($type, $res) = @@_;
+   $res || $res =  new Resources || (return undef);
+   $res->merge($type) || die ("can@'t merge defaults");
+    
+   my $food= bless(@{@}, type);
+   $food->@{Edible@} = $res->valbyclass("edible");
+   $food->@{Tasty@}  = $res->valbyclass("tasty");
+   # Use valbyclass so a subclass like HotDog can change this by its
+   # defaults.   
+@}
+ 
+# A Food method to say if it can be eaten.
+sub eatok @{ 
+   my $food=shift; 
+   return $food->@{Edible@}; 
+@}
+@end example
+
+@example
+package Wiener;
+@@ISA = qw( Food );
+%Resources = (
+     tasty => ["very"], # this overrides a base class default
+     mustard => ["plenty", "How much yellow stuff?"],
+);
+# Nothing else: all methods are inherited from the base class.
+@end example
+
+@example
+package HotDog;
+@@ISA = qw( Food );
+@end example
+
+@example
+%Resources = (
+    edible    => [0],
+    tasty     => ["yuck!"],
+    @'wiener.mustard@' => ["none"], # To override member class default.
+);
+@end example
+
+@example
+sub new @{
+   my ($type, $res) = @@_;
+   
+   $res || $res =  new Resources || (return undef);
+   $res->merge($type) || die ("can@'t merge defaults");
+	       
+   my $hd = bless(new Food ($res), $type);
+   $hd->@{Wien@} = new Wiener ($res);
+   return $hd;
+@}
+@end example
+
+@example
+# All tastes of hotdog
+sub tastes @{
+   my $hd = shift;
+   return ($hd->@{Tasty@}, $hd->@{Wien@}->@{Tasty@});
+@}
+
+package main;
+# Whatever
+#
+$res = new Resources("AppDefltFile") || die;
+$snack = new HotDog($res);  
+$gnam = $snack->eat();  # hotdog.edible overridees food.edible, 
+                        # so here $gnam equals 0
+@end example
+
+@example
+@@slurp = $snack->tastes()    # @@slurp equals ("yuck!", "very") 
+                             # the resources were overridden 
+                             # by a subclass of HotDog , or
+                             # differently specified in 
+                             # "AppDefltFile"
+@end example
+
+@unnumberedsec SEE ALSO
+
+Safe(3). 
+
+@unnumberedsec BUGS
+
+The underlying idea is to use a centralized resource database for the whole
+application. This ensures uniformity of behaviour across kin objects, but
+allow special characterizations only at the cost of subclassing.
+
+@unnumberedsec AUTHOR
+
+@example
+Francesco Callari <franco@@cim.mcgill.ca> 
+Artifical Perception Laboratory,
+Center for Intelligent Machines, 
+McGill University.
+@end example
+
+@example
+WWW: http://www.cim.mcgill.ca/~franco/Home.html
+@end example
+
+@unnumberedsec COPYRIGHT
+
+Copyright 1996 Francesco Callari, McGill University
+
+Permission to use, copy, modify, and distribute this software and its
+documentation for any purpose without fee is hereby granted without fee,
+provided that the above copyright notice appear in all copies and that both
+that copyright notice and this permission notice appear in supporting
+documentation, and that the name of McGill not be used in advertising or
+publicity pertaining to distribution of the software without specific,
+written prior permission.  McGill makes no representations about the
+suitability of this software for any purpose.  It is provided "as is"
+without express or implied warranty.
+
+MCGILL DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE, INCLUDING ALL
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS.  IN NO EVENT SHALL
+MCGILL BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY
+DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN
+AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+

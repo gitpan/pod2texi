@@ -1,0 +1,200 @@
+@node HTTPD/Authen, HTTPD/GroupAdmin, HTTP/Status, Module List
+@unnumbered HTTP server authentication class
+
+
+@unnumberedsec NAME 
+
+HTTPD::Authen - HTTP server authentication class
+
+@unnumberedsec SYNOPSIS
+
+@example
+require HTTPD::Authen;
+@end example
+
+@unnumberedsec DESCRIPTION
+
+This module provides methods for authenticating a user.
+It uses HTTPD::UserAdmin to lookup passwords in a database.
+Subclasses provide methods specific to the authentication mechanism.
+
+Currently, under HTTP/1.0 the only supported authentication mechanism is 
+Basic Authentication.  NCSA Mosaic and NCSA HTTPd understand the proposed 
+Message Digest Authentication, which should make it into the HTTP spec someday.
+This module supports both.
+
+@unnumberedsec METHODS
+
+@unnumberedsubsec new ()
+
+Since HTTPD::Authen uses HTTPD::UserAdmin for database lookups it needs many
+of the same attributes.
+Or, if the first argument passed to the new() object constructor is a 
+reference to an HTTPD::UserAdmin, the attributes are inherited.
+
+The following attributes are recognized from HTTPD::UserAdmin:
+
+@strong{DBType}, @strong{DB}, Server, Path, @strong{DBMF}, @strong{Encrypt} 
+
+And if you wish to query an SQL server:
+Host, User, @strong{Auth}, @strong{Driver}, @strong{UserTable}, @strong{NameField}, @strong{PasswordField}
+
+The same defaults are assumed for these attributes, as in HTTPD::UserAdmin.
+See @emph{HTTPD::UserAdmin} for details.
+
+@example
+$authen = new HTTPD::Authen (DB => "www-users");
+
+=head2 basic()
+@end example
+
+Short-cut to return an HTTPD::Authen::Basic object.
+
+@example
+$basic = $authen->basic;
+@end example
+
+@unnumberedsubsec digest()
+
+Short-cut to return an HTTPD::Authen::Digest object.
+
+@example
+$digest = $authen->digest;
+@end example
+
+@unnumberedsubsec type($authorization_header_value)
+
+This method will guess the authorization scheme based on the @'Authorization@' 
+header value, and return an object bless into that scheme@'s class.
+
+By using this method, it is simple to authenticate a user without even knowing what scheme is
+being used:
+
+@example
+$authtype = HTTPD::Authen->type($authinfo);
+@@info = $authtype->parse($authinfo)
+if( $authtype->check(@@info) ) @{
+    #response 200 OK, etc.
+@}
+@end example
+
+@unnumberedsec SUBCLASSES
+
+@table @asis
+@item HTTPD::Authen::Basic methods
+@end table
+@unnumberedsubsec new([$hashref])
+
+$hashref should be an HTTPD::Authen object, it must be present when looking up 
+users.  Optionally, you can pass the attribute USER with the value of an 
+HTTPD::UserAdmin object.
+
+Normally, this method is not called directly, but rather by HTTPD::Authen->basic method.
+
+@unnumberedsubsec parse ($authorization_header_value)
+
+This method expects the value of the HTTP @'Authorization@' header of type
+Basic.  This should look something like: 
+
+@example
+@'Basic ZG91Z206anN0NG1l@'  
+@end example
+
+This string will be parsed and decoded, returning the username and password.  Note that
+the @emph{MIME::Base64} module is required for decoding.
+
+@example
+($username,$password) = HTTPD::Authen::Basic->parse($authinfo)
+
+#or, assuming $authen is an HTTPD::Authen object
+($username,$password) = $authen->basic->parse($authinfo)
+@end example
+
+@example
+#or check the info at the same time
+$OK = $authen->check($authen->basic->parse($authinfo))
+@end example
+
+@unnumberedsubsec check($username,$password)
+
+This method expects a username and *clear text* password as arguments.
+Returns true if the username was found, and passwords match, otherwise
+returns false.
+
+@example
+if($authen->check("JoeUser", "his_clear_text_password")) @{
+	print "Well, the passwords match at least\n";
+@}
+else @{
+	print "Password mismatch! Intruder alert! Intruder alert!\n";
+@}
+@end example
+
+@table @asis
+@item HTTPD::Authen::Digest methods
+NOTE: The @strong{MD5} module is required to use these methods.
+
+@end table
+@unnumberedsubsec new([$hashref])
+
+$hashref should be an HTTPD::Authen object.
+Normally, this method is not called directly, but rather by HTTPD::Authen->digest method.
+
+@unnumberedsubsec parse ($authorization_header_value)
+
+This method expects the value of the HTTP @'Authorization@' header of type
+Basic.  This should look something like: 
+
+@example
+Digest username="JoeUser", realm="SomePlace", nonce="826407380", uri="/test/blah.html", response="0306f29f88690fb9203451556c376ae9", opaque="5e09061a062a271c8fcc686c5be90c2a"
+@end example
+
+This method returns a hash ref containing all Name = Value pairs from the header.
+
+@example
+$mda = HTTPD::Authen::Digest->parse($authinfo);
+@end example
+
+@example
+#or, assuming $authen is an HTTPD::Authen object
+$mda = $authen->digest->parse($authinfo)
+@end example
+
+@example
+#or check the info at the same time
+$OK = $authen->check($authen->digest->parse($authinfo))
+@end example
+
+@unnumberedsubsec check ($hashref[, $request [, $seconds [, $client_ip ]]]) 
+
+This method expects a hashref of Name Value pairs normally found in the @'Authorization@'
+header.  With this argument alone, the method will return true without checking nonce or
+the opaque string if the client @'response@' checksum matches ours.
+
+If $request is present, it must be a hashref or an @strong{HTTP::Request} method.  From here, we fetch
+the request uri and request method.  
+Otherwise, we default to the value of @'uri@' present in $hashref, and @'GET@' for the method.
+
+If $seconds is present, the value of @'nonce@' will be checked, returning false if it is stale.
+
+If $client_ip is present, the value of the @'opaque@' string will be checked, returning false if
+the string is not valid.
+
+This implementation is based on the Digest Access Authentication internet-draft
+http://hopf.math.nwu.edu/digestauth/draft.rfc
+and NCSA@'s implementation
+http://hoohoo.ncsa.uiuc.edu/docs/howto/md5_auth.html
+
+@unnumberedsec SEE ALSO
+
+HTTPD::UserAdmin, MD5, HTTP::Request, MIME::Base64
+
+@unnumberedsec AUTHOR
+
+Doug MacEachern <dougm@@osf.org>
+
+Copyright (c) 1996, Doug MacEachern, OSF Research Institute
+
+This library is free software; 
+you can redistribute it and/or modify it under the same terms as Perl itself. 
+

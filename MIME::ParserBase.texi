@@ -1,0 +1,429 @@
+@node MIME/ParserBase, MIME/QuotedPrint, MIME/Parser, Module List
+@unnumbered abstract class for parsing MIME mail
+
+
+@unnumberedsec NAME
+
+MIME::ParserBase - abstract class for parsing MIME mail
+
+@unnumberedsec SYNOPSIS
+
+This is an @emph{abstract} class; however, here@'s how one of its 
+@emph{concrete subclasses} is used:
+
+@example
+use MIME::Parser;
+
+# Create a new parser object:
+my $parser = new MIME::Parser;
+
+# Parse an input stream:
+$entity = $parser->read(\*STDIN) or die "couldn@'t parse MIME stream";
+
+# Congratulations: you now have a (possibly multipart) MIME entity!
+$entity->dump_skeleton;          # for debugging 
+@end example
+
+There are also some convenience methods:
+
+@example
+# Parse already-split input (as "deliver" would give it to you):
+$entity = $parser->parse_two("msg.head", "msg.body")
+      || die "couldn@'t parse MIME files";
+@end example
+
+In case a parse fails, it@'s nice to know who sent it to us.  So...
+
+@example
+# Parse an input stream:
+$entity = $parser->read(\*STDIN);
+if (!$entity) @{           # oops!
+	my $decapitated = $parser->last_head;    # last top-level head
+@}
+@end example
+
+You can also alter the behavior of the parser:    
+
+@example
+# Parse contained "message/rfc822" objects as nested MIME streams:
+$parser->parse_nested_messages(1);
+@end example
+
+@unnumberedsec DESCRIPTION
+
+Where it all begins.  
+
+This is the class that contains all the knowledge for @emph{parsing} MIME
+streams.  It@'s an abstract class, containing no methods governing
+the @emph{output} of the parsed entities: such methods belong in the
+concrete subclasses.
+
+You can inherit from this class to create your own subclasses 
+that parse MIME streams into MIME::Entity objects.  One such subclass, 
+@strong{MIME::Parser}, is already provided in this kit.
+
+@unnumberedsec PUBLIC INTERFACE
+
+@table @asis
+@item new ARGS...
+@emph{Class method.}
+Create a new parser object.  Passes any subsequent arguments
+onto the @code{init()} method.
+
+Once you create a parser object, you can then set up various parameters
+before doing the actual parsing.  Here@'s an example using one of our
+concrete subclasses:
+
+@example
+my $parser = new MIME::Parser;
+$parser->output_dir("/tmp");
+$parser->output_prefix("msg1");
+my $entity = $parser->read(\*STDIN);
+@end example
+
+@item init ARGS...
+@emph{Instance method.}
+Initiallize the new parser object, with any args passed to new().
+
+If you override this in a subclass, make sure you call the inherited
+method to init your parents!
+
+@example
+package MyParser;
+@@ISA = qw(MIME::Parser);
+...
+sub init @{
+	my $self = shift;
+	$self->SUPER::init(@@_);        # do my parent@'s init
+	
+	# ...my init stuff goes here...	
+	
+	$self;                         # return
+@}
+@end example
+
+Should return the self object on success, and undef on failure.
+
+@item interface ROLE,[VALUE]
+@emph{Instance method.}
+During parsing, the parser normally creates instances of certain classes, 
+like MIME::Entity.  However, you may want to create a parser subclass
+that uses your own experimental head, entity, etc. classes (for example,
+your "head" class may provide some additional MIME-field-oriented methods).
+
+If so, then this is the method that your subclass should invoke during 
+init.  Use it like this:
+
+@example
+package MyParser;
+@@ISA = qw(MIME::Parser);
+...
+sub init @{
+	my $self = shift;
+	$self->SUPER::init(@@_);        # do my parent@'s init
+    $self->interface(ENTITY_CLASS => @'MIME::MyEntity@');
+	$self->interface(HEAD_CLASS   => @'MIME::MyHead@');
+	$self;                         # return
+@}
+@end example
+
+With no VALUE, returns the VALUE currently associated with that ROLE.
+
+@item last_head
+Return the top-level MIME header of the last stream we attempted to parse.
+This is useful for replying to people who sent us bad MIME messages.
+
+@example
+# Parse an input stream:
+$entity = $parser->read(\*STDIN);
+if (!$entity) @{           # oops!
+	my $decapitated = $parser->last_head;    # last top-level head
+@}
+@end example
+
+@item parse_nested_messages OPTION
+Some MIME messages will contain a part of type @code{message/rfc822}:
+literally, the text of an embedded mail message.  The normal behavior 
+is to save such a message just as if it were a @code{text/plain} 
+document.  However, you can change this: before parsing, invoke 
+this method with the OPTION you want:
+
+@strong{If OPTION is false,} the normal behavior will be used.
+
+@strong{If OPTION is true,} the body of the @code{message/rfc822} part
+is decoded (after all, it might be encoded!) into a temporary file, 
+which is then rewound and parsed by this parser, creating an 
+entity object.  What happens then is determined by the OPTION:
+
+@table @asis
+@item NEST or 1
+The contained message becomes a "part" of the @code{message/rfc822} entity,
+as though the @code{message/rfc822} were a special kind of @code{multipart} entity.
+This is the default behavior if the generic true value of "1" is given.
+
+@item REPLACE
+The contained message replaces the @code{message/rfc822} entity, as though
+the @code{message/rfc822} "envelope" never existed.  Notice that, with 
+this option, all the header information in the @code{message/rfc822}
+header is lost, so this option is @emph{not} recommended.
+
+@end table
+@emph{Thanks to Andreas Koenig for suggesting this method.}
+
+@item parse_two HEADFILE BODYFILE
+Convenience front-end onto @code{read()}, intended for programs 
+running under mail-handlers like @strong{deliver}, which splits the incoming
+mail message into a header file and a body file.
+
+Simply give this method the paths to the respective files.  
+@emph{These must be pathnames:} Perl "open-able" expressions won@'t
+work, since the pathnames are shell-quoted for safety.
+
+@strong{WARNING:} it is assumed that, once the files are cat@'ed together,
+there will be a blank line separating the head part and the body part.
+
+@item read FILEHANDLE
+Takes a MIME-stream and splits it into its component entities,
+each of which is decoded and placed in a separate file in the splitter@'s
+output_dir().  
+
+The stream should be given as a FileHandle, or at least a glob ref 
+to a readable FILEHANDLE; e.g., @code{\*STDIN}.
+
+Returns a MIME::Entity, which may be a single entity, or an 
+arbitrarily-nested multipart entity.  Returns undef on failure.
+
+@end table
+@unnumberedsec WRITING SUBCLASSES
+
+All you have to do to write a subclass is to provide the following methods:
+
+@table @asis
+@item new_body_for HEAD
+@emph{Abstract method.}
+Based on the HEAD of a part we are parsing, return a new
+body object (any desirable subclass of MIME::Body) for
+receiving that part@'s data (both will be put into the
+"entity" object for that part).
+
+If you want the parser to do something other than write 
+its parts out to files, you should override this method 
+in a subclass.  For an example, see @strong{MIME::Parser}.
+
+@strong{Note:} the reason that we don@'t use the "interface" mechanism
+for this is that your choice of (1) which body class to use, and (2) how 
+its new() method is invoked, may be very much based on the 
+information in the header.
+
+@end table
+You are of course free to override any other methods as you see
+fit, like new.
+
+@unnumberedsec NOTES
+
+@strong{This is an abstract class.}
+If you actually want to parse a MIME stream, use one of the children
+of this class, like the backwards-compatible MIME::Parser.
+
+@unnumberedsubsec Under the hood
+
+RFC-1521 gives us the following BNF grammar for the body of a
+multipart MIME message:
+
+@example
+multipart-body  := preamble 1*encapsulation close-delimiter epilogue
+@end example
+
+@example
+encapsulation   := delimiter body-part CRLF
+@end example
+
+@example
+delimiter       := "--" boundary CRLF 
+                             ; taken from Content-Type field.
+                             ; There must be no space between "--" 
+                             ; and boundary.
+@end example
+
+@example
+close-delimiter := "--" boundary "--" CRLF 
+                             ; Again, no space by "--"
+@end example
+
+@example
+preamble        := discard-text   
+                             ; to be ignored upon receipt.
+@end example
+
+@example
+epilogue        := discard-text   
+                             ; to be ignored upon receipt.
+@end example
+
+@example
+discard-text    := *(*text CRLF)
+@end example
+
+@example
+body-part       := <"message" as defined in RFC 822, with all 
+                    header fields optional, and with the specified 
+                    delimiter not occurring anywhere in the message 
+                    body, either on a line by itself or as a substring 
+                    anywhere.  Note that the semantics of a part 
+                    differ from the semantics of a message, as 
+                    described in the text.>
+@end example
+
+From this we glean the following algorithm for parsing a MIME stream:
+
+@example
+PROCEDURE parse
+INPUT
+    A FILEHANDLE for the stream.
+    An optional end-of-stream OUTER_BOUND (for a nested multipart message).
+
+RETURNS
+    The (possibly-multipart) ENTITY that was parsed.
+    A STATE indicating how we left things: "END" or "ERROR".
+
+BEGIN   
+    LET OUTER_DELIM = "--OUTER_BOUND".
+    LET OUTER_CLOSE = "--OUTER_BOUND--".
+
+    LET ENTITY = a new MIME entity object.
+    LET STATE  = "OK".
+
+    Parse the (possibly empty) header, up to and including the
+    blank line that terminates it.   Store it in the ENTITY.
+
+    IF the MIME type is "multipart":
+        LET INNER_BOUND = get multipart "boundary" from header.
+        LET INNER_DELIM = "--INNER_BOUND".
+        LET INNER_CLOSE = "--INNER_BOUND--".
+
+        Parse preamble:
+            REPEAT:
+                Read (and discard) next line
+            UNTIL (line is INNER_DELIM) OR we hit EOF (error).
+
+        Parse parts:
+            REPEAT:
+                LET (PART, STATE) = parse(FILEHANDLE, INNER_BOUND).
+                Add PART to ENTITY.
+            UNTIL (STATE != "DELIM").
+
+        Parse epilogue:
+            REPEAT (to parse epilogue): 
+                Read (and discard) next line
+            UNTIL (line is OUTER_DELIM or OUTER_CLOSE) OR we hit EOF
+            LET STATE = "EOF", "DELIM", or "CLOSE" accordingly.
+ 
+    ELSE (if the MIME type is not "multipart"):
+        Open output destination (e.g., a file)
+
+        DO:
+            Read, decode, and output data from FILEHANDLE
+        UNTIL (line is OUTER_DELIM or OUTER_CLOSE) OR we hit EOF.
+        LET STATE = "EOF", "DELIM", or "CLOSE" accordingly.
+
+    ENDIF
+
+    RETURN (ENTITY, STATE).
+END
+@end example
+
+For reasons discussed in MIME::Entity, we can@'t just discard the 
+"discard text": some mailers actually put data in the preamble.
+
+@unnumberedsubsec Questionable practices
+
+@table @asis
+@item Multipart messages are always read line-by-line 
+Multipart document parts are read line-by-line, so that the
+encapsulation boundaries may easily be detected.  However, bad MIME
+composition agents (for example, naive CGI scripts) might return
+multipart documents where the parts are, say, unencoded bitmap
+files... and, consequently, where such "lines" might be 
+veeeeeeeeery long indeed.
+
+A better solution for this case would be to set up some form of 
+state machine for input processing.  This will be left for future versions.
+
+@item Multipart parts read into temp files before decoding
+In my original implementation, the MIME::Decoder classes had to be aware
+of encapsulation boundaries in multipart MIME documents.
+While this decode-while-parsing approach obviated the need for 
+temporary files, it resulted in inflexible and complex decoder
+implementations.
+
+The revised implementation uses a temporary file (a la @code{tmpfile()})
+during parsing to hold the @emph{encoded} portion of the current MIME 
+document or part.  This file is deleted automatically after the
+current part is decoded and the data is written to the "body stream"
+object; you@'ll never see it, and should never need to worry about it.
+
+Some folks have asked for the ability to bypass this temp-file
+mechanism, I suppose because they assume it would slow down their application.
+I considered accomodating this wish, but the temp-file
+approach solves a lot of thorny problems in parsing, and it also
+protects against hidden bugs in user applications (what if you@'ve
+directed the encoded part into a scalar, and someone unexpectedly
+sends you a 6 MB tar file?).  Finally, I@'m just not conviced that 
+the temp-file use adds significant overhead.
+
+@item Fuzzing of CRLF and newline on input
+RFC-1521 dictates that MIME streams have lines terminated by CRLF
+(@code{"\r\n"}).  However, it is extremely likely that folks will want to 
+parse MIME streams where each line ends in the local newline 
+character @code{"\n"} instead. 
+
+An attempt has been made to allow the parser to handle both CRLF 
+and newline-terminated input.
+
+@item Fuzzing of CRLF and newline on output
+The @code{"7bit"} and @code{"8bit"} decoders will decode both
+a @code{"\n"} and a @code{"\r\n"} end-of-line sequence into a @code{"\n"}.
+
+The @code{"binary"} decoder (default if no encoding specified) 
+still outputs stuff verbatim... so a MIME message with CRLFs 
+and no explicit encoding will be output as a text file 
+that, on many systems, will have an annoying ^M at the end of
+each line... @emph{but this is as it should be}.
+
+@end table
+@unnumberedsec WARNINGS
+
+@table @asis
+@item binmode
+New, untested binmode() calls were added in module version 1.11... 
+if binmode() is @emph{not} a NOOP on your system, please pay careful attention 
+to your output, and report any anomalies.  
+@emph{It is possible that "make test" will fail on such systems,} 
+since some of the tests involve checking the sizes of the output files.
+That doesn@'t necessarily indicate a problem.
+
+@strong{If anyone} wants to test out this package@'s handling of both binary
+and textual email on a system where binmode() is not a NOOP, I would be 
+most grateful.  If stuff breaks, send me the pieces (including the 
+original email that broke it, and at the very least a description
+of how the output was screwed up).
+
+@end table
+@unnumberedsec SEE ALSO
+
+MIME::Decoder,
+MIME::Entity,
+MIME::Head, 
+MIME::Parser.
+
+@unnumberedsec AUTHOR
+
+Copyright (c) 1996 by Eryq / eryq@@rhine.gsfc.nasa.gov
+
+All rights reserved.  This program is free software; you can redistribute 
+it and/or modify it under the same terms as Perl itself.
+
+@unnumberedsec VERSION
+
+$Revision: 1.1 $ $Date: 1996/10/18 06:52:28 $
+

@@ -1,0 +1,80 @@
+@node Sort/Versions, Sprite, Socket, Module List
+@unnumbered a perl 5 module for sorting of revision-like numbers
+
+
+@unnumberedsec NAME
+
+Sort::Versions - a perl 5 module for sorting of revision-like numbers
+
+@unnumberedsec SYNOPSIS
+
+@example
+use Sort::Versions;
+@@l = sort versions qw( 1.2 1.2.0 1.2a.0 1.2.a 1.a 02.a );
+@end example
+
+@example
+...
+@end example
+
+@example
+use Sort::Versions;
+print "lower" if versioncmp("1.2","1.2a")==-1;
+
+...
+
+use Sort::Versions;
+%h = (1 => "d", 2 => "c", 3 => "b", 4 => "a");
+@@h = sort @{versioncmp $h@{$a@}, $h@{$b@}@} keys %h;
+@end example
+
+@unnumberedsec DESCRIPTION	
+
+Sort::Versions allows easy sorting of mixed non-numeric and numeric strings,
+like the "version numbers" that many shared library systems and revision
+control packages use. This is quite useful if you are trying to deal with
+shared libraries. It can also be applied to applications that intersperse
+variable-width numeric fields within text. Other applications can
+undoubtedly be found.
+
+For an explanation of the algorithm, it@'s simplest to look at these examples:
+
+@example
+1.1   <  1.2
+1.1a  <  1.2
+1.1   <  1.1.1
+1.1   <  1.1a
+1.1.a <  1.1a
+1     <  a
+a     <  b
+1     <  2
+1     <  0002
+1.5   <  1.06
+@end example
+
+More precisely (but less comprehensibly), the two strings are treated as
+subunits delimited by periods. Each subunit can contain any number of groups
+of digits or non-digits. If digit groups are being compared on both sides, a
+numeric comparison is used, otherwise a ASCII ordering is used. A group or
+subgroup with more units will win if all comparisons are equal.
+
+One important thing to note is that if a numeric comparison is made, then
+leading zeros are ignored. Thus @code{1.5} sorts before @code{1.06}, since two
+separate comparisons are being made: @code{1 == 1}, and @code{5 < 6}. This is @emph{not}
+the same as @code{if(1.5 < 1.06) @{...@}}.
+
+@unnumberedsec USAGE
+
+Sort::Versions exports @code{versions} and @code{versioncmp}. The former is a
+function suitable for handing directly to sort. The second function,
+@code{versioncmp}, takes two arguments and returns a cmp style comparison value.
+This is handy in indirect comparisons, as shown above.
+
+@unnumberedsec AUTHOR
+
+Kenneth J. Albanowski		kjahds@@kjahds.com
+       
+Copyright (c) 1996, Kenneth J. Albanowski. All rights reserved.  This
+program is free software; you can redistribute it and/or modify it under the
+same terms as Perl itself.
+

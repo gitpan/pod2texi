@@ -1,0 +1,115 @@
+@node IO/Pipe, IO/Seekable, IO/Handle, Module List
+@unnumbered supply object methods for pipes
+
+
+@unnumberedsec NAME
+
+IO::pipe - supply object methods for pipes
+
+@unnumberedsec SYNOPSIS
+
+@example
+use IO::Pipe;
+@end example
+
+@example
+$pipe = new IO::Pipe;
+@end example
+
+@example
+if($pid = fork()) @{ # Parent
+    $pipe->reader();
+@end example
+
+@example
+while(<$pipe> @{
+		....
+@}
+@end example
+
+@example
+@}
+elsif(defined $pid) @{ # Child
+    $pipe->writer();
+@end example
+
+@example
+print $pipe ....
+	@}
+@end example
+
+@example
+or
+@end example
+
+@example
+$pipe = new IO::Pipe;
+@end example
+
+@example
+$pipe->reader(qw(ls -l));
+@end example
+
+@example
+while(<$pipe>) @{
+    ....
+@}
+@end example
+
+@unnumberedsec DESCRIPTION
+
+@code{IO::Pipe} provides an interface to createing pipes between
+processes.
+
+@unnumberedsec CONSTRCUTOR
+
+@table @asis
+@item new ( [READER, WRITER] )
+Creates a @code{IO::Pipe}, which is a reference to a
+newly created symbol (see the Symbol package). @code{IO::Pipe::new}
+optionally takes two arguments, which should be objects blessed into
+@code{IO::Handle}, or a subclass thereof. These two objects will be used
+for the system call to pipe. If no arguments are given then then
+method handles is called on the new @code{IO::Pipe} object.
+
+These two handles are held in the array part of the GLOB until either
+reader or writer is called.
+
+@end table
+@unnumberedsec METHODS
+
+@table @asis
+@item reader ([ARGS])
+The object is re-blessed into a sub-class of @code{IO::Handle}, and becomes a
+handle at the reading end of the pipe. If @code{ARGS} are given then fork
+is called and @code{ARGS} are passed to exec.
+
+@item writer ([ARGS])
+The object is re-blessed into a sub-class of @code{IO::Handle}, and becomes a
+handle at the writing end of the pipe. If @code{ARGS} are given then fork
+is called and @code{ARGS} are passed to exec.
+
+@item handles ()
+This method is called during construction by @code{IO::Pipe::new}
+on the newly created @code{IO::Pipe} object. It returns an array of two objects
+blessed into @code{IO::Handle}, or a subclass thereof.
+
+@end table
+@unnumberedsec SEE ALSO
+
+@xref{IO/Handle,IO/Handle},
+
+@unnumberedsec AUTHOR
+
+Graham Barr <@file{bodg@@tiuk.ti.com}>
+
+@unnumberedsec REVISION
+
+$Revision: 1.7 $
+
+@unnumberedsec COPYRIGHT
+
+Copyright (c) 1995 Graham Barr. All rights reserved. This program is free
+software; you can redistribute it and/or modify it under the same terms
+as Perl itself.
+

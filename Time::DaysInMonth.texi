@@ -1,0 +1,18 @@
+@node Time/DaysInMonth, Time/HiRes, Time/CTime, Module List
+@unnumbered simply report the number of days in a month
+
+
+@unnumberedsec NAME
+
+Time::DaysInMonth -- simply report the number of days in a month
+
+@unnumberedsec SYNOPSIS 	 	use Time::DaysInMonth; 	$days = days_in($year, $month_1_to_12); 	$leapyear = is_leap($year);
+
+@unnumberedsec DESCRIPTION
+
+DaysInMonth is simply a package to report the number of days in
+a month.  That@'s all it does.  Really!
+
+@unnumberedsec AUTHOR
+
+David Muir Sharnoff <muir@@idiom.com>

@@ -1,0 +1,36 @@
+@node Apache/Options, Apache/Registry, Apache/MsqlProxy, Module List
+@unnumbered OPT_* defines from httpd_core.h
+
+
+@unnumberedsec NAME
+
+Apache::Options - OPT_* defines from httpd_core.h
+
+@unnumberedsec DESCRIPTION
+
+The @strong{Apache::Options} module will export the following bitmask
+constants:
+
+@example
+OPT_NONE
+OPT_INDEXES
+OPT_INCLUDES 
+OPT_SYMLINKS
+OPT_EXECCGI
+OPT_UNSET
+OPT_INCNOEXEC
+OPT_SYM_OWNER
+OPT_MULTI
+OPT_ALL
+@end example
+
+These constants can be used to check the return value from
+Apache->request->allow_options() method.
+
+This module is simply a stub which imports from @samp{Apache::Constants} in this node,
+just as if you had said @code{use Apache::Constants @':options@';}.
+
+@unnumberedsec SEE ALSO
+
+@xref{Apache,Apache},, @samp{Apache::Constants} in this node
+

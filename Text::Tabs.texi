@@ -1,0 +1,36 @@
+@node Text/Tabs, Text/Template, Text/Soundex, Module List
+@unnumbered expand and unexpand tabs per the unix expand(1) and unexpand(1)
+
+
+@unnumberedsec NAME
+
+Text::Tabs - expand and unexpand tabs per the unix expand(1) and unexpand(1)
+
+@unnumberedsec SYNOPSIS
+
+@example
+use Text::Tabs;
+@end example
+
+@example
+$tabstop = 4;
+@@lines_without_tabs = expand(@@lines_with_tabs);
+@@lines_with_tabs = unexpand(@@lines_without_tabs);
+@end example
+
+@unnumberedsec DESCRIPTION
+
+Text::Tabs does about what the unix utilities expand(1) and unexpand(1)
+do.  Given a line with tabs in it, expand will replace the tabs with
+the appropriate number of spaces.  Given a line with or without tabs in
+it, unexpand will add tabs when it can save bytes by doing so.  Invisible
+compression with plain ascii!
+
+@unnumberedsec BUGS
+
+expand doesn@'t handle newlines very quickly -- do not feed it an
+entire document in one string.  Instead feed it an array of lines.
+
+@unnumberedsec AUTHOR
+
+David Muir Sharnoff <@file{muir@@idiom.com}>

@@ -1,0 +1,335 @@
+@node Net/NNTP, Net/Netrc, Net/NISTable, Module List
+@unnumbered NNTP Client class
+
+
+@unnumberedsec NAME
+
+Net::NNTP - NNTP Client class
+
+@unnumberedsec SYNOPSIS
+
+@example
+use Net::NNTP;
+
+$nntp = Net::NNTP->new("some.host.name");
+$nntp->quit;
+@end example
+
+@unnumberedsec DESCRIPTION
+
+@code{Net::NNTP} is a class implementing a simple NNTP client in Perl as described
+in RFC977. @code{Net::NNTP} inherits its communication methods from @code{Net::Cmd}
+
+@unnumberedsec CONSTRUCTOR
+
+@table @asis
+@item new ( [ HOST ] [, OPTIONS ])
+This is the constructor for a new Net::NNTP object. @code{HOST} is the
+name of the remote host to which a NNTP connection is required. If not
+given two environment variables are checked, first @code{NNTPSERVER} then
+@code{NEWSHOST}, if neither are set @code{news} is used.
+
+OPTIONS are passed in a hash like fasion, using key and value pairs.
+Possible options are:
+
+@strong{Timeout} - Maximum time, in seconds, to wait for a response from the
+NNTP server, a value of zero will cause all IO operations to block.
+(default: 120)
+
+Debug - Enable the printing of debugging information to STDERR
+
+@end table
+@unnumberedsec METHODS
+
+Unless otherwise stated all methods return either a @emph{true} or @emph{false}
+value, with @emph{true} meaning that the operation was a success. When a method
+states that it returns a value, falure will be returned as undef or an
+empty list.
+
+@table @asis
+@item article ( [ MSGID|MSGNUM ] )
+Retreive the header, a blank line, then the body (text) of the
+specified article. 
+
+If no arguments are passed then the current aricle in the current
+newsgroup is returned.
+
+@code{MSGNUM} is a numeric id of an article in the
+current newsgroup, and will change the current article pointer.
+@code{MSGID} is the message id of an article as
+shown in that article@'s header.  It is anticipated that the client
+will obtain the @code{MSGID} from a list provided by the newnews
+command, from references contained within another article, or from
+the message-id provided in the response to some other commands.
+
+Returns a reference to an array containing the article.
+
+@item body ( [ MSGID|MSGNUM ] )
+Retreive the body (text) of the specified article. 
+
+Takes the same arguments as article
+
+Returns a reference to an array containing the body of the article.
+
+@item head ( [ MSGID|MSGNUM ] )
+Retreive the header of the specified article. 
+
+Takes the same arguments as article
+
+Returns a reference to an array containing the header of the article.
+
+@item nntpstat ( [ MSGID|MSGNUM ] )
+The nntpstat command is similar to the article command except that no
+text is returned.  When selecting by message number within a group,
+the nntpstat command serves to set the "current article pointer" without
+sending text.
+
+Using the nntpstat command to
+select by message-id is valid but of questionable value, since a
+selection by message-id does @strong{not} alter the "current article pointer".
+
+Returns the message-id of the "current article".
+
+@item group ( [ GROUP ] )
+Set and/or get the current group. If @code{GROUP} is not given then information
+is returned on the current group.
+
+In a scalar context it returns the group name.
+
+In an array context the return value is a list containing, the number
+of articles in the group, the number of the first article, the number
+of the last article and the group name.
+
+@item ihave ( MSGID [, MESSAGE ])
+The ihave command informs the server that the client has an article
+whose id is @code{MSGID}.  If the server desires a copy of that
+article, and @code{MESSAGE} has been given the it will be sent.
+
+Returns @emph{true} if the server desires the article and @code{MESSAGE} was
+successfully sent,if specified.
+
+If @code{MESSAGE} is not specified then the message must be sent using the
+datasend and dataend methods from @xref{Net/Cmd,Net/Cmd},
+
+@code{MESSAGE} can be either an array of lines or a reference to an array.
+
+@item last ()
+Set the "current article pointer" to the previous article in the current
+newsgroup.
+
+Returns the message-id of the article.
+
+@item date ()
+Returns the date on the remote server. This date will be in a UNIX time
+format (seconds since 1970)
+
+@item postok ()
+postok will return @emph{true} if the servers initial response indicated
+that it will allow posting.
+
+@item authinfo ( USER, PASS )
+@itemx list ()
+Obtain information about all the active newsgroups. The results is a reference
+to a hash where the key is a group name and each value is a reference to an
+array. The elements in this array are:- the first article number in the group,
+the last article number in the group and any information flags about the group.
+
+@item newgroups ( SINCE [, DISTRIBUTIONS ])
+@code{SINCE} is a time value and @code{DISTRIBUTIONS} is either a distribution
+pattern or a reference to a list of distribution patterns.
+The result is the same as list, but the
+groups return will be limited to those created after @code{SINCE} and, if
+specified, in one of the distribution areas in @code{DISTRIBUTIONS}. 
+
+@item newnews ( SINCE [, GROUPS [, DISTRIBUTIONS ]])
+@code{SINCE} is a time value. @code{GROUPS} is either a group pattern or a reference
+to a list of group patterns. @code{DISTRIBUTIONS} is either a distribution
+pattern or a reference to a list of distribution patterns.
+
+Returns a reference to a list which contains the message-ids of all news posted
+after @code{SINCE}, that are in a groups which matched @code{GROUPS} and a
+distribution which matches @code{DISTRIBUTIONS}.
+
+@item next ()
+Set the "current article pointer" to the next article in the current
+newsgroup.
+
+Returns the message-id of the article.
+
+@item post ( [ MESSAGE ] )
+Post a new article to the news server. If @code{MESSAGE} is specified and posting
+is allowed then the message will be sent.
+
+If @code{MESSAGE} is not specified then the message must be sent using the
+datasend and dataend methods from @xref{Net/Cmd,Net/Cmd},
+
+@code{MESSAGE} can be either an array of lines or a reference to an array.
+
+@item slave ()
+Tell the remote server that I am not a user client, but probably another
+news server.
+
+@item quit ()
+Quit the remote server and close the socket connection.
+
+@end table
+@unnumberedsubsec Extension methods
+
+These methods use commands that are not part of the RFC977 documentation. Some
+servers may not support all of them.
+
+@table @asis
+@item newsgroups ( [ PATTERN ] )
+Returns a reference to a hash where the keys are all the group names which
+match PATTERN, or all of the groups if no pattern is specified, and
+each value contains the description text for the group.
+
+@item distributions ()
+Returns a reference to a hash where the keys are all the possible
+distribution names and the values are the distribution descriptions.
+
+@item subscriptions ()
+Returns a reference to a list which contains a list of groups which
+are reccomended for a new user to subscribe to.
+
+@item overview_fmt ()
+Returns a reference to an array which contain the names of the fields returnd
+by xover.
+
+@item active_times ()
+Returns a reference to a hash where the keys are the group names and each
+value is a reference to an array containg the time the groups was created
+and an identifier, possibly an Email address, of the creator.
+
+@item active ( [ PATTERN ] )
+Similar to list but only active groups that match the pattern are returned.
+PATTERN can be a group pattern.
+
+@item xgtitle ( PATTERN )
+Returns a reference to a hash where the keys are all the group names which
+match PATTERN and each value is the description text for the group.
+
+@item xhdr ( HEADER, MESSAGE-RANGE )
+Obtain the header field @code{HEADER} for all the messages specified. 
+
+Returns a reference to a hash where the keys are the message numbers and
+each value contains the header for that message.
+
+@item xover ( MESSAGE-RANGE )
+Returns a reference to a hash where the keys are the message numbers and each
+value is a reference to an array which contains the overview fields for that
+message. The names of these fields can be obtained by calling overview_fmt.
+
+@item xpath ( MESSAGE-ID )
+Returns the path name to the file on the server which contains the specified
+message.
+
+@item xpat ( HEADER, PATTERN, MESSAGE-RANGE)
+The result is the same as xhdr except the is will be restricted to
+headers that match PATTERN
+
+@item xrover
+@itemx listgroup
+@itemx reader
+@end table
+@unnumberedsec UNSUPPORTED
+
+The following NNTP command are unsupported by the package, and there are
+no plans to do so.
+
+@example
+AUTHINFO GENERIC
+XTHREAD
+XSEARCH
+XINDEX
+@end example
+
+@unnumberedsec DEFINITIONS
+
+@table @asis
+@item MESSAGE-RANGE
+@code{MESSAGE-RANGE} is either a single message-id, a single mesage number, or
+two message numbers.
+
+If @code{MESSAGE-RANGE} is two message numbers and the second number in a
+range is less than or equal to the first then the range represents all
+messages in the group after the first message number.
+
+@item PATTERN
+The @code{NNTP} protocol uses the @code{WILDMAT} format for patterns.
+The WILDMAT format was first developed by Rich Salz based on
+the format used in the UNIX "find" command to articulate
+file names. It was developed to provide a uniform mechanism
+for matching patterns in the same manner that the UNIX shell
+matches filenames.
+
+Patterns are implicitly anchored at the
+beginning and end of each string when testing for a match.
+
+There are five pattern matching operations other than a strict
+one-to-one match between the pattern and the source to be
+checked for a match.
+
+The first is an asterisk * to match any sequence of zero or more
+characters.
+
+The second is a question mark @code{?} to match any single character. The
+third specifies a specific set of characters.
+
+The set is specified as a list of characters, or as a range of characters
+where the beginning and end of the range are separated by a minus (or dash)
+character, or as any combination of lists and ranges. The dash can
+also be included in the set as a character it if is the beginning
+or end of the set. This set is enclosed in square brackets. The
+close square bracket @code{]} may be used in a set if it is the first
+character in the set.
+
+The fourth operation is the same as the
+logical not of the third operation and is specified the same
+way as the third with the addition of a caret character @code{^} at
+the beginning of the test string just inside the open square
+bracket.
+
+The final operation uses the backslash character to
+invalidate the special meaning of the a open square bracket @code{[},
+the asterisk, backslash or the question mark. Two backslashes in
+sequence will result in the evaluation of the backslash as a
+character with no special meaning.
+
+@table @asis
+@item Examples
+@itemx @code{[^]-]}
+matches any single character other than a close square
+bracket or a minus sign/dash.
+
+@item 
+matches any string that ends with the string "bdc"
+including the string "bdc" (without quotes).
+
+@item @code{[0-9a-zA-Z]}
+matches any single printable alphanumeric ASCII character.
+
+@item @code{a??d}
+matches any four character string which begins
+with a and ends with d.
+
+@end table
+@end table
+@unnumberedsec SEE ALSO
+
+@xref{Net/Cmd,Net/Cmd},
+
+@unnumberedsec AUTHOR
+
+Graham Barr <Graham.Barr@@tiuk.ti.com>
+
+@unnumberedsec REVISION
+
+$Revision: 2.5 $
+
+@unnumberedsec COPYRIGHT
+
+Copyright (c) 1995 Graham Barr. All rights reserved. This program is free
+software; you can redistribute it and/or modify it under the same terms
+as Perl itself.
+

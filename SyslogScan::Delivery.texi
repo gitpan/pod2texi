@@ -1,0 +1,113 @@
+@node SyslogScan/Delivery, SyslogScan/DeliveryIterator, SyslogScan/ByGroup, Module List
+@unnumbered encapsulates a logged, successful delivery of mail from a sender to a list of recipients.
+
+
+@unnumberedsec NAME
+
+SyslogScan::Delivery - encapsulates a logged, successful delivery of mail from a sender to a list of recipients.
+
+@unnumberedsec SYNOPSIS
+
+see @xref{SyslogScan/DeliveryIterator,SyslogScan/DeliveryIterator},
+
+@unnumberedsec DESCRIPTION
+
+A @'Delivery@' object is an indication that mail was successfully
+delivered or forwarded from a sender to a list of recipients.  You can
+extract Delivery objects from a syslog file by using
+@xref{SyslogScan/DeliveryIterator,SyslogScan/DeliveryIterator},.
+
+@unnumberedsubsec Variables
+
+@example
+my $delivery = $iter -> next();
+
+#-----------------------------------------
+#  Sender, ReceiverList, Size, and Date are the most useful
+#-----------------------------------------
+
+# e-mail address of sender, may be @'undef@' if the sender
+# could not be determined from the syslog
+my $sender = $$delivery@{Sender@};
+
+# reference to array of e-mail addresses of recipients
+my $paReceiverList = $$delivery@{ReceiverList@};
+my @@aReceiverList = @@$paReceiverList;
+print "The recipient(s) of the message was (were) ",
+    join(@' @',@@aReceiverList), "\n";
+
+# size of message, may be @'undef@' if the size could not be
+# determined from the syslog
+my $sizeInBytes = $$delivery@{Size@};
+
+# date the message was succesfully delivered or forwarded
+my $date = $$delivery@{Date@};
+
+#-----------------------------------------
+#    Id and Instance are more advanced features
+#-----------------------------------------
+
+# @'id@' in syslog, useful for cross-referencing
+my $id = $$delivery@{Id@};
+
+# The first delivery of any message has Instance of 1; the next
+# deliveries will have Instance > 1, specifically a number equal to
+# the number of people who the message has previously been delivered
+# to, plus 1.  This is useful for detecing mass-mailings.
+
+# Suppose I send a message to 5 people, but only three copies are
+# delivered right away, the other two are deferred.  The first
+# Delivery has instance 1; the next delivery of the same message
+# will have instance 4.
+my $instance = $$delivery@{Instance@};
+my @@aReceiverList = @@@{$$delivery@{ReceiverList@}@};
+print "This message has so far been delivered to ",
+    $instance + $@@aReceiverList - 1, "people so far\n";
+@end example
+
+@unnumberedsec METHODS
+
+@example
+# Manually create a new Delivery object.
+my $delivery = new SyslogScan::Delivery (Date => time(),
+					 Size => 100,
+					 From => @'foo@@bar.com@',
+					 ReceiverList =>
+					   [him@@baz.edu, her@@baz.edu],
+					 Instance => 1,
+					 Id => @'manual@' . $id++);
+
+# print out contents, either in summary or in verbose mode
+print $delivery -> summary();
+print $delivery -> dump();
+
+# save/restore delivery to/from file
+open(OUT,">save.txt");
+$delivery -> persist(\*OUT);
+close(OUT);
+undef($delivery);
+
+open(IN,"save.txt");
+$delivery = SyslogScan::Delivery -> restore(\*IN);
+# $delivery is restored to its original state
+@end example
+
+@unnumberedsec SUPPORT
+
+E-mail bugs to rolf@@usa.healthnet.org.
+
+@unnumberedsec AUTHOR and COPYRIGHT
+
+This code is Copyright (C) SatelLife, Inc. 1996.  All rights reserved.
+This code is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself.
+
+IN NO EVENT SHALL THE AUTHORS BE LIABLE TO ANY PARTY FOR DIRECT,
+INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING OUT OF
+THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION (INCLUDING, BUT NOT
+LIMITED TO, LOST PROFITS) EVEN IF THE AUTHORS HAVE BEEN ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGE.
+
+@unnumberedsec SEE ALSO
+
+@xref{SyslogScan/DeliveryIterator,SyslogScan/DeliveryIterator},, @xref{SyslogScan/Summary,SyslogScan/Summary},

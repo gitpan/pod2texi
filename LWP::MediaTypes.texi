@@ -1,0 +1,45 @@
+@node LWP/MediaTypes, LWP/MemberMixin, LWP/IO, Module List
+@unnumbered guess media type for a file or a URL.
+
+
+@unnumberedsec NAME
+
+guess_media_type - guess media type for a file or a URL.
+
+media_suffix - returns file extentions for a media type
+
+@unnumberedsec DESCRIPTION
+
+This module provides functions for handling of media (also known as
+MIME) types and encodings.  The mapping from file extentions to media
+types is defined by the @file{media.types} file.  If the @file{~/.media.types}
+file exist it is used as a replacement.
+
+For backwards compatability we will also look for @file{~/.mime.types}.
+
+@unnumberedsec FUNCTIONS
+
+@unnumberedsubsec guess_media_type($filename)
+
+This function tries to guess media type and encoding for given file.
+In scalar context it returns only the content-type.  In array context
+it returns an array consisting of content-type followed by any
+content-encodings applied.
+
+The guess_media_type function also accepts a URI::URL object as argument.
+
+If the type can not be deduced from looking at the file name only,
+then guess_media_type() will take a look at the actual file using the
+-T perl operator in order to determine if this is a text file
+(text/plain).  If this does not work it will return
+@emph{application/octet-stream} as the type.
+
+@unnumberedsubsec media_suffix($type)
+
+@example
+media_suffix(@'image/*@')
+@end example
+
+This function will return all suffixes that can be used to denote the
+specified media type.  Wildcard types can be used.
+

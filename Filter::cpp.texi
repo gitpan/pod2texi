@@ -1,0 +1,60 @@
+@node Filter/cpp, Filter/decrypt, Filter/Util/Exec, Module List
+@unnumbered cpp source filter
+
+
+@unnumberedsec NAME
+
+Filter::cpp - cpp source filter
+
+@unnumberedsec SYNOPSIS
+
+@example
+use Filter::cpp ;
+@end example
+
+@unnumberedsec DESCRIPTION
+
+This source filter pipes the current source file through the C
+pre-processor (cpp) if it is available.
+
+As with all source filters its scope is limited to the current source
+file only. Every file you want to be processed by the filter must have a
+
+@example
+use Filter::cpp ;
+@end example
+
+near the top.
+
+Here is an example script which uses the filter:
+
+@example
+use Filter::cpp ;
+@end example
+
+@example
+#define FRED 1
+$a = 2 + FRED ;
+print "a = $a\n" ;
+#ifdef FRED
+print "Hello FRED\n" ;
+#else
+print "Where is FRED\n" ;
+#endif
+@end example
+
+And here is what it will output:
+
+@example
+a = 3
+Hello FRED
+@end example
+
+@unnumberedsec AUTHOR
+
+Paul Marquess 
+
+@unnumberedsec DATE
+
+11th December 1995.
+

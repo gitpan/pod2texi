@@ -1,0 +1,125 @@
+@node Net/SNPP, Net/SSLeay, Net/SMTP, Module List
+@unnumbered Simple Network Pager Protocol Client
+
+
+@unnumberedsec NAME
+
+Net::SNPP - Simple Network Pager Protocol Client
+
+@unnumberedsec SYNOPSIS
+
+@example
+use Net::SNPP;
+
+# Constructors
+$snpp = Net::SNPP->new(@'snpphost@');
+$snpp = Net::SNPP->new(@'snpphost@', Timeout => 60);
+@end example
+
+@unnumberedsec NOTE
+
+This module is not complete, yet !
+
+@unnumberedsec DESCRIPTION
+
+This module implements a client interface to the SNPP protocol, enabling
+a perl5 application to talk to SNPP servers. This documentation assumes
+that you are familiar with the SNPP protocol described in RFC1861.
+
+A new Net::SNPP object must be created with the new method. Once
+this has been done, all SNPP commands are accessed through this object.
+
+@unnumberedsec EXAMPLES
+
+This example will send a pager message in one hour saying "Your lunch is ready"
+
+@example
+#!/usr/local/bin/perl -w
+
+use Net::SNPP;
+
+$snpp = Net::SNPP->new(@'snpphost@');
+
+$snpp->send( Pager   => $some_pager_number,
+	         Message => "Your lunch is ready",
+	         Alert   => 1,
+	         Hold    => time + 3600, # lunch ready in 1 hour :-)
+	       ) || die $snpp->message;
+
+$snpp->quit;
+@end example
+
+@unnumberedsec CONSTRUCTOR
+
+@table @asis
+@item new ( HOST, [ OPTIONS ] )
+This is the constructor for a new Net::SNPP object. @code{HOST} is the
+name of the remote host to which a SNPP connection is required.
+
+OPTIONS are passed in a hash like fasion, using key and value pairs.
+Possible options are:
+
+@strong{Timeout} - Maximum time, in seconds, to wait for a response from the
+SNPP server (default: 120)
+
+Debug - Enable debugging information
+
+Example:
+
+@example
+$snpp = Net::SNPP->new(@'snpphost@',
+			   Debug => 1,
+			  );
+@end example
+
+@end table
+@unnumberedsec METHODS
+
+Unless otherwise stated all methods return either a @emph{true} or @emph{false}
+value, with @emph{true} meaning that the operation was a success. When a method
+states that it returns a value, falure will be returned as undef or an
+empty list.
+
+@table @asis
+@item reset ()
+@itemx help ()
+Request help text from the server. Returns the text or undef upon failure
+
+@item quit ()
+Send the QUIT command to the remote SNPP server and close the socket connection.
+
+@end table
+@unnumberedsec EXPORTS
+
+@code{Net::SNPP} exports all that @code{Net::CMD} exports, plus three more subroutines
+that can bu used to compare against the result of status. These are :-
+@code{CMD_2WAYERROR}, @code{CMD_2WAYOK}, and @code{CMD_2WAYQUEUED}.
+
+@unnumberedsec SEE ALSO
+
+@xref{Net/Cmd,Net/Cmd},
+RFC1861
+
+@unnumberedsec AUTHOR
+
+Graham Barr <Graham.Barr@@tiuk.ti.com>
+
+@unnumberedsec REVISION
+
+$Revision: 1.1 $
+$Date: 1996/07/26 06:49:13 $
+
+The VERSION is derived from the revision by changing each number after the
+first dot into a 2 digit number so
+
+@example
+Revision 1.8   => VERSION 1.08
+Revision 1.2.3 => VERSION 1.0203
+@end example
+
+@unnumberedsec COPYRIGHT
+
+Copyright (c) 1995 Graham Barr. All rights reserved. This program is free
+software; you can redistribute it and/or modify it under the same terms
+as Perl itself.
+

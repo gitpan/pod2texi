@@ -1,0 +1,24 @@
+@node ExtUtils/testlib, Fatal, ExtUtils/Mksymlists, Module List
+@unnumbered add blib/* directories to @@INC
+
+
+@unnumberedsec NAME
+
+ExtUtils::testlib - add blib/* directories to @@INC
+
+@unnumberedsec SYNOPSIS
+
+@code{use ExtUtils::testlib;}
+
+@unnumberedsec DESCRIPTION
+
+After an extension has been built and before it is installed it may be
+desirable to test it bypassing make test. By adding
+
+@example
+use ExtUtils::testlib;
+@end example
+
+to a test program the intermediate directories used by make are
+added to @@INC.
+

@@ -1,0 +1,82 @@
+@node DCE/rgybase, Data/Dumper, DCE/login_base, Module List
+@unnumbered Constants from dce/rgybase.h
+
+
+@unnumberedsec NAME
+
+DCE::rgybase - Constants from dce/rgybase.h
+
+@unnumberedsec SYNOPSIS
+
+@example
+use DCE::rgybase;
+@end example
+
+@unnumberedsec DESCRIPTION
+
+These constant methods are inherited by DCE::Registry, a developer should not 
+need to use this module and it@'s methods directly.
+
+Here is a list of the available constants:
+
+@example
+acct_admin_audit
+acct_admin_client
+acct_admin_flags_none
+acct_admin_server
+acct_admin_valid
+acct_auth_dup_skey
+acct_auth_flags_none
+acct_auth_forwardable
+acct_auth_post_dated
+acct_auth_proxiable
+acct_auth_renewable
+acct_auth_tgt
+acct_key_group
+acct_key_last
+acct_key_none
+acct_key_org
+acct_key_person
+acct_user_flags_none
+acct_user_passwd_valid
+domain_group
+domain_last
+domain_org
+domain_person
+max_unix_passwd_len
+name_max_len
+name_t_size
+no_override
+no_resolve_pname
+override
+pgo_flags_none
+pgo_is_an_alias
+pgo_is_required
+pgo_projlist_ok
+plcy_pwd_flags_none
+plcy_pwd_no_spaces
+plcy_pwd_non_alpha
+pname_max_len
+pname_t_size
+prop_auth_cert_unbound
+prop_embedded_unix_id
+prop_readonly
+prop_shadow_passwd
+properties_none
+quota_unlimited
+resolve_pname
+rgynbase_v0_0_included
+status_ok
+uxid_unknown
+wildcard_name
+wildcard_sid
+@end example
+
+@unnumberedsec AUTHOR
+
+h2xs
+
+@unnumberedsec SEE ALSO
+
+perl(1), DCE::Registry(3), DCE::Login(3).
+

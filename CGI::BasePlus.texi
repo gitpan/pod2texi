@@ -1,0 +1,25 @@
+@node CGI/BasePlus, CGI/Carp, CGI/Base, Module List
+@unnumbered HTTP CGI Base Class with Handling of Multipart Forms
+
+
+@unnumberedsec NAME
+
+CGI::BasePlus - HTTP CGI Base Class with Handling of Multipart Forms
+
+@unnumberedsec DESCRIPTION
+
+This module implements a CGI::BasePlus object that is identical in
+behavior to CGI::Base except that it provides special handling for
+postings of MIME type multipart/form-data (which may get very long).
+In the case of these types of postings, parts that are described
+as being from a file upload are copied into a temporary file in
+/usr/tmp, a filehandle is opened on the temporary files, and the name
+of the filehandle is returned to the caller in the
+$CGI::Base:QUERY_STRING variable.
+
+Please see @xref{CGI/Base,CGI/Base}, for more information.
+
+@unnumberedsubsec SEE ALSO
+
+URI::URL, CGI::Request, CGI::MiniSvr, CGI::Base
+

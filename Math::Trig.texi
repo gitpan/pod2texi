@@ -1,0 +1,43 @@
+@node Math/Trig, Math/TrulyRandom, Math/Spline, Module List
+@unnumberedsec SYNOPSIS
+
+@example
+use Math::Trig qw(tan asin acos sinh cosh tanh sech cosech);
+$v=tan($x);
+$v=asin($x);
+$v=acos($x);
+$v=sinh($x);
+$v=cosh($x);
+$v=tanh($x);
+$v=sech($x);
+$v=cosech($x);
+@end example
+
+@unnumberedsec DESCRIPTION
+
+This module exports the missing inverse and hyperbolic trigonemtric
+functions of real numbers.
+
+@table @asis
+@item tan returns tan of real argument =item asin returns inverse sine of real argument =item acos returns inverse cosine of real argument =item sinh returns hyperbolic sine of real argument =item cosh returns hyperbolic cosine of real argument =item tanh returns hyperbolic tan of real argument =item @strong{sech} returns hyperbolic secant of real argument =item @strong{cosech} returns hyperbolic cosecant of real argument
+@end table
+@unnumberedsec HISTORY
+
+$Log: Trig.pm,v $
+Revision 1.2  1995/12/28 16:32:37  willijar
+Moved hyoerbolic functions into here.
+
+Revision 1.1  1995/12/24 16:06:26  willijar
+Initial revision
+
+@unnumberedsec BUGS
+
+Let me know.
+
+I welcome additions such as the inverse trigonemetric functions and
+the complex versions of the functions to be included in this module.
+
+@unnumberedsec AUTHOR
+
+John A.R. Williams <J.A.R.Williams@@aston.ac.uk>
+

@@ -1,0 +1,30 @@
+@node English, Env, DynaLoader, Module List
+@unnumbered use nice English (or awk) names for ugly punctuation variables
+
+
+@unnumberedsec NAME
+
+English - use nice English (or awk) names for ugly punctuation variables
+
+@unnumberedsec SYNOPSIS
+
+@example
+use English;
+...
+if ($ERRNO =~ /denied/) @{ ... @}
+@end example
+
+@unnumberedsec DESCRIPTION
+
+This module provides aliases for the built-in variables whose
+names no one seems to like to read.  Variables with side-effects
+which get triggered just by accessing them (like $0) will still 
+be affected.
+
+For those variables that have an @strong{awk} version, both long
+and short English alternatives are provided.  For example, 
+the $/ variable can be referred to either $RS or 
+$INPUT_RECORD_SEPARATOR if you are using the English module.
+
+See @xref{(perl.info)perlvar,Perlvar}, for a complete list of these.
+

@@ -1,0 +1,81 @@
+@node Sys/Syslog, SysV, Sys/Hostname, Module List
+@unnumbered Perl interface to the UNIX syslog(3) calls
+
+
+@unnumberedsec NAME
+
+Sys::Syslog, openlog, closelog, setlogmask, syslog - Perl interface to the UNIX syslog(3) calls
+
+@unnumberedsec SYNOPSIS
+
+@example
+use Sys::Syslog;
+@end example
+
+@example
+openlog $ident, $logopt, $facility;
+syslog $priority, $format, @@args;
+$oldmask = setlogmask $mask_priority;
+closelog;
+@end example
+
+@unnumberedsec DESCRIPTION
+
+Sys::Syslog is an interface to the UNIX @code{syslog(3)} program.
+Call @code{syslog()} with a string priority and a list of @code{printf()} args
+just like @code{syslog(3)}.
+
+Syslog provides the functions:
+
+@table @asis
+@item openlog $ident, $logopt, $facility
+@emph{$ident} is prepended to every message.
+@emph{$logopt} contains one or more of the words pid, @emph{ndelay}, @emph{cons}, @emph{nowait}.
+@emph{$facility} specifies the part of the system
+
+@item syslog $priority, $format, @@args
+If @emph{$priority} permits, logs @emph{($format, @@args)}
+printed as by @code{printf(3V)}, with the addition that @emph{%m}
+is replaced with @code{"$!"} (the latest error message).
+
+@item setlogmask $mask_priority
+Sets log mask @emph{$mask_priority} and returns the old mask.
+
+@item closelog
+Closes the log file.
+
+@end table
+Note that openlog now takes three arguments, just like @code{openlog(3)}.
+
+@unnumberedsec EXAMPLES
+
+@example
+openlog($program, @'cons,pid@', @'user@');
+syslog(@'info@', @'this is another test@');
+syslog(@'mail|warning@', @'this is a better test: %d@', time);
+closelog();
+@end example
+
+@example
+syslog(@'debug@', @'this is the last test@');
+openlog("$program $$", @'ndelay@', @'user@');
+syslog(@'notice@', @'fooprogram: this is really done@');
+@end example
+
+@example
+$! = 55;
+syslog(@'info@', @'problem was %m@'); # %m == $! in syslog(3)
+@end example
+
+@unnumberedsec DEPENDENCIES
+
+@strong{Sys::Syslog} needs @file{syslog.ph}, which can be created with h2ph.
+
+@unnumberedsec SEE ALSO
+
+@samp{syslog(3)} in this node
+
+@unnumberedsec AUTHOR
+
+Tom Christiansen <@file{tchrist@@perl.com}> and Larry Wall <@file{lwall@@sems.com}>
+

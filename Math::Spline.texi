@@ -1,0 +1,76 @@
+@node Math/Spline, Math/Trig, Math/PRSG, Module List
+@unnumberedsec SYNOPSIS          require Math::Spline;     $spline=new Math::Spline(\@@x,\@@y)     $y_interp=$spline->evaluate($x);
+
+@example
+use Math::Spline qw(spline linsearch binsearch);
+use Math::Derivative qw(Derivative2);
+@@y2=Derivative2(\@@x,\@@y);
+$index=binsearch(\@@x,$x);
+$index=linsearch(\@@x,$x,$index);
+$y_interp=spline(\@@x,\@@y,\@@y2,$index,$x);
+@end example
+
+@unnumberedsec DESCRIPTION
+
+This package provides cubic spline interpolation of numeric data. The
+data is passed as references to two arrays containing the x and y
+ordinates. It may be used as an exporter of the numerical functions
+or, more easily as a class module.
+
+The @strong{Math::Spline} class constructor new takes references to the
+arrays of x and y ordinates of the data. An interpolation is performed
+using the @strong{evaluate} method, which, when given an x ordinate returns
+the interpolate y ordinate at that value.
+
+The @strong{spline} function takes as arguments references to the x and y
+ordinate array, a reference to the 2nd derivatives (calculated using
+@strong{Derivative2}, the low index of the interval in which to interpolate
+and the x ordinate in that interval. Returned is the interpolated y
+ordinate. Two functions are provided to look up the appropriate index
+in the array of x data. For random calls @strong{binsearch} can be used -
+give a reference to the x ordinates and the x loopup value it returns
+the low index of the interval in the data in which the value
+lies. Where the lookups are strictly in ascending sequence (e.g. if
+interpolating to produce a higher resolution data set to draw a curve)
+the @strong{linsearch} function may more efficiently be used. It performs
+like @strong{binsearch}, but requires a third argument being the previous
+index value, which is incremented if necessary.
+
+@unnumberedsec NOTE
+
+requires Math::Derivative module
+
+@unnumberedsec EXAMPLE
+
+@example
+require Math::Spline;
+my @@x=(1,3,8,10);
+my @@y=(1,2,3,4);						    
+$spline=new Math::Spline(\@@x,\@@y);
+print $spline->evaluate(5)."\n";
+@end example
+
+produces the output
+
+2.44    						   
+
+@unnumberedsec HISTORY
+
+$Log: Spline.pm,v $
+Revision 1.1  1995/12/26 17:28:17  willijar
+Initial revision
+
+@unnumberedsec BUGS
+
+Bug reports or constructive comments are welcome.
+
+@unnumberedsec AUTHOR
+
+John A.R. Williams <J.A.R.Williams@@aston.ac.uk>
+
+@unnumberedsec SEE ALSO
+
+"Numerical Recipies: The Art of Scientific Computing"
+W.H. Press, B.P. Flannery, S.A. Teukolsky, W.T. Vetterling.
+Cambridge University Press. ISBN 0 521 30811 9.
+

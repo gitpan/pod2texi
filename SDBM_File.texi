@@ -1,0 +1,26 @@
+@node SDBM_File, SHA, Resources, Module List
+@unnumbered Tied access to sdbm files
+
+
+@unnumberedsec NAME
+
+SDBM_File - Tied access to sdbm files
+
+@unnumberedsec SYNOPSIS
+
+@example
+use SDBM_File;
+@end example
+
+@example
+tie(%h, @'SDBM_File@', @'Op.dbmx@', O_RDWR|O_CREAT, 0640);
+@end example
+
+@example
+untie %h;
+@end example
+
+@unnumberedsec DESCRIPTION
+
+See @samp{tie}, @xref{(perl.info)perlfunc,Perlfunc},
+

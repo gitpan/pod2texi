@@ -1,0 +1,66 @@
+@node VRML/VRML1, VRML/VRML1/Standard, VRML, Module List
+@unnumbered implements VRML methods with the VRML 1.x standard
+
+
+@unnumberedsec NAME
+
+VRML::VRML1.pm - implements VRML methods with the VRML 1.x standard
+
+@unnumberedsec SYNOPSIS
+
+@example
+use VRML::VRML1;
+@end example
+
+@unnumberedsec DESCRIPTION
+
+Following functions are currently implemented. 
+
+@itemize @bullet
+@item begin([@'comment@']); @code{  . . . }
+@item end([@'comment@']);
+@item backgroundcolor(@'color@');
+@item backgroundimage(@'URL@');
+@item info(@'string@');
+@item cameras_begin(@'whichCameraNumber@');
+@item camera_set(@'positionXYZ@',@'orientationXYZ@',heightAngle); // persp. cameras
+@item camera(@'positionXYZ@',@'orientationXYZ@',heightAngle); // persp. camera
+@item anchor_begin(@'URL@',@'description@',@'parameter@');
+@item spin_begin(@'axisXYZ@',@'degree@'); // Live3D only
+@item text(@'string@',@'transformation@',@'material@',@'size style family@');
+@item cube(@'width [height [depth]]@',@'transformation@',@'material@');
+@item cylinder(@'radius [height]@',@'transformation@',@'material@');
+@item tube(@'radius height@',@'transformation@',@'material@');
+@item disk(radius,@'transformation@',@'material@');
+@item cone(@'radius height@',@'transformation@',@'material@');
+@item sphere(@'radius_x [radius_y radius_z]@',@'transformation@',@'material@');
+@item line(@'fromXYZ@',@'toXYZ@',radius,@'material@',@'[x][y][z]@');
+@item transform(@'type=value ; ...@');
+
+@emph{Where type can be:}
+
+@example
+t = translation
+r = rotation
+c = center
+o = scaleOrientation
+f = scaleFactor
+@end example
+
+@item material(@'type=value1,value2 ; ...@');
+
+@emph{Where type can be:}
+
+@example
+a = ambientColor
+d = diffuseColor
+e = emissiveColor
+s = specularColor
+sh = shininess
+tr = transparency
+tex = texture filename[,wrapS[,wrapT]]
+@end example
+
+@emph{and color values see VRML::Color}
+
+@end itemize

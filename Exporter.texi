@@ -1,0 +1,198 @@
+@node Exporter, ExtUtils/Embed, EventServer, Module List
+@unnumbered Implements default import method for modules
+
+
+@unnumberedsec NAME
+
+Exporter - Implements default import method for modules
+
+@unnumberedsec SYNOPSIS
+
+In module ModuleName.pm:
+
+@example
+package ModuleName;
+require Exporter;
+@@ISA = qw(Exporter);
+@end example
+
+@example
+@@EXPORT = qw(...);            # symbols to export by default
+@@EXPORT_OK = qw(...);         # symbols to export on request
+%EXPORT_TAGS = tag => [...];  # define names for sets of symbols
+@end example
+
+In other files which wish to use ModuleName:
+
+@example
+use ModuleName;               # import default symbols into my package
+@end example
+
+@example
+use ModuleName qw(...);       # import listed symbols into my package
+@end example
+
+@example
+use ModuleName ();            # do not import any symbols
+@end example
+
+@unnumberedsec DESCRIPTION
+
+The Exporter module implements a default import method which
+many modules choose inherit rather than implement their own.
+
+Perl automatically calls the import method when processing a
+use statement for a module. Modules and use are documented
+in @xref{(perl.info)perlfunc,Perlfunc}, and @xref{(perl.info)perlmod,Perlmod},. Understanding the concept of
+modules and how the use statement operates is important to
+understanding the Exporter.
+
+@unnumberedsubsec Selecting What To Export
+
+Do @strong{not} export method names!
+
+Do @strong{not} export anything else by default without a good reason!
+
+Exports pollute the namespace of the module user.  If you must export
+try to use @@EXPORT_OK in preference to @@EXPORT and avoid short or
+common symbol names to reduce the risk of name clashes.
+
+Generally anything not exported is still accessible from outside the
+module using the ModuleName::item_name (or $blessed_ref->method)
+syntax.  By convention you can use a leading underscore on names to
+informally indicate that they are @'internal@' and not for public use.
+
+(It is actually possible to get private functions by saying:
+
+@example
+my $subref = sub @{ ... @};
+&$subref;
+@end example
+
+But there@'s no way to call that directly as a method, since a method
+must have a name in the symbol table.)
+
+As a general rule, if the module is trying to be object oriented
+then export nothing. If it@'s just a collection of functions then
+ @@EXPORT_OK anything but use @@EXPORT with caution.
+
+Other module design guidelines can be found in @xref{(perl.info)perlmod,Perlmod},.
+
+@unnumberedsubsec Specialised Import Lists
+
+If the first entry in an import list begins with !, : or / then the
+list is treated as a series of specifications which either add to or
+delete from the list of names to import. They are processed left to
+right. Specifications are in the form:
+
+@example
+[!]name         This name only
+[!]:DEFAULT     All names in @@EXPORT
+[!]:tag         All names in $EXPORT_TAGS@{tag@} anonymous list
+[!]/pattern/    All names in @@EXPORT and @@EXPORT_OK which match
+@end example
+
+A leading ! indicates that matching names should be deleted from the
+list of names to import.  If the first specification is a deletion it
+is treated as though preceded by :DEFAULT. If you just want to import
+extra names in addition to the default set you will still need to
+include :DEFAULT explicitly.
+
+e.g., Module.pm defines:
+
+@example
+@@EXPORT      = qw(A1 A2 A3 A4 A5);
+@@EXPORT_OK   = qw(B1 B2 B3 B4 B5);
+%EXPORT_TAGS = (T1 => [qw(A1 A2 B1 B2)], T2 => [qw(A1 A2 B3 B4)]);
+@end example
+
+@example
+Note that you cannot use tags in @@EXPORT or @@EXPORT_OK.
+Names in EXPORT_TAGS must also appear in @@EXPORT or @@EXPORT_OK.
+@end example
+
+An application using Module can say something like:
+
+@example
+use Module qw(:DEFAULT :T2 !B3 A3);
+@end example
+
+Other examples include:
+
+@example
+use Socket qw(!/^[AP]F_/ !SOMAXCONN !SOL_SOCKET);
+use POSIX  qw(:errno_h :termios_h !TCSADRAIN !/^EXIT/);
+@end example
+
+Remember that most patterns (using //) will need to be anchored
+with a leading ^, e.g., @code{/^EXIT/} rather than @code{/EXIT/}.
+
+You can say @code{BEGIN @{ $Exporter::Verbose=1 @}} to see how the
+specifications are being processed and what is actually being imported
+into modules.
+
+@unnumberedsubsec Module Version Checking
+
+The Exporter module will convert an attempt to import a number from a
+module into a call to $module_name->require_version($value). This can
+be used to validate that the version of the module being used is
+greater than or equal to the required version.
+
+The Exporter module supplies a default require_version method which
+checks the value of $VERSION in the exporting module.
+
+Since the default require_version method treats the $VERSION number as
+a simple numeric value it will regard version 1.10 as lower than
+1.9. For this reason it is strongly recommended that you use numbers
+with at least two decimal places, e.g., 1.09.
+
+@unnumberedsubsec Managing Unknown Symbols
+
+In some situations you may want to prevent certain symbols from being
+exported. Typically this applies to extensions which have functions
+or constants that may not exist on some systems.
+
+The names of any symbols that cannot be exported should be listed
+in the @code{@@EXPORT_FAIL} array.
+
+If a module attempts to import any of these symbols the Exporter will
+will give the module an opportunity to handle the situation before
+generating an error. The Exporter will call an export_fail method
+with a list of the failed symbols:
+
+@example
+@@failed_symbols = $module_name->export_fail(@@failed_symbols);
+@end example
+
+If the export_fail method returns an empty list then no error is
+recorded and all the requested symbols are exported. If the returned
+list is not empty then an error is generated for each symbol and the
+export fails. The Exporter provides a default export_fail method which
+simply returns the list unchanged.
+
+Uses for the export_fail method include giving better error messages
+for some symbols and performing lazy architectural checks (put more
+symbols into @@EXPORT_FAIL by default and then take them out if someone
+actually tries to use them and an expensive check shows that they are
+usable on that platform).
+
+@unnumberedsubsec Tag Handling Utility Functions
+
+Since the symbols listed within %EXPORT_TAGS must also appear in either
+ @@EXPORT or @@EXPORT_OK, two utility functions are provided which allow
+you to easily add tagged sets of symbols to @@EXPORT or @@EXPORT_OK:
+
+@example
+%EXPORT_TAGS = (foo => [qw(aa bb cc)], bar => [qw(aa cc dd)]);
+@end example
+
+@example
+Exporter::export_tags(@'foo@');     # add aa, bb and cc to @@EXPORT
+Exporter::export_ok_tags(@'bar@');  # add aa, cc and dd to @@EXPORT_OK
+@end example
+
+Any names which are not tags are added to @@EXPORT or @@EXPORT_OK
+unchanged but will trigger a warning (with -w) to avoid misspelt tags
+names being silently added to @@EXPORT or @@EXPORT_OK. Future versions
+may make this a fatal error.
+

@@ -1,0 +1,257 @@
+@node CPAN, Carp, CGI/XA, Module List
+@unnumbered query, download and build perl modules from CPAN sites
+
+
+@unnumberedsec NAME
+
+CPAN - query, download and build perl modules from CPAN sites
+
+@unnumberedsec SYNOPSIS
+
+Interactive mode:
+
+@example
+perl -MCPAN -e shell;
+@end example
+
+Batch mode:
+
+@example
+use CPAN;
+@end example
+
+@example
+autobundle, bundle, bundles, expand, install, make, test
+@end example
+
+@unnumberedsec ALPHA ALERT
+
+The interface of this @strong{package is not yet stable}. Parts of it may
+still change. This is especially true for the programming
+interface. The interactive "shell" interface is already rather well
+established.
+
+@unnumberedsec DESCRIPTION
+
+The CPAN module is designed to automate the building and installing of
+perl modules and extensions including the searching and fetching from
+the net.
+
+Modules are fetched from one or more of the mirrored CPAN
+(Comprehensive Perl Archive Network) sites and unpacked in a dedicated
+directory.
+
+The CPAN module also supports the concept of named and versioned
+@'bundles@' of modules. Bundles simplify the handling of sets of
+related modules. See BUNDLES below.
+
+The package contains a session manager and a cache manager. There is
+no status retained between sessions. The session manager keeps track
+of what has been fetched, built and installed in the current
+session. The cache manager keeps track of the disk space occupied by
+the make processes and deletes excess space in a simple FIFO style.
+
+@unnumberedsubsec Interactive Mode
+
+The interactive mode is entered by running
+
+@example
+perl -MCPAN -e shell
+@end example
+
+which puts you into a readline interface. You will have most fun if
+you install Term::ReadKey and Term::ReadLine to enjoy both history and
+completion.
+
+Once you are on the command line, type @'h@' and the rest should be
+self-explanatory.
+
+@unnumberedsubsec CPAN::Shell
+
+The commands that are available in the shell interface are methods in
+the package CPAN::Shell. If you enter the shell command, all your
+input is split on whitespace, the first word is being interpreted as
+the method to be called and the rest of the words are treated as
+arguments to this method.
+
+If you do not enter the shell, most of the available shell commands
+are both available as methods (@code{CPAN::Shell->install(...)}) and as
+functions in the calling package (@code{install(...)}).
+
+@unnumberedsubsec Cache Manager
+
+Currently the cache manager only keeps track of the build directory
+($CPAN::Config->@{build_dir@}). It is a simple FIFO mechanism that
+deletes complete directories below build_dir as soon as the size of
+all directories there gets bigger than $CPAN::Config->@{build_cache@}
+(in MB).
+
+There is another directory ($CPAN::Config->@{keep_source_where@}) where
+the original distribution files are kept. This directory is not
+covered by the cache manager and must be controlled by the user. If
+you choose to have the same directory as build_dir and as
+keep_source_where directory, then your sources will be deleted with
+the same fifo mechanism.
+
+@unnumberedsubsec Bundles
+
+A bundle is just a perl module in the namespace Bundle:: that does not
+define any functions or methods. It usually only contains documentation.
+
+It starts like a perl module with a package declaration and a $VERSION
+variable. After that the pod section looks like any other pod with the
+only difference, that one pod section exists starting with (verbatim):
+
+@example
+=head1 CONTENTS
+@end example
+
+In this pod section each line obeys the format
+
+@example
+Module_Name [Version_String] [- optional text]
+@end example
+
+The only required part is the first field, the name of a module
+(eg. Foo::Bar, ie. @emph{not} the name of the distribution file). The rest
+of the line is optional. The comment part is delimited by a dash just
+as in the man page header.
+
+The distribution of a bundle should follow the same convention as
+other distributions. The bundle() function in the CPAN module simply
+parses the module that defines the bundle and returns the module names
+that are listed in the described CONTENTS section.
+
+Bundles are treated specially in the CPAN package. If you say @'install
+Bundle::Tkkit@' (assuming such a bundle exists), CPAN will install all
+the modules in the CONTENTS section of the pod.  You can install your
+own Bundles locally by placing a conformant Bundle file somewhere into
+your @@INC path. The autobundle() command does that for you by
+including all currently installed in a snapshot bundle file.
+
+@unnumberedsubsec autobundle
+
+autobundle() writes a bundle file into the directory
+$CPAN::Config->@{cpan_home@}/Bundle directory. The file contains a list
+of all modules that are both available from CPAN and currently
+installed within @@INC. The name of the bundle file is based on the
+current date and a counter.
+
+@unnumberedsubsec Pragma: force
+
+Normally CPAN keeps track of what it has done within the current
+session and doesn@'t try to build a package a second time regardless if
+it succeeded or not. The force command takes as first argument the
+method to invoke (currently: make, test, or install) and executes the
+command from scratch.
+
+Example:
+
+@example
+cpan> install OpenGL 
+OpenGL up-to-date.
+cpan> force install OpenGL 
+Running make
+OpenGL-0.4/
+OpenGL-0.4/COPYRIGHT
+[...]
+@end example
+
+@unnumberedsec CONFIGURATION
+
+When the CPAN module is installed a site wide configuration file is
+created as CPAN/Config.pm. The default values defined there can be
+overridden in another configuration file: CPAN/MyConfig.pm. You can
+store this file in $HOME/.cpan/CPAN/MyConfig.pm if you want, because
+$HOME/.cpan is added to the search path of the CPAN module before the
+use() or require() statements.
+
+Currently the following keys in the hash reference $CPAN::Config are
+defined:
+
+@example
+build_cache       size of cache for directories to build modules
+build_dir         locally accessible directory to build modules
+cache_expire      after how many days refetch index files
+cpan_home         local directory reserved for this package
+gzip		    location of external program gzip
+inhibit-startup-message
+                  if true, does not print the startup message
+keep_source       keep the source in a local directory?
+keep_source_where where keep the source (if we do)
+make              location of external program make
+make_arg	    arguments that should always be passed to @'make@'
+make_install_arg  same as make_arg for @'make install@'
+makepl_arg	    arguments passed to @'perl Makefile.PL@'
+more              location of external program more (or any pager)
+tar               location of external program tar
+unzip             location of external program unzip
+urllist	    arrayref to nearby CPAN sites (or equivalent locations)
+@end example
+
+@unnumberedsec SECURITY
+
+There@'s no security layer in the alpha version of CPAN.pm. CPAN.pm
+helps you to install foreign, unmasked, unsigned code on your
+machine. It@'s not different than when you do that on your own, but you
+should be warned now.
+
+@unnumberedsec EXPORT
+
+Most functions in package CPAN are exported per default. The reason
+for this is that the primary use is intended for the cpan-shell or for
+one-liners.
+
+@unnumberedsec Debugging
+
+The debugging of this module is a pretty difficult task, because we
+have interferences of the software producing the indices on CPAN, of
+the mirroring process, of improper packaging, of improper
+configuration and of bugs within CPAN.pm. 
+
+In interactive mode you can try "o debug" which will list options for
+debugging the various parts of the package. The output may not be very
+useful for you as it@'s just a byproduct of my own testing, but if you
+have an idea which part of the package may have a bug, it@'s certainly
+worth to give it a try and send me more specific output. You should
+know that "o debug" has built-in completion support.
+
+@unnumberedsubsec Prerequisites
+
+If you have a local mirror of CPAN and can access all files with
+"file:" URLs, then you only need perl5.003 to run this
+module. Otherwise you need Net::FTP intalled. LWP may be required for
+non-UNIX systems.
+
+This module presumes that all packages on CPAN
+
+@itemize @bullet
+@item 
+Declare their $VERSION variable in an easy to parse manner. This
+prerequisite can hardly be relaxed because it consumes by far too much
+memory to load all packages into a single program just to determine
+the $VERSION variable . Currently all programs that are dealing with
+VERSION use something like this (requires MakeMaker-5.38, but don@'t
+bother if you don@'t have it):
+
+@example
+perl -MExtUtils::MakeMaker -le \
+    @'print MM->parse_version($ARGV[0])@' filename
+@end example
+
+If you are author of a package and wonder if your VERSION can be
+parsed, please try the above method.
+
+@item 
+Come as compressed or gzipped tarfiles or as zip files (well we try to
+handle a bit more, but without much enthusiasm).
+
+@end itemize
+@unnumberedsec AUTHOR
+
+Andreas König <a.koenig@@mind.de>
+
+@unnumberedsec SEE ALSO
+
+perl(1)
+

@@ -1,0 +1,80 @@
+@node Tie/Dir, Tie/Hash, Text/Wrap, Module List
+@unnumbered class definition for reading directories via a tied hash
+
+
+@unnumberedsec NAME
+
+Tie::Dir - class definition for reading directories via a tied hash
+
+@unnumberedsec SYNOPSIS
+
+@example
+use Tie::Dir qw(DIR_UNLINK);
+
+# Both of these produce identical results
+#(ie %hash is tied)
+tie %hash, Tie::Dir, ".", DIR_UNLINK;
+new Tie::Dir \%hash, ".", DIR_UNLINK;
+
+# This creates a reference to a hash, which is tied.
+$hash = new Tie::Dir ".";
+
+# All these examples assume that %hash is tied (ie one of the
+# first two tie methods was used
+
+# itterate through the directory
+foreach $file ( keys %hash ) @{
+	...
+@}
+
+# Set the access and modification times (touch :-)
+$hash@{SomeFile@} = time;
+
+# Obtain stat information of a file
+@@stat = @@@{$hash@{SomeFile@}@};
+
+# Check if entry exists
+if(exists $hash@{SomeFile@}) @{
+	...
+@}
+
+# Delete an entry, only if DIR_UNLINK specified
+delete $hash@{SomeFile@};
+@end example
+
+@unnumberedsec DESCRIPTION
+
+This module provides a method of reading directories using a hash.
+
+The keys of the hash are the directory entries and the values are a
+reference to an array which holds the result of stat being called
+on the entry.
+
+The access and modification times of an entry can be changed by assigning
+to an element of the hash. If a single number is assigned then the access
+and modification times will both be set to the same value, alternatively
+the access and modification times may be set separetly by passing a 
+reference to an array with 2 entries, the first being the access time
+and the second being the modification time.
+
+@table @asis
+@item new [hashref,] dirname [, options]
+This method ties the hash referenced by @code{hashref} to the directory @code{dirname}.
+If @code{hashref} is omitted then new returns a reference to a hash which
+hash been tied, otherwise it returns the result of tie
+
+The possible options are:
+
+@table @asis
+@item DIR_UNLINK
+Delete operations on the hash will cause unlink to be called on the
+corresponding file 
+
+@end table
+@end table
+@unnumberedsec AUTHOR
+
+Graham Barr <bodg@@tiuk.ti.com>, from a quick hack posted by 
+Kenneth Albanowski <kjahds@@kjahds.com>  to the perl5-porters mailing list
+based on a neat idea by Ilya Zakharevich.
+

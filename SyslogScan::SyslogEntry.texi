@@ -1,0 +1,89 @@
+@node SyslogScan/SyslogEntry, SyslogScan/Usage, SyslogScan/Summary, Module List
+@unnumbered parses generic lines in syslog files.
+
+
+@unnumberedsec NAME
+
+SyslogScan::SyslogEntry -- parses generic lines in syslog files.
+
+@unnumberedsec SYNOPSIS
+
+@example
+use SyslogScan::SyslogEntry;
+@end example
+
+@example
+open(FH,"/var/log/syslog");
+@end example
+
+@example
+my $entry;
+@end example
+
+@example
+# reads from filehandle $fh and returns an object
+# of a subclass of SyslogEntry.
+while ($entry = new SyslogScan::SyslogEntry (\*FH))
+@{
+	# process $entry
+@}
+@end example
+
+@unnumberedsec DESCRIPTION
+
+All Syslog object share these data structures: month, day, time,
+machine, executable, tag (optional), content.
+
+For example, if a syslog line looks like:
+
+Jun 13 02:32:27 satellife in.identd[25994]: connect from mail.missouri.edu
+
+then the line returned by @'new SyslogEntry@' will return an
+SyslogEntry-derived object with at least this set of parameters:
+
+month => Jun,
+day => 13,
+time => 02:32:27,
+machine => satellife,
+executable => in.identd,
+tag => 25994,
+content => connect from mail.missouri.edu
+
+Since the executable is @'in.identd@', SyslogEntry.pm will look for a
+class called "SyslogScan::In_identdLine" derived from SyslogEntry, and
+attempt to call that class@'s parseContent method.  If no such
+In_identdLine class is in use, then the returned object is of the
+default "SyslogScan::UnsupportedEntry" class.
+
+If the In_identdLine class throws a die() exception, SyslogEntry.pm
+will catch the die() and return a "SyslogScan::BotchedEntry" object
+containing the exception in "$errorString" and the failed handler in
+"brokenHandler".
+
+"new SyslogEntry" returns the undefined value if at EOF.
+
+@unnumberedsec BUGS
+
+In retrospect, this model of passing control to subclasses based on
+the name of the controlling program doesn@'t work exceptionally
+elegantly in perl.  I would probably do it more conventionally if I
+had it to do over again.
+
+@unnumberedsec AUTHOR and COPYRIGHT
+
+The author (Rolf Harold Nelson) can currently be e-mailed as
+rolf@@usa.healthnet.org.
+
+This code is Copyright (C) SatelLife, Inc. 1996.  All rights reserved.
+This code is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself.
+
+In no event shall SatelLife be liable to any party for direct,
+indirect, special, incidental, or consequential damages arising out of
+the use of this software and its documentation (including, but not
+limited to, lost profits) even if the authors have been advised of the
+possibility of such damage.
+
+@unnumberedsec SEE ALSO
+
+@xref{SyslogScan/SendmailLine,SyslogScan/SendmailLine},

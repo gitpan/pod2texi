@@ -1,0 +1,54 @@
+@node Mail/Util, Make, Mail/Send, Module List
+@unnumbered mail utility functions
+
+
+@unnumberedsec NAME
+
+Mail::Util - mail utility functions
+
+@unnumberedsec SYNOPSIS
+
+use Mail::Util qw( ... );
+
+@unnumberedsec DESCRIPTION
+
+This package provides several mail related utility functions. Any function
+required must by explicitly listed on the use line to be exported into
+the calling package.
+
+@unnumberedsubsec read_mbox( $file )
+
+Read @code{$file}, a binmail mailbox file, and return a list of  references.
+Each reference is a reference to an array containg one message.
+
+@unnumberedsubsec maildomain()
+
+Attempt to determine the current uers mail domain string via the following
+methods
+
+@example
+Look for a sendmail.cf file and extract DH parameter
+Look for a smail config file and usr the first host defined in hostname(s)
+Try an SMTP connect (if Net::SMTP exists) first to mailhost then localhost
+Use value from Net::Domain::domainname (if Net::Domain exists)
+@end example
+
+@unnumberedsubsec mailaddress()
+
+Return a guess at the current users mail address. The user can force
+the return value by setting @code{$ENV@{MAILADDRESS@}}
+
+@unnumberedsec AUTHOR
+
+Graham Barr <bodg@@tiuk.ti.com>
+
+@unnumberedsec COPYRIGHT
+
+Copyright (c) 1995 Graham Barr. All rights reserved. This program is free
+software; you can redistribute it and/or modify it under the same terms
+as Perl itself.
+
+@unnumberedsec REVISION
+
+$Revision: 1.10 $
+

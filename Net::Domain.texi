@@ -1,0 +1,47 @@
+@node Net/Domain, Net/DummyInetd, Net/Cmd, Module List
+@unnumbered Attempt to evaluate the current host@'s internet name and domain
+
+
+@unnumberedsec NAME
+
+Net::Domain - Attempt to evaluate the current host@'s internet name and domain
+
+@unnumberedsec SYNOPSIS
+
+@example
+use Net::Domain qw(hostname hostfqdn hostdomain);
+@end example
+
+@unnumberedsec DESCRIPTION
+
+Using various methods @strong{attempt} to find the Fully Qualified Domain Name (FQDN)
+of the current host. From this determine the host-name and the host-domain.
+
+Each of the functions will return undef if the FQDN cannot be determined.
+
+@table @asis
+@item hostfqdn ()
+Identify and return the FQDN of the current host.
+
+@item hostname ()
+Returns the smallest part of the FQDN which can be used to identify the host.
+
+@item hostdomain ()
+Returns the remainder of the FQDN after the hostname has been removed.
+
+@end table
+@unnumberedsec AUTHOR
+
+Graham Barr <bodg@@tiuk.ti.com>.
+Adapted from Sys::Hostname by David Sundstrom <sunds@@asictest.sc.ti.com>
+
+@unnumberedsec REVISION
+
+$Revision: 2.0 $
+
+@unnumberedsec COPYRIGHT
+
+Copyright (c) 1995 Graham Barr. All rights reserved.
+This library is free software; you can redistribute it and/or
+modify it under the same terms as Perl itself.
+

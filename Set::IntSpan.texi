@@ -1,0 +1,450 @@
+@node Set/IntSpan, Shell, SelfLoader, Module List
+@unnumbered Manages sets of integers
+
+
+@unnumberedsec NAME
+
+Set::IntSpan - Manages sets of integers
+
+@unnumberedsec SYNOPSIS
+
+@example
+use Set::IntSpan;
+@end example
+
+@example
+$Set::IntSpan::Empty_String = $string;
+@end example
+
+@example
+$set    = new   Set::IntSpan $set_spec;
+$valid  = valid Set::IntSpan $run_list;
+copy $set $set_spec;
+
+$run_list	= run_list $set;
+@@elements	= elements $set;
+
+$u_set = union	$set $set_spec;
+$i_set = intersect	$set $set_spec;
+$x_set = xor	$set $set_spec;
+$d_set = diff	$set $set_spec;
+$c_set = complement	$set;
+
+equal	$set $set_spec;
+equivalent	$set $set_spec;
+superset	$set $set_spec;
+subset	$set $set_spec;
+
+$n = cardinality $set;
+@end example
+
+@example
+empty	$set;
+finite	$set;
+neg_inf	$set;
+pos_inf	$set;
+infinite	$set;
+universal	$set;
+
+member	$set $n;
+insert	$set $n;
+remove	$set $n;
+@end example
+
+@example
+$min = min  $set;
+$max = max  $set;
+@end example
+
+@unnumberedsec REQUIRES
+
+Perl 5.002
+
+Exporter
+
+@unnumberedsec EXPORTS
+
+None
+
+@unnumberedsec DESCRIPTION
+
+Set::IntSpan manages sets of integers.
+It is optimized for sets that have long runs of consecutive integers.
+These arise, for example, in .newsrc files, which maintain lists of articles:
+
+@example
+alt.foo: 1-21,28,31
+alt.bar: 1-14192,14194,14196-14221
+@end example
+
+Sets are stored internally in a run-length coded form.
+This provides for both compact storage and efficient computation.
+In particular, 
+set operations can be performed directly on the encoded representation.
+
+Set::IntSpan is designed to manage finite sets.
+However, it can also represent some simple infinite sets, such as @{x | x>n@}.
+This allows operations involving complements to be carried out consistently, 
+without having to worry about the actual value of MAXINT on your machine.
+
+@unnumberedsec SET SPECIFICATIONS
+
+Many of the methods take a @emph{set specification}.  
+There are four kinds of set specifications.
+
+@unnumberedsubsec Empty
+
+If a set specification is omitted, then the empty set is assumed.
+Thus, 
+
+@example
+$set = new Set::IntSpan;
+@end example
+
+creates a new, empty, set.  Similarly,
+
+@example
+copy $set;
+@end example
+
+removes all elements from $set.
+
+@unnumberedsubsec Object reference
+
+If an object reference is given, it is taken to be a Set::IntSpan object.
+
+@unnumberedsubsec Array reference
+
+If an array reference is given, 
+then the elements of the array are taken to be the elements of the set.  
+The array may contain duplicate elements.
+The elements of the array may be in any order.
+
+@unnumberedsubsec Run list
+
+If a string is given, it is taken to be a @emph{run list}.
+A run list specifies a set using a syntax similar to that in .newsrc files.
+
+A run list is a comma-separated list of @emph{runs}.
+Each run specifies a set of consecutive integers.
+The set is the union of all the runs.
+
+Runs may be written in any of several forms.
+
+@unnumberedsubsec Finite forms
+
+@table @asis
+@item n
+@{ n @}
+
+@item a-b
+@{x | a<=x && x<=b@}
+
+@end table
+@unnumberedsubsec Infinite forms
+
+@table @asis
+@item (-n
+@{x | x<=n@}
+
+@item n-)
+@{x | x>=n@}
+
+@item (-)
+The set of all integers
+
+@end table
+@unnumberedsubsec Empty forms
+
+The empty set is consistently written as @'@' (the null string).
+It is also denoted by the special form @'-@' (a single dash).
+
+@unnumberedsubsec Restrictions
+
+The runs in a run list must be disjoint, 
+and must be listed in increasing order.
+
+Valid characters in a run list are 0-9, @'(@', @')@', @'-@' and @',@'.
+White space and underscore (_) are ignored.
+Other characters are not allowed.
+
+@unnumberedsubsec Examples
+
+@table @asis
+@item -
+@{ @}
+
+@item 
+@{ 1 @}
+
+@item 
+@{ 1, 2 @}
+
+@item -5--1
+@{ -5, -4, -3, -2, -1 @}
+
+@item (-)
+the integers
+
+@item (--1
+the negative integers
+
+@item 4, 18-21
+@{ 1, 2, 3, 4, 18, 19, 20, 21 @}
+
+@end table
+@unnumberedsec METHODS
+
+@unnumberedsubsec Creation
+
+@table @asis
+@item new Set::IntSpan $set_spec;
+Creates and returns a new set.  
+The initial contents of the set are given by $set_spec.
+
+@item valid Set::IntSpan $run_list;
+Returns true if $run_list is a valid run list.
+Otherwise, returns false and leaves an error message in $@@.
+
+@item copy $set $set_spec;
+Copies $set_spec into $set.
+The previous contents of $set are lost.
+For convenience, copy() returns $set.
+
+@item $run_list = run_list $set
+Returns a run list that represents $set.  
+The run list will not contain white space.
+$set is not affected.
+
+By default, the empty set is formatted as @'-@'; 
+a different string may be specified in $Set::IntSpan::Empty_String.
+
+@item @@elements = elements $set;
+Returns an array containing the elements of $set.
+The elements will be sorted in numerical order.
+In scalar context, returns an array reference.
+$set is not affected.
+
+@end table
+@unnumberedsubsec Set operations
+
+@table @asis
+@item $u_set = union $set $set_spec;
+returns the set of integers in either $set or $set_spec
+
+@item $i_set = intersect $set $set_spec;
+returns the set of integers in both $set and $set_spec
+
+@item $x_set = xor $set $set_spec;
+returns the set of integers in $set or $set_spec, but not both
+
+@item $d_set = diff $set $set_spec;
+returns the set of integers in $set but not in $set_spec
+
+@item $c_set = complement $set;
+returns the complement of $set.
+
+@end table
+For all set operations, a new Set::IntSpan object is created and returned.  
+The operands are not affected.
+
+@unnumberedsubsec Comparison
+
+@table @asis
+@item equal $set $set_spec;
+Returns true iff $set and $set_spec contain the same elements.
+
+@item equivalent $set $set_spec;
+Returns true iff $set and $set_spec contain the same number of elements.
+All infinite sets are equivalent.
+
+@item superset $set $set_spec
+Returns true iff $set is a superset of $set_spec.
+
+@item subset $set $set_spec
+Returns true iff $set is a subset of $set_spec.
+
+@end table
+@unnumberedsubsec Cardinality
+
+@table @asis
+@item $n = cardinality $set
+Returns the number of elements in $set.
+Returns -1 for infinite sets.
+
+@item empty $set;
+Returns true iff $set is empty.
+
+@item finite $set
+Returns true iff $set is finite.
+
+@item neg_inf $set
+Returns true iff $set contains @{x | x<n@} for some n.
+
+@item pos_inf $set
+Returns true iff $set contains @{x | x>n@} for some n.
+
+@item infinite $set
+Returns true iff $set is infinite.
+
+@item universal $set
+Returns true iff $set contains all integers.
+
+@end table
+@unnumberedsubsec Membership
+
+@table @asis
+@item member $set $n
+Returns true iff the integer $n is a member of $set.
+
+@item insert $set $n
+Inserts the integer $n into $set.
+Does nothing if $n is already a member of $set.
+
+@item remove $set $n
+Removes the integer $n from $set.
+Does nothing if $n is not a member of $set.
+
+@end table
+@unnumberedsubsec Extrema
+
+@table @asis
+@item min $set
+Returns the smallest element of $set, 
+or undef if there is none.
+
+@item max $set
+Returns the largest element of $set,
+or undef if there is none.
+
+@end table
+@unnumberedsec CLASS VARIABLES
+
+@table @asis
+@item $Set::IntSpan::Empty_String
+$Set::IntSpan::Empty_String contains the string that is returned when
+run_list() is called on the empty set.
+$Empty_String is initially @'-@'; 
+alternatively, it may be set to @'@'.
+Other values should be avoided,
+to ensure that run_list() always returns a valid run list.
+
+run_list() accesses $Empty_String through a reference
+stored in $set->@{empty_string@}.
+Subclasses that wish to override the value of $Empty_String can
+reassign this reference.
+
+@end table
+@unnumberedsec DIAGNOSTICS
+
+Any method (except valid()) will die() if it is passed an invalid run list.
+Possible messages are:
+
+@table @asis
+@item Bad syntax 
+$run_list has bad syntax
+
+@item Bad order
+$run_list has overlapping runs or runs that are out of order.
+
+@end table
+elements $set will die() if $set is infinite.
+
+elements $set can generate an "Out of memory!" 
+message on sufficiently large finite sets.
+
+@unnumberedsec NOTES
+
+@unnumberedsubsec Traps
+
+Beware of forms like
+
+@example
+union $set [1..5];
+@end example
+
+This passes an element of @@set to union, 
+which is probably not what you want.
+To force interpretation of $set and [1..5] as separate arguments, 
+use forms like
+
+@example
+union $set +[1..5];
+@end example
+
+or
+
+@example
+$set->union([1..5]);
+@end example
+
+@unnumberedsubsec Error handling
+
+There are two common approaches to error handling:
+exceptions and return codes.
+There seems to be some religion on the topic,
+so Set::IntSpan provides support for both.
+
+To catch exceptions, protect method calls with an eval:
+
+@example
+$run_list = <STDIN>;
+eval @{ $set = new Set::IntSpan $run_list @};
+$@@ and print "$@@: try again\n";
+@end example
+
+To check return codes, use an appropriate method call to validate arguments:
+
+@example
+$run_list = <STDIN>;
+if (valid Set::IntSpan $run_list) 
+   @{ $set = new Set::IntSpan $run_list @}
+else
+   @{ print "$@@ try again\n" @}
+@end example
+
+Similarly, use finite() to protect calls to elements():
+
+@example
+finite $set and @@elements = elements $set;
+@end example
+
+Calling elements() on a large, finite set can generate an "Out of
+memory!" message, which cannot be trapped.
+Applications that must retain control after an error can use intersect() to 
+protect calls to elements():
+
+@example
+@@elements = elements @{ intersect $set "-1_000_000 - 1_000_000" @};
+@end example
+
+or check the size of $set first:
+
+@example
+finite $set and cardinality $set < 2_000_000 and @@elements = elements $set;
+@end example
+
+@unnumberedsubsec Limitations
+
+Although Set::IntSpan can represent some infinite sets, 
+it does @emph{not} perform infinite-precision arithmetic.  
+Therefore, 
+finite elements are restricted to the range of integers on your machine.
+
+@unnumberedsubsec Roots
+
+The sets implemented here are based on Macintosh data structures called 
+"regions".
+See Inside Macintosh for more information.
+
+@unnumberedsec AUTHOR
+
+Steven McDougall <swm@@cric.com>
+
+@unnumberedsec COPYRIGHT
+
+Copyright (c) 1996 Steven McDougall. 
+All rights reserved.
+This module is free software; 
+you can redistribute it and/or modify it under the same terms as Perl itself.
+

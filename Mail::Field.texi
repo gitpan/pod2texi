@@ -1,0 +1,147 @@
+@node Mail/Field, Mail/Folder, Mail/Cap, Module List
+@unnumbered Base class for manipulation of mail header fields
+
+
+@unnumberedsec NAME
+
+Mail::Field - Base class for manipulation of mail header fields
+
+@unnumberedsec SYNOPSIS
+
+@example
+use Mail::Field;
+
+$field = Mail::Field->new(@'Subject@', @'some subject text@');
+print $field->tag,": ",$field->stringify,"\n";
+@end example
+
+@example
+$field = Mail::Field->subject(@'some subject text@');
+@end example
+
+@unnumberedsec DESCRIPTION
+
+@code{Mail::Field} is a base class for packages that create and manipulate
+fields from Email (and MIME) headers. Each different field will have its
+own sub-class, defining its own interface.
+
+This document describes the minimum interface that each sub-class should
+provide, and also guidlines on how the field specific interface should be
+defined. 
+
+@unnumberedsec CONSTRUCTOR
+
+Mail::Field, and it@'s sub-classes define several methods which return
+new objects. These can all be termed to be constructors.
+
+@table @asis
+@item new ( TAG [, STRING | OPTIONS ] )
+The new constructor will create an object in the class which defines
+the field specified by the tag argument.
+
+After creation of the object :-
+
+If the tag argument is followed by a single string then the parse method
+will be called with this string.
+
+If the tag argument is followed by more than one arguments then the create
+method will be called with these arguments.
+
+@item extract ( TAG, HEAD [, INDEX ] )
+This constuctor takes as arguments the tag name, a @code{Mail::Head} object
+and optionally an index.
+
+If the index argument is given then extract will retrieve the given tag
+from the @code{Mail::Head} object and create a new @code{Mail::Field} based object.
+undef will be returned in the field does not exist.
+
+If the index argument is not given the the result depends on the context
+in which extract is called. If called in a scalar context the result
+will be as if extract was called with an index value of zero. If called
+in an array context then all tags will be retrieved and a list of
+@code{Mail::Field} objects will be returned.
+
+@item combine ( FIELD_LIST )
+This constructor takes as arguments a list of @code{Mail::Field} objects, which
+should all be of the same sub-class, and creates a new object in that same
+class.
+
+This constructor is nor defined in @code{Mail::Field} as there is no generic
+way to combine the various field types. Each sub-class should define
+its own combine constructor, if combining is possible/allowed.
+
+@end table
+@unnumberedsec METHODS
+
+@table @asis
+@item parse
+@itemx set
+@itemx tag
+@itemx stringify
+@end table
+@unnumberedsec SUB-CLASS PACKAGE NAMES
+
+All sub-classes should be called Mail::Field::@emph{name} where @emph{name} is
+derived from the tag using these rules.
+
+@itemize @bullet
+@item 
+Consider a tag as being made up of elements separated by @'-@'
+
+@item 
+Convert all characters to lowercase except the first in each element, which
+should be uppercase.
+
+@item 
+@emph{name} is then created from these elements by using the first
+N characters from each element.
+
+@item 
+N is calculated by using the formula :-
+
+@example
+int((7 + #elements) / #elements)
+@end example
+
+@item 
+@emph{name} is then limited to a maximum of 8 characters, keeping the first 8
+characters
+
+@end itemize
+For an example of this take a look at the definition of the 
+@code{_header_pkg_name} subroutine in @code{Mail::Field}
+
+@unnumberedsec AUTHOR
+
+Graham Barr <Graham.Barr@@tiuk.ti.com>
+
+@unnumberedsec REVISION
+
+$Revision: 1.2 $
+
+The revision and the VERSION are not the same but the VERSION is derived
+from the revision number. This is because the revision number is not a real
+number. The method used for doing this is to turn each number after the first
+period into a 2 digit number with leading zeros and then removing all but the
+first period. For example
+
+@example
+Revision 1.8   => VERSION 1.08
+Revision 1.2.3 => VERSION 1.0203
+@end example
+
+@unnumberedsec SEE ALSO
+
+@samp{MIME::*} in this nodes
+
+@unnumberedsec CREDITS
+
+Eryq <eryq@@rhine.gsfc.nasa.gov> - for all the help in defining this package
+so that Mail::* and MIME::* can be integrated together.
+
+@unnumberedsec COPYRIGHT
+
+Copyright (c) 1995 Graham Barr. All rights reserved. This program is free
+software; you can redistribute it and/or modify it under the same terms
+as Perl itself.
+

@@ -1,0 +1,92 @@
+@node HTML/Parse, HTML/Parser, HTML/LinkExtor, Module List
+@unnumbered Parse HTML text
+
+
+@unnumberedsec NAME
+
+parse_html - Parse HTML text
+
+parse_htmlfile - Parse HTML text from file
+
+@unnumberedsec SYNOPSIS
+
+@example
+use HTML::Parse;
+$h = parse_htmlfile("test.html");
+print $h->dump;
+$h = parse_html("<p>Some more <i>italic</i> text", $h);
+$h->delete;
+@end example
+
+@example
+print parse_htmlfile("index.html")->as_HTML;  # tidy up markup in a file
+@end example
+
+@unnumberedsec DESCRIPTION
+
+@emph{Disclaimer: This module is provided for backwards compatibility with
+earlier versions of this library.  New code will probably prefer to
+use the HTML::Parser and HTML::TreeBuilder modules directly.}
+
+The @code{HTML::Parse} module provides functions to parse HTML documents.
+There are two functions exported by this module:
+
+@table @asis
+@item parse_html($html, [$obj])
+This function is really just a synonym for $obj->parse($html) and $obj
+is assumed to be a subclass of @code{HTML::Parser}.  Refer to
+@xref{HTML/Parser,HTML/Parser}, for more documentation.
+
+The $obj will default to a internally created @code{HTML::TreeBuilder}
+object.  This class implements a parser that builds (and is) a HTML
+syntax tree with HTML::Element objects as nodes.
+
+The return value from parse_html() is $obj.
+
+@item parse_htmlfile($file, [$obj])
+Same as parse_html(), but obtains HTML text from the named file.
+
+Returns undef if the file could not be opened, or $obj otherwise.
+
+@end table
+When a @code{HTML::TreeBuilder} object is created, the following variables
+control how parsing takes place:
+
+@table @asis
+@item $HTML::Parse::IMPLICIT_TAGS
+Setting this variable to true will instruct the parser to try to
+deduce implicit elements and implicit end tags.  If this variable is
+false you get a parse tree that just reflects the text as it stands.
+Might be useful for quick & dirty parsing.  Default is true.
+
+Implicit elements have the implicit() attribute set.
+
+@item $HTML::Parse::IGNORE_UNKNOWN
+This variable contols whether unknow tags should be represented as
+elements in the parse tree.  Default is true.
+
+@item $HTML::Parse::IGNORE_TEXT
+Do not represent the text content of elements.  This saves space if
+all you want is to examine the structure of the document.  Default is
+false.
+
+@item $HTML::Parse::WARN
+Call warn() with an apropriate message for syntax errors.  Default is
+false.
+
+@end table
+@unnumberedsec SEE ALSO
+
+@xref{HTML/Parser,HTML/Parser},, @xref{HTML/TreeBuilder,HTML/TreeBuilder},, @xref{HTML/Element,HTML/Element},
+
+@unnumberedsec COPYRIGHT
+
+Copyright 1995-1996 Gisle Aas. All rights reserved.
+
+This library is free software; you can redistribute it and/or
+modify it under the same terms as Perl itself.
+
+@unnumberedsec AUTHOR
+
+Gisle Aas <aas@@sn.no>
+

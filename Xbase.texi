@@ -1,0 +1,292 @@
+@node Xbase, diagnostics, WWW/SearchResult, Module List
+@unnumbered Perl Module to Read Xbase DBF Files and Foxpro IDX indexes
+
+
+@unnumberedsec NAME
+
+Xbase - Perl Module to Read Xbase DBF Files and Foxpro IDX indexes
+
+@unnumberedsec ABSTRACT
+
+This is a perl module to access xbase files with simple IDX indexes.
+At the moment only read access to the files are provided by this package
+Writing is tougher with IDX updates etc and is being worked on. Since the
+read functionality is useful in itself this version is being released.
+
+@unnumberedsec INSTALLATION
+
+To install this package, change to the directory where this file is present
+and type
+
+@example
+perl Makefile.PL
+make
+make install
+@end example
+
+This will copy Xbase.pm to the perl library directory provided you have the
+permissions to do so. To use the module in your programs you will use the
+line:
+
+@example
+use Xbase;
+@end example
+
+If you cannot install it in the system directory, put it whereever you like
+and tell perl where to find it by using the following in the beginning of
+your script:
+
+@example
+BEGIN @{
+	unshift(@@INC,@'/usr/underprivileged/me/lib@');
+@}
+use Xbase;
+@end example
+
+@unnumberedsec DESCRIPTION
+
+The various methods that are supported by this module are given
+below. There is a very distinct xbase like flavour to most of the
+commands.
+
+@unnumberedsubsec CREATING A NEW XBASE OBJECT:
+
+@example
+$database = new Xbase;
+@end example
+
+This will create an object $database that will be used to interact with the
+various methods the module provides.
+
+@unnumberedsubsec OPENING A DATABASE
+
+@example
+$database->open_dbf($dbf_name, $idx_name);
+@end example
+
+Associates the DBF file and optionally the IDX file with the object. It
+opens the files and if a associated MEMO file is present automatically
+opens it. Only Foxpro Memo files are currently supported and assumes the
+same filename as the DBF with a FPT extension.
+
+@unnumberedsubsec DATABASE TYPE
+
+@example
+print $database->dbf_type;
+@end example
+
+Returns a string telling you if the xbase file opened is DBF3, DBF4 or FOX
+
+@unnumberedsubsec LAST UPDATE DATE
+
+@example
+print $database->last_update;
+@end example
+
+Returns a date string telling you when the database was last updated.
+
+@unnumberedsubsec LAST RECORD NUMBER
+
+@example
+$end=$database->lastrec;
+@end example
+
+Returns the record number of the last record in the database file.
+
+@unnumberedsubsec DATABASE STATUS INFORMATION
+
+@example
+$database->dbf_stat;
+@end example
+
+This prints out on to STDOUT a display of the status/structure of the
+database. It is similar to the xbase command DISPLAY STATUS. Since it
+prints field names and structure it is commonly used to see if the module
+is reading the database as intended and finding out the field names.
+
+@unnumberedsubsec INDEX FILE STATUS INFORMATION
+
+@example
+$database->idx_stat;
+@end example
+
+Prints on to STDOUT the status information of an open IDX file.
+
+@unnumberedsubsec GO TOP
+
+@example
+$database->go_top;
+@end example
+
+Moves the record pointer to the top of the database. Physical top of
+database if no index is present else first record according to index order.
+
+@unnumberedsubsec GO BOTTOM
+
+@example
+$database->go_bottom;
+@end example
+
+Moves the record pointer to the bottom of the database. Physical bottom of
+database if no index is present else last record according to index order.
+
+@unnumberedsubsec GO NEXT
+
+@example
+$database->go_next;
+@end example
+
+Equivalent to the xbase command SKIP 1 which moves the record pointer to
+the next record.
+
+@unnumberedsubsec GO PREVIOUS
+
+@example
+$database->go_prev;
+@end example
+
+Equivalent to the xbase command SKIP -1 which moves the record pointer to
+the previous record.
+
+@unnumberedsubsec SEEK
+
+@example
+$stat=$database->seek($keyvalue);
+@end example
+
+This command positions the record pointer on the first matching record that
+has the key value specified. The database should be opened with an
+associated index. Seek without an available index will print an error
+message and abort. The return value indicates whether the key value was
+found or not.
+
+@unnumberedsubsec RECORD NUMBER
+
+@example
+$current_rec=$database->recno;
+@end example
+
+Returns the record number that the record pointer is currently at.
+
+@unnumberedsubsec BEGINNING OF FILE
+
+@example
+if ($database->bof) @{
+	print "At the very top of the file \n";
+@}
+@end example
+
+Tells you whether you are at the beginning of the file. Like in xbase it is
+not true when you are at record number one but rather it is set when you
+try to $database->go_prev when you are at the top of the file.
+
+@unnumberedsubsec END OF FILE   	if ($database->eof) @{ 		print "At the very end of the file \n"; 	@}
+
+Tells you whether you are at the end of the file. Like in xbase it is
+not true when you are at the last record but rather it is set when you
+try to $database->go_next from the last record.
+
+@unnumberedsubsec READ INDIVIDUAL FIELD VALUES
+
+@example
+print $database->get_field("NAME");
+@end example
+
+Returns as a string the contents of a field name specified from the current
+record. Using the pseudo field name _DELETED will tell you if the current
+record is marked for deletion.
+
+@unnumberedsubsec READ FIELD VALUES INTO ARRAY
+
+@example
+@@fields = $database->get_record;
+@end example
+
+Returns as an array all the fields from the current record. The fields are
+in the same order as in the database.
+
+@unnumberedsubsec CLOSE DATABASE
+
+@example
+$database->close_dbf;
+@end example
+
+This closes the database files, index files and memo files that are
+associated with the $database object with $database->open_dbf
+
+@unnumberedsec COPYRIGHT 
+
+Copyright (c) 1995 Pratap Pereira. All rights reserved.
+This program is free software; you can redistribute it and/or
+modify it under the same terms as Perl itself.
+
+I request that if you use this module at a web site to make a
+link to 
+	
+	http://eewww.eng.ohio-state.edu/~pereira/software/xbase/
+
+This is just so that others might find it. This is however not
+required of you.
+
+@unnumberedsec AUTHOR INFORMATION
+
+Please send your comments, suggestions, gripes, bug-reports to 
+
+@example
+Pratap Pereira
+pereira@@ee.eng.ohio-state.edu
+@end example
+
+@unnumberedsec UPDATE HISTORY
+
+@table @asis
+@item Original perl 4 script done in March 1994
+@itemx Perl 5 module done in February 1995
+@itemx RELEASE 2 was first public release now called xbase12.pm
+@itemx RELEASE 3 was done 6/22/95 called xbase13.pm
+@example
+Fixed problem with GO_PREV & GO_NEXT after SEEK.
+Fixed problem with parsing headers of dbfs with 
+        record length > 255.
+Added Memo file support.
+@end example
+
+@itemx RELEASE 4 was done 9/29/95
+@example
+Fixed problem with certain IDX failing completely, 
+        was a stupid
+indexing mistake.
+@end example
+
+@itemx RELEASE 5 was done 11/14/95 (called xbase.pm 1.05)
+@example
+Fixed field length inconsistency errors by changing 
+        way header is decoded. Should work with more xbase 
+        variants. (Dick Sutton & Andrew Vasquez)
+@end example
+
+@itemx Version 1.06  was done 11/17/95
+@example
+Added binmode command to file handles to support 
+Windows NT 
+@end example
+
+@itemx Version 1.07 was done 01/23/96
+@example
+Made documentation in pod format, installation 
+        automated. Fixed problem with deleted status being 
+        improperly read (Chung Huynh). Renamed to Xbase 
+        (previously xbase) to be consistent with other perl
+        modules. Released in CPAN.
+Prettied up dbf_stat output (Gilbert Ramirez).    
+@end example
+
+@end table
+@unnumberedsec CREDITS
+
+Thanks are due to Chung Huynh (chuynh@@nero.finearts.uvic.ca), Jim
+Esposito (jgespo@@exis.net), Dick Sutton (suttond@@federal.unisys.com),
+Andrew Vasquez (praka@@ophelia.fullcoll.edu), Leonard Samuelson
+(lcs@@synergy.smartpages.com) and Gilbert Ramirez Jr
+(gram@@merece.uthscsa.edu)
+

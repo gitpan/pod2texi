@@ -1,0 +1,32 @@
+@node Math/Fortran, Math/Matrix, Math/Derivative, Module List
+@unnumberedsec SYNOPSIS
+
+@example
+use Math::Fortran qw(log10 sign);
+$v=log10($x);
+$v=sign($y);
+$v=sign($x,$y);
+@end example
+
+@unnumberedsec DESCRIPTION
+
+This module provides and exports some mathematical functions which are
+built in in Fortran but not in Perl. Currently there are only 2 included.
+
+@table @asis
+@item log10 log to the base of 10 =item @strong{sign} with 1 parameter, +1 if $y>=0, -1 otherwise, with 2 parameters +abs($x) if $y>=0, -abs($x) otherwise.
+@end table
+@unnumberedsec HISTORY
+
+$Log: Fortran.pm,v $
+Revision 1.1  1995/12/26 09:43:01  willijar
+Initial revision
+
+@unnumberedsec BUGS
+
+I welcome other entries for this module and bug reports.
+
+@unnumberedsec AUTHOR
+
+John A.R. Williams <J.A.R.Williams@@aston.ac.uk>
+

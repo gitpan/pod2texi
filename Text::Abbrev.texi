@@ -1,0 +1,39 @@
+@node Text/Abbrev, Text/English, Test/Harness, Module List
+@unnumbered create an abbreviation table from a list
+
+
+@unnumberedsec NAME
+
+abbrev - create an abbreviation table from a list
+
+@unnumberedsec SYNOPSIS
+
+@example
+use Text::Abbrev;
+abbrev $hashref, LIST
+@end example
+
+@unnumberedsec DESCRIPTION
+
+Stores all unambiguous truncations of each element of LIST
+as keys key in the associative array referenced to by @code{$hashref}.
+The values are the original list elements.
+
+@unnumberedsec EXAMPLE
+
+@example
+$hashref = abbrev qw(list edit send abort gripe);
+@end example
+
+@example
+%hash = abbrev qw(list edit send abort gripe);
+@end example
+
+@example
+abbrev $hashref, qw(list edit send abort gripe);
+@end example
+
+@example
+abbrev(*hash, qw(list edit send abort gripe));
+@end example
+

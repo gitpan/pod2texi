@@ -1,0 +1,73 @@
+@node LWP/Debug, LWP/IO, LWP, Module List
+@unnumbered debug routines for the libwww-perl library
+
+
+@unnumberedsec NAME
+
+LWP::Debug - debug routines for the libwww-perl library
+
+@unnumberedsec SYNOPSIS
+
+@example
+use LWP::Debug qw(+ -conns);
+@end example
+
+@example
+# Used internally in the library
+LWP::Debug::trace(@'send()@');
+LWP::Debug::debug(@'url ok@');
+LWP::Debug::conns("read $n bytes: $data");
+@end example
+
+@unnumberedsec DESCRIPTION
+
+LWP::Debug provides tracing facilities. The trace(), debug() and
+conns() function are called within the library and they log
+information at increasing levels of detail. Which level of detail is
+actually printed is controlled with the @code{level()} function.
+
+@unnumberedsec FUNCTIONS
+
+@unnumberedsubsec level(...)
+
+The @code{level()} function controls the level of detail being
+logged. Passing @'+@' or @'-@' indicates full and no logging
+respectively. Inidividual levels can switched on and of by passing the
+name of the level with a @'+@' or @'-@' prepended.  The levels are:
+
+@example
+trace   : trace function calls
+debug   : print debug messages
+conns   : show all data transfered over the connections
+@end example
+
+The LWP::Debug module provide a special import() method that allows
+you to pass the level() arguments with initial use statement.  If a
+use argument start with @'+@' or @'-@' then it is passed to the level
+function, else the name is exported as usual.  The following two
+statements are thus equivalent (if you ignore that the second pollutes
+your namespace):
+
+@example
+use LWP::Debug qw(+);
+use LWP::Debug qw(level); level(@'+@');
+@end example
+
+@unnumberedsubsec trace($msg)
+
+The @code{trace()} function is used for tracing function
+calls. The package and calling subroutine name is
+printed along with the passed argument. This should
+be called at the start of every major function.
+
+@unnumberedsubsec debug($msg)
+
+The @code{debug()} function is used for high-granularity
+reporting of state in functions.
+
+@unnumberedsubsec conns($msg)
+
+The @code{conns()} function is used to show data being
+transferred over the connections. This may generate
+considerable output.
+

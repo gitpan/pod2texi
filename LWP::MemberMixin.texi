@@ -1,0 +1,27 @@
+@node LWP/MemberMixin, LWP/Protocol, LWP/MediaTypes, Module List
+@unnumbered Member access mixin class
+
+
+@unnumberedsec NAME
+
+LWP::MemberMixin - Member access mixin class
+
+@unnumberedsec DESCRIPTION
+
+A mixin class to get methods that provide easy access to member
+variables in the %$self.
+
+@unnumberedsec BUGS
+
+Ideally there should be better Perl langauge support for this.
+
+@unnumberedsec METHODS
+
+@unnumberedsubsec _elem($elem [, $val])
+
+Internal method to get/set the value of member variable
+@code{$elem}. If @code{$val} is defined it is used as the new value
+for the member variable.  If it is undefined the current
+value is not touched. In both cases the previous value of
+the member variable is returned.
+

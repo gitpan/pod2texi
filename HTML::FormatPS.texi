@@ -1,0 +1,93 @@
+@node HTML/FormatPS, HTML/FormatText, HTML/Entities, Module List
+@unnumbered Format HTML as postscript
+
+
+@unnumberedsec NAME
+
+HTML::FormatPS - Format HTML as postscript
+
+@unnumberedsec SYNOPSIS
+
+@example
+require HTML::FormatPS;
+$html = parse_htmlfile("test.html");
+$formatter = new HTML::FormatPS
+		   FontFamily => @'Helvetica@',
+		   PaperSize  => @'Letter@';
+print $formatter->format($html);
+@end example
+
+@unnumberedsec DESCRIPTION
+
+The HTML::FormatPS is a formatter that outputs PostScript code.
+Formatting of HTML tables and forms is not implemented.
+
+You might specify the following parameters when constructing the formatter:
+
+@table @asis
+@item PaperSize
+What kind of paper should we format for.  The value can be one of
+these: A3, A4, A5, B4, B5, Letter, Legal, Executive, Tabloid,
+Statement, Folio, 10x14, Quarto.
+
+The default is "A4".
+
+@item PaperWidth
+The width of the paper in points.  Setting PaperSize also defines this
+value.
+
+@item PaperHeight
+The height of the paper in points.  Setting PaperSize also defines
+this value.
+
+@item LeftMargin
+The left margin in points.
+
+@item RightMargin
+The right margin in points.
+
+@item HorizontalMargin
+Both left and right margin at the same time.  The default value is 4 cm.
+
+@item TopMargin
+The top margin in points.
+
+@item BottomMargin
+The bottom margin in points.
+
+@item VerticalMargin
+Both top and bottom margin at the same time.  The default value is 2 cm.
+
+@item PageNo
+The parameter determines if we should put page numbers on the pages.
+The default is yes, so you have to set this value to 0 in order to
+suppress page numbers.
+
+@item FontFamily
+The parameter specifies which family of fonts to use for the formatting.
+Legal values are "Courier", "Helvetica" and "Times".  The default is
+"Times".
+
+@item FontScale
+All fontsizes might be scaled by this factor.
+
+@item Leading
+How much space between lines.  This is a factor of the fontsize used
+for that line.  Default is 0.1.
+
+@end table
+@unnumberedsec SEE ALSO
+
+@xref{HTML/Formatter,HTML/Formatter},
+
+@unnumberedsec COPYRIGHT
+
+Copyright (c) 1995 Gisle Aas. All rights reserved.
+
+This library is free software; you can redistribute it and/or
+modify it under the same terms as Perl itself.
+
+@unnumberedsec AUTHOR
+
+Gisle Aas <aas@@oslonett.no>
+

@@ -1,0 +1,145 @@
+@node CGI/Carp, CGI/Fast, CGI/BasePlus, Module List
+@unnumbered CGI routines for writing to the HTTPD (or other) error log
+
+
+@unnumberedsec NAME
+
+@strong{CGI::Carp} - CGI routines for writing to the HTTPD (or other) error log
+
+@unnumberedsec SYNOPSIS
+
+@example
+use CGI::Carp;
+@end example
+
+@example
+croak "We@'re outta here!";
+confess "It was my fault: $!";
+carp "It was your fault!";   
+warn "I@'m confused";
+die  "I@'m dying.\n";
+@end example
+
+@unnumberedsec DESCRIPTION
+
+CGI scripts have a nasty habit of leaving warning messages in the error
+logs that are neither time stamped nor fully identified.  Tracking down
+the script that caused the error is a pain.  This fixes that.  Replace
+the usual
+
+@example
+use Carp;
+@end example
+
+with
+
+@example
+use CGI::Carp
+@end example
+
+And the standard warn(), die (), croak(), confess() and carp() calls
+will automagically be replaced with functions that write out nicely
+time-stamped messages to the HTTP server error log.
+
+For example:
+
+@example
+[Fri Nov 17 21:40:43 1995] test.pl: I@'m confused at test.pl line 3.
+[Fri Nov 17 21:40:43 1995] test.pl: Got an error message: Permission denied.
+[Fri Nov 17 21:40:43 1995] test.pl: I@'m dying.
+@end example
+
+@unnumberedsec REDIRECTING ERROR MESSAGES
+
+By default, error messages are sent to STDERR.  Most HTTPD servers
+direct STDERR to the server@'s error log.  Some applications may wish
+to keep private error logs, distinct from the server@'s error log, or
+they may wish to direct error messages to STDOUT so that the browser
+will receive them.
+
+The @code{carpout()} function is provided for this purpose.  Since
+carpout() is not exported by default, you must import it explicitly by
+saying
+
+@example
+use CGI::Carp qw(carpout);
+@end example
+
+The carpout() function requires one argument, which should be a
+reference to an open filehandle for writing errors.  It should be
+called in a BEGIN block at the top of the CGI application so that
+compiler errors will be caught.  Example:
+
+@example
+BEGIN @{
+  use CGI::Carp qw(carpout);
+  open(LOG, ">>/usr/local/cgi-logs/mycgi-log") or
+    die("Unable to open mycgi-log: $!\n");
+  carpout(LOG);
+@}
+@end example
+
+carpout() does not handle file locking on the log for you at this point.
+
+The real STDERR is not closed -- it is moved to SAVEERR.  Some
+servers, when dealing with CGI scripts, close their connection to the
+browser when the script closes STDOUT and STDERR.  SAVEERR is used to
+prevent this from happening prematurely.
+
+You can pass filehandles to carpout() in a variety of ways.  The "correct"
+way according to Tom Christiansen is to pass a reference to a filehandle 
+GLOB:
+
+@example
+carpout(\*LOG);
+@end example
+
+This looks weird to mere mortals however, so the following syntaxes are
+accepted as well:
+
+@example
+carpout(LOG);
+carpout(main::LOG);
+carpout(main@'LOG);
+carpout(\LOG);
+carpout(\@'main::LOG@');
+@end example
+
+@example
+... and so on
+@end example
+
+Use of carpout() is not great for performance, so it is recommended
+for debugging purposes or for moderate-use applications.  A future
+version of this module may delay redirecting STDERR until one of the
+CGI::Carp methods is called to prevent the performance hit.
+
+@unnumberedsec MAKING PERL ERRORS APPEAR IN THE BROWSER WINDOW
+
+If you want to send fatal (die, confess) errors to the browser, ask to 
+import the special "fatalsToBrowser" subroutine:
+
+@example
+use CGI::Carp qw(fatalsToBrowser);
+die "Bad error here";
+@end example
+
+Fatal errors will now be echoed to the browser as well as to the log.  CGI::Carp
+arranges to send a minimal HTTP header to the browser so that even errors that
+occur in the early compile phase will be seen.
+Nonfatal errors will still be directed to the log file only (unless redirected
+with carpout).
+
+@unnumberedsec AUTHORS
+
+Lincoln D. Stein <lstein@@genome.wi.mit.edu>.  Feel free to redistribute
+this under the Perl Artistic License.
+
+carpout() added and minor corrections by Marc Hedlund
+<hedlund@@best.com> on 11/26/95.
+
+@unnumberedsec SEE ALSO
+
+Carp, CGI::Base, CGI::BasePlus, CGI::Request, CGI::MiniSvr, CGI::Form,
+CGI::Response
+

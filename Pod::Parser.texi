@@ -1,0 +1,531 @@
+@node Pod/Parser, Pod/Select, Pod/Parse, Module List
+@unnumbered base class for creating pod filters and translators
+
+
+@unnumberedsec NAME
+
+Pod::Parser - base class for creating pod filters and translators
+
+@unnumberedsec SYNOPSIS
+
+@example
+use Pod::Parser;
+package MyParser;
+@@ISA = qw(Pod::Parser);
+@end example
+
+@example
+sub new @{
+    ## constructor code ...
+@}
+@end example
+
+@example
+## implementation of appropriate subclass methods ...
+@end example
+
+@example
+package main;
+$parser = new MyParser;
+@@ARGV = (@'-@')  unless (@@ARGV > 0);
+for (@@ARGV) @{
+    $parser->parse_from_file($_);
+@}
+@end example
+
+@unnumberedsec DESCRIPTION
+
+@strong{Pod::Parser} is an abstract base class for implementing filters and/or
+translators to parse pod documentation into other formats. It handles
+most of the difficulty of parsing the pod sections in a file and leaves
+it to the subclasses to override various methods to provide the actual
+translation. The other thing that @strong{Pod::Parser} provides is the ability
+to process only selected sections of pod documentation from the input.
+
+@unnumberedsubsec SECTION SPECIFICATIONS
+
+Certain methods and functions provided by @strong{Pod::Parser} may be given
+one or more "section specifications" to restrict the text processed to
+only the desired set of sections and their corresponding subsections.  A
+section specification is a string containing one or more Perl-style
+regular expressions separated by forward slashes ("/").  If you need to
+use a forward slash literally within a section title you can escape it
+with a backslash ("\/"). 
+
+The formal syntax of a section specification is:
+
+@table @asis
+@item 
+@emph{head1-title-regexp}/@emph{head2-title-regexp}/...
+
+@end table
+Any omitted or empty regular expressions will default to ".*".
+Please note that each regular expression given is implicitly
+anchored by adding "^" and "$" to the beginning and end.  Also, if a
+given regular expression starts with a "!" character, then the
+expression is negated (so @code{!foo} would match anything @emph{except}
+foo).
+
+Some example section specifications follow.
+
+@table @asis
+@item Match the NAME and SYNOPSIS sections and all of their subsections:
+@code{NAME|SYNOPSIS}
+
+@item Match only the @code{Question} and @code{Answer} subsections of the DESCRIPTION section:
+@code{DESCRIPTION/Question|Answer}
+
+@item Match the @code{Comments} subsection of all sections:
+@code{/Comments}
+
+@item Match all subsections of DESCRIPTION @emph{except} for @code{Comments}:
+@code{DESCRIPTION/!Comments}
+
+@item Match the DESCRIPTION section but do @emph{not} match any of its subsections:
+@code{DESCRIPTION/!.+}
+
+@item Match all top level sections but none of their subsections:
+@code{/!.+}
+
+@end table
+@unnumberedsec FUNCTIONS
+
+@strong{Pod::Parser} provides the following functions (please note that these
+are functions and @emph{not} methods, they do not take an object reference
+as an implicit first parameter):
+
+@unnumberedsubsec version()
+
+Return the current version of this package.
+
+@unnumberedsec INSTANCE METHODS
+
+@strong{Pod::Parser} provides several methods, some of which should be
+overridden by subclasses.  They are as follows:
+
+@unnumberedsubsec new()
+
+This is the the constructor for the base class. You should only use it
+if you want to create an instance of a @strong{Pod::Parser} instead of one of
+its subclasses. The constructor for this class and all of its subclasses
+should return a blessed reference to an associative array (hash).
+
+@unnumberedsubsec initialize()
+
+This method performs any necessary base class initialization.
+It takes no arguments (other than the object instance of course).
+If subclasses override this method then they @emph{must} be sure to
+invoke the superclass@' initialize() method.
+
+@unnumberedsubsec select($section_spec1, $section_spec2, ...)
+
+This is the method that is used to select the particular sections and
+subsections of pod documentation that are to be printed and/or
+processed. If the @emph{first} @emph{argument} is the string "+", then the
+remaining section specifications are @emph{added} to the current list of
+selections; otherwise the given section specifications will replace
+the current list of selections.
+
+Each of the @code{$section_spec} arguments should be a section
+specification as described in @samp{"SECTION SPECIFICATIONS"} in this node.  The section
+specifications are parsed by this method and the resulting regular
+expressions are stored in the array referenced by
+@code{$self->@{SELECTED@}} (please see the description of this member
+variable in @samp{"INSTANCE DATA"} in this node).
+
+This method should @emph{not} normally be overridden by subclasses.
+
+@unnumberedsubsec want_section($head1_title, $head2_title, ...)
+
+Returns a value of true if the given section and subsection titles match
+any of the section specifications passed to the @strong{select()} method (or
+if no section specifications were given). Returns a value of false
+otherwise. If @code{$headN_title} is ommitted then it defaults to the current
+@code{headN} section title in the input.
+
+This method should @emph{not} normally be overridden by subclasses.
+
+@unnumberedsubsec begin_input()
+
+This method is invoked by @strong{parse_from_filehandle()} immediately @emph{before}
+processing input from a filehandle. The base class implementation does
+nothing but subclasses may override it to perform any per-file
+intializations.
+
+@unnumberedsubsec end_input()
+
+This method is invoked by @strong{parse_from_filehandle()} immediately @emph{after}
+processing input from a filehandle. The base class implementation does
+nothing but subclasses may override it to perform any per-file
+cleanup actions.
+
+@unnumberedsubsec preprocess_line($text)
+
+This methods should be overridden by subclasses that wish to perform any
+kind of preprocessing for each @emph{line} of input (@emph{before} it has been
+determined whether or not it is part of a pod paragraph). The parameter
+@code{$text} is the input line and the value returned should correspond to
+the new text to use in its place. If the empty string or an undefined
+value is returned then no further process will be performed for this
+line. If desired, this method can call the @strong{parse_paragraph()} method
+directly with any preprocessed text and return an empty string (to
+indicate that no further processing is needed).
+
+Please note that the @strong{preprocess_line()} method is invoked @emph{before}
+the @strong{preprocess_paragraph()} method. After all (possibly preprocessed)
+lines in a paragraph have been assembled together and it has been
+determined that the paragraph is part of the pod documentation from one
+of the selected sections, then @strong{preprocess_paragraph()} is invoked.
+
+The base class implementation of this method returns the given text.
+
+@unnumberedsubsec preprocess_paragraph($text)
+
+This method should be overridden by subclasses that wish to perform any
+kind of preprocessing for each block (paragraph) of pod documentation
+that appears in the input stream.  The parameter @code{$text} is the pod
+paragraph from the input file and the value returned should correspond
+to the new text to use in its place.  If the empty string is returned or
+an undefined value is returned, then the given @code{$text} is ignored (not
+processed).
+
+This method is invoked by @strong{parse_paragraph()}. After it returns,
+@strong{parse_paragraph()} examines the current cutting state (which is
+stored in @code{$self->@{CUTTING@}}). If it evaluates to false then input text
+(including the given @code{$text}) is cut (not processed) until the next pod
+directive is encountered.
+
+Please note that the @strong{preprocess_line()} method is invoked @emph{before}
+the @strong{preprocess_paragraph()} method. After all (possibly preprocessed)
+lines in a paragraph have been assembled together and it has been
+determined that the paragraph is part of the pod documentation from one
+of the selected sections, then @strong{preprocess_paragraph()} is invoked.
+
+The base class implementation of this method returns the given text.
+
+@unnumberedsubsec parse_pragmas($cmd, $text, $sep)
+
+This method is called when an @code{=pod} directive is encountered. When
+such a pod directive is seen in the input, this method is called and is
+passed the command name @code{$cmd} (which should be "pod") and the
+remainder of the text paragraph @code{$text} which appeared immediately
+after the command name. If desired, the text which separated the @code{=pod}
+directive from its corresponding text may be found in @code{$sep}.  Each
+word in @code{$text} is examined to see if it is a pragma specification.
+Pragma specifications are of the form @code{pragma_name=pragma_value}.
+
+Unless the given object is an instance of the @strong{Pod::Parser} class, the
+base class implementation of this method will invoke the @strong{pragma()} method for
+each pragma specification in @code{$text}.  @emph{If and only if} the given
+object @emph{is} an instance of the @strong{Pod::Parser} class, the base class
+version of this method will simply reproduce the @code{=pod} command exactly
+as it appeared in the input.
+
+Derived classes should @emph{not} usually need to reimplement this method.
+
+@unnumberedsubsec pragma($pragma_name, $pragma_value)
+
+This method is invoked for each pragma encountered inside an @code{=pod}
+paragraph (see the description of the @strong{parse_pragmas()} method). The
+pragma name is passed in @code{$pragma_name} (which should always be
+lowercase) and the corresponding value is @code{$pragma_value}.
+
+The base class implementation of this method does nothing.  Derived
+class implementations of this method should be able to recognize at
+least the following pragmas and take any necessary actions when they are
+encountered:
+
+@table @asis
+@item fill=value
+The argument value should be one of @code{on}, @code{off}, or @code{previous}.
+Specifies that "filling-mode" should set to 1, 0, or its previous value
+(respectively). If value is omitted then the default is @code{on}.
+Derived classes may use this to decide whether or not to perform any
+filling (wrapping) of subsequent text.
+
+@item style=value
+The argument value should be one of @code{bold}, @code{italic}, code,
+@code{plain}, or @code{previous}. Specifies that the current default paragraph
+font should be set to @code{bold}, @code{italic}, code, the empty string ,
+or its previous value (respectively).  If value is omitted then the
+default is @code{plain}.  Derived classes may use this to determine the
+default font style to use for subsequent text.
+
+@item indent=value
+The argument value should be an integer value (with an optional
+sign).  Specifies that the current indentation level should be reset to
+the given value. If a plus (minus) sign precedes the number then the
+indentation level should be incremented (decremented) by the given
+number. If only a plus or minus sign is given (without a number) then
+the current indentation level is incremented or decremented by some
+default amount (to be determined by subclasses).
+
+@end table
+The value returned will be 1 if the pragma name was recognized and 0 if
+it wasnt (in which case the pragma was ignored).
+
+Derived classes should override this method if they wish to implement
+any pragmas. The base class implementation of this method does nothing
+but it does contain some commented-out code which subclasses may want
+to make use of when implementing pragmas.
+
+@unnumberedsubsec command($cmd, $text, $sep)
+
+This method should be overridden by subclasses to take the appropriate
+action when a pod command paragraph (denoted by a line beginning with
+"=") is encountered.  When such a pod directive is seen in the input,
+this method is called and is passed the command name @code{$cmd} and the
+remainder of the text paragraph @code{$text} which appears immediately after
+the command name. If desired, the text which separated the command from
+its corresponding text may be found in @code{$sep}.  Note that this method
+is @emph{not} called for @code{=pod} paragraphs.
+
+The base class implementation of this method simply prints the raw pod
+command to the output filehandle and then invokes the @strong{textblock()}
+method, passing it the @code{$text} parameter.
+
+@unnumberedsubsec verbatim($text)
+
+This method may be overridden by subclasses to take the appropriate
+action when a block of verbatim text is encountered. It is passed the
+text block @code{$text} as a parameter.
+
+The base class implementation of this method simply prints the textblock
+(unmodified) to the output filehandle.
+
+@unnumberedsubsec textblock($text)
+
+This method may be overridden by subclasses to take the appropriate
+action when a normal block of pod text is encountered (although the base
+class method will usually do what you want). It is passed the text block
+@code{$text} as a parameter.
+
+In order to process interior sequences, subclasses implementations of
+this method will probably want invoke the @strong{interpolate()} method,
+passing it the text block @code{$text} as a parameter and then perform any
+desired processing upon the returned result.
+
+The base class implementation of this method simply prints the text block
+as it occurred in the input stream).
+
+@unnumberedsubsec interior_sequence($seq_cmd, $seq_arg)
+
+This method should be overridden by subclasses to take the appropriate
+action when an interior sequence is encountered. An interior sequence is
+an embedded command within a block of text which appears as a command
+name (usually a single uppercase character) followed immediately by
+a string of text which is enclosed in angle brackets. This method is
+passed the sequence command @code{$seq_cmd} and the corresponding text
+$seq_arg and is invoked by the @strong{interpolate()} method for each
+interior sequence that occurs in the string that it is passed.
+It should return the desired text string to be used in place of
+the interior sequence.
+
+Subclass implementationss of this method may wish to examine the
+the array referenced by @code{$self->@{SEQUENCES@}} which is a
+stack of all the interior sequences that are currently being 
+processed (they may be nested). The current interior sequence
+(the one given by @code{$seq_cmd<$seq_arg>}) should always
+be at the top of this stack.
+
+The base class implementation of the @strong{interior_sequence()} method simply
+returns the raw text of the of the interior sequence (as it occurred in
+the input) to the output filehandle.
+
+@unnumberedsubsec interpolate($text, $end_re)
+
+This method will translate all text (including any embedded interior
+sequences) in the given text string @code{$text} and return the
+interpolated result.  If a second argument is given, then it is taken to
+be a regular expression that indicates when to quit interpolating the
+string.  Upon return, the @code{$text} parameter will have been modified to
+contain only the un-processed portion of the given string (which will
+@emph{not} contain any text matched by @code{$end_re}).
+
+This method should probably @emph{not} be overridden by subclasses.
+It should be noted that this method invokes itself recursively
+to handle any nested interior sequences.
+
+@unnumberedsubsec parse_paragraph($text)
+
+This method takes the text of a pod paragraph to be processed and
+invokes the appropriate method (one of @strong{command()}, @strong{verbatim()},
+or @strong{textblock()}).
+
+This method does @emph{not} usually need to be overridden by subclasses.
+
+@unnumberedsubsec parse_from_filehandle($infilehandle, $outfilehandle)
+
+This method takes a glob to a filehandle (which is assumed to already be
+opened for reading) and reads the entire input stream looking for blocks
+(paragraphs) of pod documentation to be processed. For each block of pod
+documentation encountered it will call the @strong{parse_paragraph()} method.
+
+If a second argument is given then it should be a filehandle glob where
+output should be sent (otherwise the default output filehandle is
+@code{STDOUT}). If no first argument is given the default input filehandle
+@code{STDIN} is used.
+
+The input filehandle that is currently in use is stored in the member
+variable whose key is "INPUT" (e.g. @code{$self->@{INPUT@}}).
+
+The output filehandle that is currently in use is stored in the member
+variable whose key is "OUTPUT" (e.g. @code{$self->@{OUTPUT@}}).
+
+Input is read line-by-line and assembled into paragraphs (which are
+separated by lines containing nothing but whitespace). The current line
+number is stored in the member variable whose key is "LINE" (e.g.
+@code{$self->@{LINE@}}) and the current paragraph number is stored in the
+member variable whose key is "PARAGRAPH" (e.g.  @code{$self->@{PARAGRAPH@}}).
+
+This method does @emph{not} usually need to be overridden by subclasses.
+
+@unnumberedsubsec parse_from_file($filename, $outfile)
+
+This method takes a filename and does the following:
+
+@itemize @bullet
+@item 
+opens the input and output files for reading
+(creating the appropriate filehandles)
+
+@item 
+invokes the @strong{parse_from_filehandle()} method passing it the
+corresponding input and output filehandles.
+
+@item 
+closes the input and output files.
+
+@end itemize
+If the special input filename "-" or "<&STDIN" is given then the STDIN
+filehandle is used for input (and no open or close is performed).  If no
+input filename is specified then "-" is implied.  If a reference is
+passed instead of a filename then it is assumed to be a glob-style
+reference to a filehandle.
+
+If a second argument is given then it should be the name of the desired
+output file.  If the special output filename "-" or ">&STDOUT" is given
+then the STDOUT filehandle is used for output (and no open or close is
+performed). If the special output filename ">&STDERR" is given then the
+STDERR filehandle is used for output (and no open or close is
+performed).  If no output filename is specified then "-" is implied.
+If a reference is passed instead of a filename then it is assumed to
+be a glob-style reference to a filehandle.
+
+The name of the input file that is currently being read is stored in the
+member variable whose key is "INFILE" (e.g. @code{$self->@{INFILE@}}).
+
+The name of the output file that is currently being written is stored in
+the member variable whose key is "OUTFILE" (e.g.  @code{$self->@{OUTFILE@}}).
+
+This method does @emph{not} usually need to be overridden by subclasses.
+
+@unnumberedsec INSTANCE DATA
+
+@strong{Pod::Parser} uses the following data members for each of its
+instances (where @code{$self} is a reference to such an instance):
+
+@unnumberedsubsec $self->@{INPUT@}
+
+The current input filehandle.
+
+@unnumberedsubsec $self->@{OUTPUT@}
+
+The current output filehandle.
+
+@unnumberedsubsec $self->@{INFILE@}
+
+The name of the current input file.
+
+@unnumberedsubsec $self->@{OUTFILE@}
+
+The name of the current output file.
+
+@unnumberedsubsec $self->@{LINE@}
+
+The current line number from the input stream.
+
+@unnumberedsubsec $self->@{PARAGRAPH@}
+
+The current paragraph number from the input stream (which includes input
+paragraphs that are @emph{not} part of the pod documentation).
+
+@unnumberedsubsec $self->@{HEADINGS@}
+
+A reference to an array of the current section heading titles for each
+heading level (note that the first heading level title is at index 0).
+
+@unnumberedsubsec $self->@{SELECTED@}
+
+A reference to an array of references to arrays. Each subarray is a list
+of anchored regular expressions (preceded by a "!" if the regexp is to be
+negated). The index of the expression in the subarray should correspond
+to the index of the heading title in @strong{$self->@{HEADINGS@}} that it is
+to be matched against.
+
+@unnumberedsubsec $self->@{CUTTING@}
+
+A boolean-valued scalar which evaluates to true if text from the
+input file is currently being "cut".
+
+@unnumberedsubsec $self->@{SEQUENCES@}
+
+An array reference to the stack of interior sequence commands that are
+currently in the middle of being processed.
+
+@unnumberedsec NOTES
+
+To create a pod translator to translate pod documentation to some other
+format, you usually only need to create a subclass of @strong{Pod::Parser}
+which overrides the base class implementation for the following methods:
+
+@itemize @bullet
+@item 
+@strong{pragma()}
+
+@item 
+@strong{command()}
+
+@item 
+@strong{verbatim()}
+
+@item 
+@strong{textblock()}
+
+@item 
+@strong{interior_sequence()}
+
+@end itemize
+You may also want to implement the begin_input() and end_input()
+methods for your subclass (to perform any needed per-file intialization
+or cleanup).
+
+If you need to perform any preprocesssing of input before it is parsed
+you may want to implement one or both of the @strong{preprocess_line()} and/or
+@strong{preprocess_paragraph()} methods.
+
+Also, don@'t forget to make sure your subclass constructor invokes the
+base class@' initialize() method.
+
+Sometimes it may be necessary to make more than one pass over the input
+files. This isn@'t a problem as long as none of the input files correspond
+to @code{STDIN}. You can override either the @strong{parse_from_filehandle()}
+method or the @strong{parse_from_file()} method to make the first pass yourself
+to collect all the information you need and then invoke the base class
+method to do the rest of the standard processing.
+
+Feel free to add any member data fields you need to keep track of things
+like current font, indentation, horizontal or vertical position, or
+whatever else you like.
+
+For the most part, the @strong{Pod::Parser} base class should be able to
+do most of the input parsing for you and leave you free to worry about
+how to intepret the commands and translate the result.
+
+@unnumberedsec AUTHOR
+
+Brad Appleton <Brad_Appleton-GBDA001@@email.mot.com>
+
+Based on code for @strong{Pod::Text} written by
+Tom Christiansen <tchrist@@mox.perl.com>
+

@@ -1,0 +1,106 @@
+@node LWP/Socket, LWP/TkIO, LWP/Simple, Module List
+@unnumbered TCP/IP socket interface
+
+
+@unnumberedsec NAME
+
+LWP::Socket - TCP/IP socket interface
+
+@unnumberedsec SYNOPSIS
+
+@example
+$socket = new LWP::Socket;
+$socket->connect(@'localhost@', 7); # echo
+$quote = @'I dunno, I dream in Perl sometimes...@';
+$socket->write("$quote\n");
+$socket->read_until("\n", \$buffer);
+$socket->read(\$buffer);
+$socket = undef;  # close
+@end example
+
+@unnumberedsec DESCRIPTION
+
+This class implements TCP/IP sockets.  It groups socket generation,
+TCP address manipulation and buffered reading. Errors are handled by
+dying (throws exceptions).
+
+This class should really not be required, something like this should
+be part of the standard Perl5 library.
+
+Running this module standalone executes a self test which requires
+localhost to serve chargen and echo protocols.
+
+@unnumberedsec METHODS
+
+@unnumberedsubsec $sock = new LWP::Socket()
+
+Constructs a new socket object.
+
+@unnumberedsubsec $sock->connect($host, $port)
+
+Connect the socket to given host and port.
+
+@unnumberedsubsec $sock->shutdown()
+
+Shuts down the connection.
+
+@unnumberedsubsec $sock->bind($host, $port)
+
+Binds a name to the socket.
+
+@unnumberedsubsec $sock->listen($queuesize)
+
+Set up listen queue for socket.
+
+@unnumberedsubsec $sock->accept($timeout)
+
+Accepts a new connection.  Returns a new LWP::Socket object if successful.
+Timeout not implemented yet.
+
+@unnumberedsubsec $sock->getsockname()
+
+Returns a 2 element array ($host, $port)
+
+@unnumberedsubsec $sock->read_until($delim, $data_ref, $size, $timeout)
+
+Reads data from the socket, up to a delimiter specified by a regular
+expression.  If $delim is undefined all data is read.  If $size is
+defined, data will be read internally in chunks of $size bytes.  This
+does not mean that we will return the data when size bytes are read.
+
+Note that $delim is discarded from the data returned.
+
+@unnumberedsubsec $sock->read($bufref, [$size, $timeout])
+
+Reads data of the socket.  Not more than $size bytes.  Might return
+less if the data is available.  Dies on timeout.
+
+@unnumberedsubsec $sock->pushback($data)
+
+Put data back into the socket.  Data will returned next time you
+read().  Can be used if you find out that you have read too much.
+
+@unnumberedsubsec $sock->write($data, [$timeout])
+
+Write data to socket.  The $data argument might be a scalar or code.
+
+If data is a reference to a subroutine, then we will call this routine
+to obtain the data to be written.  The routine will be called until it
+returns undef or empty data.  Data might be returned from the callback
+as a scalar or as a reference to a scalar.
+
+Write returns the number of bytes written to the socket.
+
+@unnumberedsubsec _getaddress($h, $p)
+
+Given a host and a port, it will return the address (sockaddr_in)
+suitable as the @code{name} argument for connect() or bind(). Might return
+several addresses in array context if the hostname is bound to several
+IP addresses.
+
+@unnumberedsec SELF TEST
+
+This self test is only executed when this file is run standalone. It
+tests its functions against some standard TCP services implemented by
+inetd. If you do not have them around the tests will fail.
+

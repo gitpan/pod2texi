@@ -1,0 +1,87 @@
+@node Apache/MsqlProxy, Apache/Options, Apache/Debug, Module List
+@unnumbered Translate URI@'s into mSQL database queries
+
+
+@unnumberedsec NAME
+
+Apache::MsqlProxy - Translate URI@'s into mSQL database queries
+
+@unnumberedsec SYNOPSIS
+
+@example
+#httpd.conf or srm.conf
+PerlTransHandler Apache::MsqlProxy::translate
+PerlHandler      Apache::MsqlProxy::handler
+PerlModule       Apache::MsqlProxy
+@end example
+
+Configure your browser@'s HTTP proxy to point at the host running Apache configured 
+with this module:
+
+@example
+http://hostname.domain/
+@end example
+
+When connecting to the server via normal HTTP (not proxy), URLs are not translated.
+
+URL@'s are translated as follows:
+
+@example
+http://hostname/database_name/table_name
+@end example
+
+Connect to hostname via TCP, select database @strong{database_name}, query table <table_name> with:
+
+@example
+SELECT * from table_name
+@end example
+
+@example
+http://hostname/database_name/table_name?login_name=dougm
+@end example
+
+Same as above with query:
+
+@example
+SELECT login_name from table where login_name=dougm
+@end example
+
+@example
+http://hostname/database_name/table_name/*?login_name=dougm
+@end example
+
+Same as above with query:
+
+@example
+SELECT * from table where login_name=dougm
+@end example
+
+Of course,
+
+@example
+http:///database_name/table_name
+@end example
+
+A null hostname connects via UNIX socket
+
+@example
+http://hostname:9876/database_name/table_name
+@end example
+
+Connect via TCP to hostname and port 9876
+
+@unnumberedsec DESCRIPTION
+
+This module is meant as an example to show how one can use Apache + mod_perl
+to handle HTTP proxy requests, or simply translating a URL.
+
+It may not be very useful other than as an example, but feel free to change that.
+
+@unnumberedsec SEE ALSO
+
+Apache(3), Msql(3)
+
+@unnumberedsec AUTHOR
+
+Doug MacEachern <dougm@@osf.org>
+

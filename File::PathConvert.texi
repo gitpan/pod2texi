@@ -1,0 +1,188 @@
+@node File/PathConvert, File/Recurse, File/Path, Module List
+@unnumbered make an canonicalized absolute path name
+
+
+@unnumberedsec NAME
+
+realpath - make an canonicalized absolute path name
+
+abs2rel - make a relative path from an absolute path
+
+rel2abs - make an absolute path from a relative path
+
+@unnumberedsec SYNOPSIS
+
+@code{use File::PathConvert;}
+
+@code{$path = realpath($path);}
+
+@code{$path = abs2rel($path);}
+.br
+@code{$path = abs2rel($path, $base);}
+
+@code{$path = rel2abs($path);}
+.br
+@code{$path = rel2abs($path, $base);}
+
+@unnumberedsec DESCRIPTION
+
+The PathConvert module provides three functions.
+
+@table @asis
+@item realpath
+realpath make a canonicalized absolute pathname.
+The realpath resolves all symbolic links, extra @`@`/@'@'
+characters and references to /./ and /../ in the path.
+The realpath will resolve both absolute and relative paths.
+realpath return resolved name on success else undef and set valiable
+$resolved to pathname which caused the problem.
+
+All but the last component of the path must exist.
+
+This implementation based on 4.4BSD realpath(3).
+
+@item abs2rel
+abs2rel make a relative path from an absolute path.
+By default, the base is current directory.
+If you specify second parameter, it@'s assumed the base.
+
+Returned path may include symbolic links.
+abs2rel doesn@'t check whether any path exist or not.
+
+@item rel2abs
+rel2abs make a absolute path from an relative path.
+By default, the base directory is current directory.
+If you specify second parameter, it@'s assumed the base.
+
+Returned path may include symbolic links.
+abs2rel doesn@'t check whether any path exist or not.
+
+@end table
+@unnumberedsec EXAMPLES
+
+@table @asis
+@item realpath
+@example
+If @'/sys@' is symbolic link to @'/usr/src/sys@',
+@end example
+
+@example
+chdir(@'/usr@');
+$path = realpath(@'../sys/kern@');
+@end example
+
+or in anywhere ...
+
+@example
+$path = realpath(@'/sys/kern@');
+@end example
+
+would yield
+
+@example
+$path eq @'/usr/src/sys/kern@'
+@end example
+
+@item abs2rel
+@example
+chdir(@'/usr/local/lib@');
+$path = abs2rel(@'/usr/src/sys@');
+@end example
+
+or in anywhere ...
+
+@example
+$path = abs2rel(@'/usr/src/sys@', @'/usr/local/lib@');
+@end example
+
+would yield
+
+@example
+$path eq @'../../src/sys@'
+@end example
+
+Similarly,
+
+@example
+$path1 = abs2rel(@'/usr/src/sys@', @'/usr@');
+$path2 = abs2rel(@'/usr/src/sys@', @'/usr/src/sys@');
+@end example
+
+would yield
+
+@example
+$path1 eq @'src/sys@'
+$path2 eq @'.@'
+@end example
+
+If the base directory includes symbolic links, abs2rel produce wrong path.
+For example, @'/sys@' is a symbolic link to @'/usr/src/sys@',
+
+@example
+$path = abs2rel(@'/usr/local/lib@', @'/sys@');
+@end example
+
+would yield
+
+@example
+$path eq @'../usr/local/lib@'		# It@'s wrong!!
+@end example
+
+You should convert the base directory into a real path in advance.
+
+@example
+$path = abs2rel(@'/sys/kern@', realpath(@'/sys@'));
+@end example
+
+would yield
+
+@example
+$path eq @'../../../sys/kern@'	# It@'s correct but ...
+@end example
+
+It@'s correct but a little redundant. If you wish get a simple
+answer @'kern@', do the following.
+
+@example
+$path = abs2rel(realpath(@'/sys/kern@'), realpath(@'/sys@'));
+@end example
+
+realpath() make the result correct but don@'t forget realpath require
+that all but the last component of the path exist.
+
+@item rel2abs
+@example
+chdir(@'/usr/local/lib@');
+$path = rel2abs(@'../../src/sys@');
+@end example
+
+or in anywhere ...
+
+@example
+$path = rel2abs(@'../../src/sys@', @'/usr/local/lib@');
+@end example
+
+would yield
+
+@example
+$path eq @'/usr/src/sys@'
+@end example
+
+Similarly,
+
+@example
+$path = rel2abs(@'src/sys@', @'/usr@');
+$path = rel2abs(@'.@', @'/usr/src/sys@');
+@end example
+
+would yield
+
+@example
+$path eq @'/usr/src/sys@'
+@end example
+
+@end table
+@unnumberedsec AUTHOR
+
+Shigio Yamaguchi <shigio@@ca2.so-net.or.jp>
+

@@ -1,0 +1,142 @@
+@node Tk/WaitBox, UNIVERSAL, Tk/SelFile, Module List
+@unnumbered An Object Oriented Wait Dialog for Perl/Tk, of the Please Wait variety.
+
+
+@unnumberedsec NAME
+
+Tk::WaitBox - An Object Oriented Wait Dialog for Perl/Tk, of the Please Wait variety.
+
+@unnumberedsec DESCRIPTION
+
+A WaitBox consists of a number of subwidgets:
+
+@table @asis
+@item 
+@end table
+@unnumberedsubsec bitmap
+
+A bitmap (configurable via the @emph{-bitmap} command, the default is an hourglass) on the left side of the WaitBox
+
+@unnumberedsubsec label
+
+A label (configurable via the @emph{-txt1} command), with text in the upper portion of the right hand frame
+
+@unnumberedsubsec secondary label
+
+Another label (configurable via the @emph{-txt2} command, the default is @'Please Wait@'), with text in the lower portion of the right hand frame
+
+@unnumberedsubsec userframe
+
+A frame displayed, if required, between the label and the secondary label.  For details, see the example code and the Advertised Widget section
+
+@unnumberedsubsec cancel button
+
+If a cancelroutine (configured via the @emph{-cancelroutine} command) is defined, a frame will be packed below the labels and bitmap, with a single button.  The text of the button will be @'Cancel@' (configurable via the @emph{-canceltext} command), and the button will call the supplied subroutine when pressed.
+
+@unnumberedsec SYNOPSIS
+
+@table @asis
+@item Usage Description
+@itemx 
+@end table
+@unnumberedsubsec Basic Usage
+
+To use, create your WaitDialog objects during initialization, or at least before a Show.  When you wish to display the WaitDialog object, invoke the @'Show@' method on the WaitDialog object; when you wish to cease displaying the WaitDialog object, invoke the @'unShow@' method on the object.
+
+@unnumberedsubsec Configuration
+
+Configuration may be done at creation or via the configure method.  
+
+@unnumberedsubsec Example Code
+
+@table @asis
+@item 
+@example
+#!/usr/local/bin/perl -w 
+@end example
+
+@example
+use Tk;
+use Tk::WaitBox;
+use strict;
+@end example
+
+@example
+my($root) = MainWindow->new;
+my($utxt) = "Initializing...";
+@end example
+
+@example
+my($wd) = $root->WaitBox(
+	-bitmap =>@'questhead@', # Default would be @'hourglass@'
+	-txt2 => @'tick-tick-tick@', #default would be @'Please Wait@'
+	-title => @'Takes forever to get service around here@',
+	-cancelroutine => sub @{
+	    print "\nI@'m canceling....\n";
+	    $wd->unShow;
+	    $utxt = undef;
+	@});
+$wd->configure(-txt1 => "Hurry up and Wait, my Drill Sergeant told me");
+$wd->configure(-foreground => @'blue@',-background => @'white@');
+@end example
+
+@example
+### Do something quite boring with the user frame
+my($u) = $wd->@{SubWidget@}(uframe);
+$u->pack(-expand => 1, -fill => @'both@');
+$u->Label(-textvariable => \$utxt)->pack(-expand => 1, -fill => @'both@');
+@end example
+
+@example
+## It would definitely be better to do this with a canvas... this is dumb
+my($base) = $u->Frame(-background =>@'gray@',
+		       -relief => @'sunken@',
+		       -borderwidth => 2,
+		       -height => 20)
+	 ->pack(-side => @'left@', -anchor => @'w@',-expand => 1,
+		-fill => @'both@');
+my($bar) = $base->Frame(-borderwidth => 2,
+			 -relief => @'raised@', -height => 20,
+			 -width => 0, -background => @'blue@')
+	 ->pack(-fill => @'y@', -side => @'left@');
+@end example
+
+@example
+$wd->configure(-canceltext => @'Halt, Cease, Desist@'); # default is @'Cancel@'
+@end example
+
+@example
+$wd->Show;
+@end example
+
+@example
+for (1..15) @{
+    sleep(1);
+    $bar->configure(-width => int($_/15*$base->Width));
+    $utxt = 100*$_/15 . "% Complete";
+    $root->update;
+    last if !defined($utxt);
+@}
+@end example
+
+@example
+$wd->unShow;
+@end example
+
+@end table
+@unnumberedsec Advertised Subwidgets
+
+@table @asis
+@item uframe
+uframe is a frame created between the two messages.  It may be used for anything the user has in mind... including exciting cycle wasting displays of sand dropping through an hour glass, Zippy riding either a Gnu or a bronc, et cetera.
+
+Assuming that the WaitBox is referenced by $w, the uframe may be addressed as $w->subwidget@{@'uframe@'@}.  Having gotten the address, you can do anything (I think) you would like with it
+
+@end table
+@unnumberedsec Author
+
+@strong{Brent B. Powers, Merrill Lynch (B2Pi)}
+ powers@@ml.com
+
+This code may be distributed under the same conditions as perl itself.
+

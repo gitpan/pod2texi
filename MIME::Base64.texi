@@ -1,0 +1,61 @@
+@node MIME/Base64, MIME/Body, MD5, Module List
+@unnumbered Encode string using base64 encoding
+
+
+@unnumberedsec NAME
+
+encode_base64 - Encode string using base64 encoding
+
+decode_base64 - Decode base64 string
+
+@unnumberedsec SYNOPSIS
+
+@example
+use MIME::Base64;
+@end example
+
+@example
+$encoded = encode_base64(@'Aladdin:open sesame@');
+$decoded = decode_base64($encoded);
+@end example
+
+@unnumberedsec DESCRIPTION
+
+This module provides functions to encode and decode strings into the
+Base64 encoding specified in RFC 1521 - @emph{MIME (Multipurpose Internet
+Mail Extensions)}. The Base64 encoding is designed to represent
+arbitrary sequences of octets in a form that need not be humanly
+readable. A 65-character subset ([A-Za-z0-9+/=]) of US-ASCII is used,
+enabling 6 bits to be represented per printable character.
+
+RFC 1521 says that the encoded bytes must be represented in lines of
+no more than 76 characters each.  The second argument to
+encode_base64() is the line ending sequence to use. It defaults to
+@code{"\n"}.  Use an empty string as second argument if you do not want
+the encoded string broken into lines.
+
+If you prefer not to import these routines into your namespace you can
+call them as:
+
+@example
+use MIME::Base64 ();
+$encoded = MIME::Base64::encode(@'Aladdin:open sesame@');
+$decoded = MIME::Base64::decode($encoded);
+@end example
+
+@unnumberedsec COPYRIGHT
+
+Copyright 1995, 1996 Gisle Aas.
+
+This library is free software; you can redistribute it and/or
+modify it under the same terms as Perl itself.
+
+@unnumberedsec AUTHOR
+
+Gisle Aas <aas@@sn.no>
+
+Based on LWP::Base64 written by Martijn Koster <m.koster@@nexor.co.uk>
+and Joerg Reichelt <j.reichelt@@nexor.co.uk> and code posted to
+comp.lang.perl <3pd2lp$6gf@@wsinti07.win.tue.nl> by Hans Mulder
+<hansm@@wsinti07.win.tue.nl>
+

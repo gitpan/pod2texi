@@ -1,0 +1,50 @@
+@node IO/Seekable, IO/Select, IO/Pipe, Module List
+@unnumbered supply seek based methods for I/O objects
+
+
+@unnumberedsec NAME
+
+IO::Seekable - supply seek based methods for I/O objects
+
+@unnumberedsec SYNOPSIS
+
+@example
+use IO::Seekable;
+package IO::Something;
+@@ISA = qw(IO::Seekable);
+@end example
+
+@unnumberedsec DESCRIPTION
+
+@code{IO::Seekable} does not have a constuctor of its own as is intended to
+be inherited by other @code{IO::Handle} based objects. It provides methods
+which allow seeking of the file descriptors.
+
+If the C functions fgetpos() and fsetpos() are available, then
+@code{IO::File::getpos} returns an opaque value that represents the
+current position of the IO::File, and @code{IO::File::setpos} uses
+that value to return to a previously visited position.
+
+See @xref{(perl.info)perlfunc,Perlfunc}, for complete descriptions of each of the following
+supported @code{IO::Seekable} methods, which are just front ends for the
+corresponding built-in functions:
+  
+    clearerr
+    seek
+    tell
+
+@unnumberedsec SEE ALSO
+
+@xref{(perl.info)perlfunc,Perlfunc},, 
+@samp{"I}, @xref{(perl.info)perlop,Perlop},,
+@samp{"I}, @xref{IO/Handle,IO/Handle},
+@samp{"I}, @xref{IO/File,IO/File},
+
+@unnumberedsec HISTORY
+
+Derived from FileHandle.pm by Graham Barr <bodg@@tiuk.ti.com>
+
+@unnumberedsec REVISION
+
+$Revision: 1.5 $
+

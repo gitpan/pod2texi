@@ -1,0 +1,76 @@
+@node Mail/Address, Mail/Cap, MLDBM, Module List
+@unnumbered Parse mail addresses
+
+
+@unnumberedsec NAME
+
+Mail::Address - Parse mail addresses
+
+@unnumberedsec DESCRIPTION
+
+Parse mailcap files as specified in RFC 822 - @emph{Standard for ARPA Internet
+Text Messages}.
+
+@unnumberedsec CONSTRUCTORS
+
+@unnumberedsubsec new($phrase, $address, [ $comment])
+
+@example
+Mail::Address->new("Perl5 Porters", "perl5-porters@@africa.nicoh.com");
+@end example
+
+Create a new object which represent an address with the elements given. In
+a message these 3 elements would be seen like:
+
+@example
+$phrase <$address> ($comment)
+$address ($comment)
+@end example
+
+@unnumberedsubsec parse($line)
+
+@example
+Mail::Address->parse($line);
+@end example
+
+@example
+Parse the given line a return a list of extracted objects. The line would
+normally be one taken from a To,Cc or Bcc line in a message
+@end example
+
+@unnumberedsec METHODS
+
+@unnumberedsubsec phrase()
+
+@unnumberedsubsec address()
+
+@unnumberedsubsec comment()
+
+These methods each return one part of the object
+
+@unnumberedsubsec format()
+
+Return a string representing the address in a suitable form to be placed
+on a To,Cc or Bcc line of a message
+
+@unnumberedsubsec name()
+
+Using the information contained within the object attempt to identify what
+the perons or groups name is
+
+@unnumberedsubsec host()
+
+Return the address excluding the user id and @'@@@'
+
+@unnumberedsubsec host()
+
+Return the address excluding the @'@@@' and the mail domain
+
+@unnumberedsubsec path()
+
+Unimplemented yet but shoud return the UUCP path for the message
+
+@unnumberedsubsec canon()
+
+Unimplemented yet but shoud return the UUCP canon for the message
+

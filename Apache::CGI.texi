@@ -1,0 +1,40 @@
+@node Apache/CGI, Apache/Debug, Apache/AuthzAge, Module List
+@unnumbered Make things work with CGI.pm against Perl-Apache API
+
+
+@unnumberedsec NAME
+
+Apache::CGI - Make things work with CGI.pm against Perl-Apache API
+
+@unnumberedsec SYNOPSIS
+
+@example
+require Apache::CGI;
+@end example
+
+@example
+my $q = new Apache::CGI;
+@end example
+
+@example
+$q->print($q->header);
+@end example
+
+@example
+#do things just like you do with CGI.pm
+@end example
+
+@unnumberedsec DESCRIPTION
+
+When using the Perl-Apache API, your applications are faster, but the
+enviroment is different than CGI.
+This module attempts to set-up that environment as best it can.
+
+@unnumberedsec SEE ALSO
+
+perl(1), Apache(3), CGI(3)
+
+@unnumberedsec AUTHOR
+
+Doug MacEachern <dougm@@osf.org>, hacked over by Andreas König <a.koenig@@mind.de>
+

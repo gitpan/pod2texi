@@ -1,0 +1,143 @@
+@node Mail/POP3Client, Mail/Send, Mail/Mailer, Module List
+@unnumbered Perl 5 module to talk to a POP3 (RFC1081) server
+
+
+@unnumberedsec NAME
+
+Mail::POP3Client - Perl 5 module to talk to a POP3 (RFC1081) server
+
+@unnumberedsec DESCRIPTION
+
+This module implements an Object-Oriented interface to a POP3 server.
+It is based on RFC1081.
+
+@unnumberedsec USAGE
+
+Here is a simple example to list out the headers in your remote mailbox:
+
+@example
+#!/usr/local/bin/perl
+
+use Mail::POP3Client;
+
+$pop = new Mail::POP3Client("me", "mypassword", "pop3.do.main");
+for ($i = 1; $i <= $pop->Count; $i++) @{
+	print $pop->Head($i), "\n";
+@}
+@end example
+
+@unnumberedsubsec POP3Client Commands
+
+These commands are intended to make writing a POP3 client easier.
+They do not necessarily map directly to POP3 commands defined in
+RFC1081.  Some commands return multiple lines as an array in an array
+context, but there may be missing places.
+
+@table @asis
+@item new
+Construct a new POP3 connection with this.  You should give it at
+least 2 arguments: username and password.  The next 2 optional
+arguments are the POP3 host and port number.  A final fifth argument
+of a positive integer enables debugging on the object (to STDERR).
+
+@item Head
+Get the headers of the specified message.  Here is a simple Biff
+program:
+
+@example
+#!/usr/local/bin/perl
+
+use Mail::POP3Client;
+
+$pop = new Mail::POP3Client("me", "mypass", "pop3.do.main");
+for ($i = 1; $i <= $pop->Count; $i++) @{
+	foreach ($pop->Head($i)) @{
+		/^(From|Subject): / and print $_, "\n";
+	@}
+	print "\n";
+@}
+@end example
+
+@item Body
+Get the body of the specified message.
+
+@item HeadAndBody
+Get the head and body of the specified message.
+
+@item Retrieve
+Same as HeadAndBody.
+
+@item Delete
+Mark the specified message number as DELETED.  Becomes effective upon
+QUIT.  Can be reset with a Reset message.
+
+@item Connect
+Start the connection to the POP3 server.  You can pass in the host and
+port.
+
+@item Close
+Close the connection gracefully.  POP3 says this will perform any
+pending deletes on the server.
+
+@item Alive
+Return true or false on whether the connection is active.
+
+@item Socket
+Return the file descriptor for the socket.
+
+@item Size
+Set/Return the size of the remote mailbox.  Set by POPStat.
+
+@item Count
+Set/Return the number of remote messages.  Set during Login.
+
+@item Message
+The last status message received from the server.
+
+@item State
+The internal state of the connection: DEAD, AUTHORIZATION, TRANSACTION.
+
+@item POPStat
+Return the results of a POP3 STAT command.  Sets the size of the
+mailbox.
+
+@item List
+Return a list of sizes of each message.
+
+@item Last
+Return the number of the last message, retrieved from the server.
+
+@item Reset
+Tell the server to unmark any message marked for deletion.
+
+@item User
+Set/Return the current user name.
+
+@item Pass
+Set/Return the current user name.
+
+@item Login
+Attempt to login to the server connection.
+
+@item Host
+Set/Return the current host.
+
+@item Port
+Set/Return the current port number.
+
+@end table
+@unnumberedsec AUTHOR
+
+Sean Dowd <ssd@@mmts.eds.com>
+
+@unnumberedsec COPYRIGHT
+
+Copyright (c) 1995,1996 Electonic Data Systems, Inc.  All rights reserved.
+This module is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+@unnumberedsec CREDITS
+
+Based loosely on News::NNTPClient by Rodger Anderson
+<rodger@@boi.hp.com>.
+

@@ -1,0 +1,83 @@
+@node Math/Matrix, Math/PRSG, Math/Fortran, Module List
+@unnumbered Multiply and invert Matrices
+
+
+@unnumberedsec NAME
+
+Math::Matrix - Multiply and invert Matrices
+
+@unnumberedsec DESCRIPTION
+
+The following methods are available:
+
+@unnumberedsubsec new
+
+Constructor arguments are a list of references to arrays of the same
+length.  The arrays are copied. The method returns undef in case of
+error.
+
+@example
+$a = new Math::Matrix ([rand,rand,rand], 
+                       [rand,rand,rand], 
+                       [rand,rand,rand]);
+@end example
+
+@unnumberedsubsec concat
+
+Concatenates two matrices of same row count. The result is a new
+matrix or undef in case of error.
+
+@example
+$b = new Math::Matrix ([rand],[rand],[rand]);
+$c = $a->concat($b);
+@end example
+
+@unnumberedsubsec transpose
+
+Returns the transposed matrix. This is the matrix where colums and
+rows of the argument matrix are swaped.
+
+@unnumberedsubsec multiply
+
+Multiplies two matrices where the length of the rows in the first
+matrix is the same as the length of the columns in the second
+matrix. Returns the product or undef in case of error.
+
+@unnumberedsubsec solve
+
+Solves a equation system given by the matrix. The number of colums
+must be greater than the number of rows. If variables are dependent
+from each other, the second and all further of the dependent
+coefficients are 0. This means the method can handle such systems. The
+method returns a matrix containing the solutions in its columns or
+undef in case of error.
+
+@unnumberedsubsec print
+
+Prints the matrix on STDOUT. If the method has additional parameters,
+these are printed before the matrix is printed.
+
+@unnumberedsec EXAMPLE
+
+@example
+use Math::Matrix;
+@end example
+
+@example
+srand(time);
+$a = new Math::Matrix ([rand,rand,rand], 
+                 [rand,rand,rand], 
+                 [rand,rand,rand]);
+$x = new Math::Matrix ([rand,rand,rand]);
+$a->print("A\n");
+$E = $a->concat($x->transpose);
+$E->print("Equation system\n");
+$s = $E->solve;
+$s->print("Solutions s\n");
+$a->multiply($s)->print("A*s\n");
+@end example
+
+@unnumberedsec AUTHOR
+
+Ulrich Pfeifer <pfeifer@@ls6.informatik.uni-dortmund.de>
+

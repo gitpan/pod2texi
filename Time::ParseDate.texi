@@ -1,0 +1,146 @@
+@node Time/ParseDate, Time/Timezone, Time/Local, Module List
+@unnumbered date parsing both relative and absolute
+
+
+@unnumberedsec NAME
+
+Time::ParseDate -- date parsing both relative and absolute
+
+@unnumberedsec SYNOPSIS
+
+@example
+use Time::ParseDate;
+$seconds_since_jan1_1970 = parsedate("12/11/94 2pm", NO_RELATIVE => 1)
+$seconds_since_jan1_1970 = parsedate("12/11/94 2pm", %options)
+@end example
+
+@unnumberedsec OPTIONS
+
+Date parsing can also use options.  The options are as follows:
+
+@example
+FUZZY	-> it@'s okay not to parse the entire date string
+NOW	-> the "current" time for relative times (defaults to time())
+ZONE	-> local timezone (defaults to $ENV@{TZ@})
+WHOLE	-> the whole input string must be parsed
+GMT	-> input time is assumed to be GMT, not localtime
+UK	-> prefer UK style dates (dd/mm over mm/dd)
+DATE_REQUIRED -> do not default the date
+TIME_REQUIRED -> do not default the time
+NO_RELATIVE -> input time is not relative to NOW
+TIMEFIRST -> try parsing time before date [not default]
+PREFER_PAST -> when year or day of week is ambigueous, assume past
+PREFER_FUTURE -> when year or day of week is ambigueous, assume future
+@end example
+
+@unnumberedsec DATE FORMATS RECOGNIZED
+
+@unnumberedsubsec Absolute date formats
+
+@example
+Dow, dd Mon yy
+Dow, dd Mon yyyy
+Dow, dd Mon
+dd Mon yy
+dd Mon yyyy
+Month day@{st,nd,rd,th@}, year
+Month day@{st,nd,rd,th@}
+Mon dd yyyy
+yyyy/mm/dd
+yyyy/mm
+mm/dd/yy
+mm/dd/yyyy
+mm/yy
+yy/mm      (only if year > 12, or > 31 if UK)
+yy/mm/dd   (only if year > 12 and day < 32, or year > 31 if UK)
+dd/mm/yy   (only if UK, or an invalid mm/dd/yy or yy/mm/dd)
+dd/mm/yyyy (only if UK, or an invalid mm/dd/yyyy)
+dd/mm      (only if UK, or an invalid mm/dd)
+@end example
+
+@unnumberedsubsec Relative date formats:
+
+@example
+count "days"
+count "weeks"
+count "months"
+count "years"
+Dow "after next"
+Dow 			(requires PREFER_PAST or PREFER_FUTURE)
+"next" Dow
+"tomorrow"
+"today"
+"yesterday"
+"last" dow
+"last week"
+"now"
+"now +" count units
+@end example
+
+@unnumberedsubsec Absolute time formats:
+
+@example
+hh:mm:ss 
+hh:mm 
+hh:mm[AP]M
+hh[AP]M
+hhmmss[[AP]M] 
+"noon"
+"midnight"
+@end example
+
+@unnumberedsubsec Relative time formats:
+
+@example
+count "minuts"
+count "seconds"
+count "hours"
+"+" count units
+"+" count
+@end example
+
+@unnumberedsubsec Timezone formats:
+
+@example
+[+-]dddd
+GMT[+-]d+
+[+-]dddd (TZN)
+TZN
+@end example
+
+@unnumberedsubsec Special formats:
+
+@example
+[ d]d/Mon/yyyy:hh:mm:ss [[+-]dddd]
+yy/mm/dd.hh:mm
+@end example
+
+@unnumberedsec DESCRIPTION
+
+This module recognizes the above date/time formats.   Usually a
+date and a time are specified.  There are numerous options for 
+controlling what is recognized and what is not.
+
+The return code is always the time in seconds since January 1st, 1970
+or zero if it was unable to parse the time.
+
+If a timezone is specified it must be after the time.  Year specifications
+can be tacked onto the end of absolute times.
+
+@unnumberedsec EXAMPLES
+
+@example
+$seconds = parsedate("Mon Jan  2 04:24:27 1995");
+$seconds = parsedate("Tue Apr 4 00:22:12 PDT 1995");
+$seconds = parsedate("04.04.95 00:22", ZONE => PDT);
+$seconds = parsedate("122212 950404", ZONE => PDT, TIMEFIRST => 1);
+$seconds = parsedate("+3 secs", NOW => 796978800);
+$seconds = parsedate("2 months", NOW => 796720932);
+$seconds = parsedate("last Tuesday");
+@end example
+
+@unnumberedsec AUTHOR
+
+David Muir Sharnoff <muir@@idiom.com>
+
+Patch for UK-style dates: Sam Yates <syates@@maths.adelaide.edu.au>

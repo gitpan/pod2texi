@@ -1,0 +1,39 @@
+@node BitCount, C/Scan, Benchmark, Module List
+@unnumbered count number of "1" bits in string
+
+
+@unnumberedsec NAME
+
+String::BitCount, BitCount showBitCount - count number of "1" bits in string
+
+@unnumberedsec SYNOPSIS
+
+@example
+use String::BitCount;
+@end example
+
+@unnumberedsec DESCRIPTION
+
+@table @asis
+@item BitCount LIST
+Joins the elements of LIST into a single string
+and returns the the number of bits in this string.
+
+@item showBitCount LIST
+Copies the elements of LIST to a new list and converts
+the new elements to strings of digits showing the number
+of set bits in the original byte.  In array context returns
+the new list.  In scalar context joins the elements of the
+new list into a single string and returns the string.
+
+@end table
+@unnumberedsec AUTHOR
+
+Winfried Koenig <win@@in.rhein-main.de>
+
+@example
+Copyright (c) 1995 Winfried Koenig. All rights reserved.
+This program is free software; you can redistribute it
+and/or modify it under the same terms as Perl itself.
+@end example
+

@@ -1,0 +1,1541 @@
+@node DB_File, DCE/Login, Cwd, Module List
+@unnumbered Perl5 access to Berkeley DB
+
+
+@unnumberedsec NAME
+
+DB_File - Perl5 access to Berkeley DB
+
+@unnumberedsec SYNOPSIS
+
+@example
+use DB_File ;
+use strict @'untie@' ;
+
+[$X =] tie %hash,  @'DB_File@', [$filename, $flags, $mode, $DB_HASH] ;
+[$X =] tie %hash,  @'DB_File@', $filename, $flags, $mode, $DB_BTREE ;
+[$X =] tie @@array, @'DB_File@', $filename, $flags, $mode, $DB_RECNO ;
+@end example
+
+@example
+$status = $X->del($key [, $flags]) ;
+$status = $X->put($key, $value [, $flags]) ;
+$status = $X->get($key, $value [, $flags]) ;
+$status = $X->seq($key, $value, $flags) ;
+$status = $X->sync([$flags]) ;
+$status = $X->fd ;
+@end example
+
+@example
+# BTREE only
+$count = $X->get_dup($key) ;
+@@list  = $X->get_dup($key) ;
+%list  = $X->get_dup($key, 1) ;
+@end example
+
+@example
+# RECNO only
+$a = $X->length;
+$a = $X->pop ;
+$X->push(list);
+$a = $X->shift;
+$X->unshift(list);
+@end example
+
+@example
+untie %hash ;
+untie @@array ;
+@end example
+
+@unnumberedsec DESCRIPTION
+
+DB_File is a module which allows Perl programs to make use of the
+facilities provided by Berkeley DB.  If you intend to use this
+module you should really have a copy of the Berkeley DB manual pages at
+hand. The interface defined here mirrors the Berkeley DB interface
+closely.
+
+Berkeley DB is a C library which provides a consistent interface to a
+number of database formats.  DB_File provides an interface to all
+three of the database types currently supported by Berkeley DB.
+
+The file types are:
+
+@table @asis
+@item DB_HASH
+This database type allows arbitrary key/value pairs to be stored in data
+files. This is equivalent to the functionality provided by other
+hashing packages like DBM, NDBM, ODBM, GDBM, and SDBM. Remember though,
+the files created using DB_HASH are not compatible with any of the
+other packages mentioned.
+
+A default hashing algorithm, which will be adequate for most
+applications, is built into Berkeley DB. If you do need to use your own
+hashing algorithm it is possible to write your own in Perl and have
+DB_File use it instead.
+
+@item DB_BTREE
+The btree format allows arbitrary key/value pairs to be stored in a
+sorted, balanced binary tree.
+
+As with the DB_HASH format, it is possible to provide a user defined
+Perl routine to perform the comparison of keys. By default, though, the
+keys are stored in lexical order.
+
+@item DB_RECNO
+DB_RECNO allows both fixed-length and variable-length flat text files
+to be manipulated using the same key/value pair interface as in DB_HASH
+and DB_BTREE.  In this case the key will consist of a record (line)
+number.
+
+@end table
+@unnumberedsubsec How does DB_File interface to Berkeley DB?
+
+DB_File allows access to Berkeley DB files using the tie() mechanism
+in Perl 5 (for full details, see @samp{tie()}, @xref{(perl.info)perlfunc,Perlfunc},). This facility
+allows DB_File to access Berkeley DB files using either an
+associative array (for DB_HASH & DB_BTREE file types) or an ordinary
+array (for the DB_RECNO file type).
+
+In addition to the tie() interface, it is also possible to access most
+of the functions provided in the Berkeley DB API directly.
+See @samp{THE API INTERFACE} in this node.
+
+@unnumberedsubsec Opening a Berkeley DB Database File
+
+Berkeley DB uses the function dbopen() to open or create a database.
+Here is the C prototype for dbopen():
+
+@example
+DB*
+dbopen (const char * file, int flags, int mode, 
+        DBTYPE type, const void * openinfo)
+@end example
+
+The parameter type is an enumeration which specifies which of the 3
+interface methods (DB_HASH, DB_BTREE or DB_RECNO) is to be used.
+Depending on which of these is actually chosen, the final parameter,
+@emph{openinfo} points to a data structure which allows tailoring of the
+specific interface method.
+
+This interface is handled slightly differently in DB_File. Here is
+an equivalent call using DB_File:
+
+@example
+tie %array, @'DB_File@', $filename, $flags, $mode, $DB_HASH ;
+@end example
+
+The @code{filename}, @code{flags} and @code{mode} parameters are the direct
+equivalent of their dbopen() counterparts. The final parameter $DB_HASH
+performs the function of both the type and @code{openinfo} parameters in
+dbopen().
+
+In the example above $DB_HASH is actually a pre-defined reference to a
+hash object. DB_File has three of these pre-defined references.
+Apart from $DB_HASH, there is also $DB_BTREE and $DB_RECNO.
+
+The keys allowed in each of these pre-defined references is limited to
+the names used in the equivalent C structure. So, for example, the
+$DB_HASH reference will only allow keys called @code{bsize}, @code{cachesize},
+@code{ffactor}, @code{hash}, @code{lorder} and @code{nelem}. 
+
+To change one of these elements, just assign to it like this:
+
+@example
+$DB_HASH->@{@'cachesize@'@} = 10000 ;
+@end example
+
+The three predefined variables $DB_HASH, $DB_BTREE and $DB_RECNO are
+usually adequate for most applications.  If you do need to create extra
+instances of these objects, constructors are available for each file
+type.
+
+Here are examples of the constructors and the valid options available
+for DB_HASH, DB_BTREE and DB_RECNO respectively.
+
+@example
+$a = new DB_File::HASHINFO ;
+$a->@{@'bsize@'@} ;
+$a->@{@'cachesize@'@} ;
+$a->@{@'ffactor@'@};
+$a->@{@'hash@'@} ;
+$a->@{@'lorder@'@} ;
+$a->@{@'nelem@'@} ;
+@end example
+
+@example
+$b = new DB_File::BTREEINFO ;
+$b->@{@'flags@'@} ;
+$b->@{@'cachesize@'@} ;
+$b->@{@'maxkeypage@'@} ;
+$b->@{@'minkeypage@'@} ;
+$b->@{@'psize@'@} ;
+$b->@{@'compare@'@} ;
+$b->@{@'prefix@'@} ;
+$b->@{@'lorder@'@} ;
+@end example
+
+@example
+$c = new DB_File::RECNOINFO ;
+$c->@{@'bval@'@} ;
+$c->@{@'cachesize@'@} ;
+$c->@{@'psize@'@} ;
+$c->@{@'flags@'@} ;
+$c->@{@'lorder@'@} ;
+$c->@{@'reclen@'@} ;
+$c->@{@'bfname@'@} ;
+@end example
+
+The values stored in the hashes above are mostly the direct equivalent
+of their C counterpart. Like their C counterparts, all are set to a
+default values - that means you don@'t have to set all of the
+values when you only want to change one. Here is an example:
+
+@example
+$a = new DB_File::HASHINFO ;
+$a->@{@'cachesize@'@} =  12345 ;
+tie %y, @'DB_File@', "filename", $flags, 0777, $a ;
+@end example
+
+A few of the values need extra discussion here. When used, the C
+equivalent of the keys @code{hash}, @code{compare} and @code{prefix} store pointers
+to C functions. In DB_File these keys are used to store references
+to Perl subs. Below are templates for each of the subs:
+
+@example
+sub hash
+@{
+    my ($data) = @@_ ;
+    ...
+    # return the hash value for $data
+	return $hash ;
+@}
+@end example
+
+@example
+sub compare
+@{
+	my ($key, $key2) = @@_ ;
+    ...
+    # return  0 if $key1 eq $key2
+    #        -1 if $key1 lt $key2
+    #         1 if $key1 gt $key2
+    return (-1 , 0 or 1) ;
+@}
+@end example
+
+@example
+sub prefix
+@{
+	my ($key, $key2) = @@_ ;
+    ...
+    # return number of bytes of $key2 which are 
+    # necessary to determine that it is greater than $key1
+    return $bytes ;
+@}
+@end example
+
+See @samp{Changing the BTREE sort order} in this node for an example of using the
+@code{compare} template.
+
+@unnumberedsubsec Default Parameters
+
+It is possible to omit some or all of the final 4 parameters in the
+call to tie and let them take default values. As DB_HASH is the most
+common file format used, the call:
+
+@example
+tie %A, "DB_File", "filename" ;
+@end example
+
+is equivalent to:
+
+@example
+tie %A, "DB_File", "filename", O_CREAT|O_RDWR, 0640, $DB_HASH ;
+@end example
+
+It is also possible to omit the filename parameter as well, so the
+call:
+
+@example
+tie %A, "DB_File" ;
+@end example
+
+is equivalent to:
+
+@example
+tie %A, "DB_File", undef, O_CREAT|O_RDWR, 0640, $DB_HASH ;
+@end example
+
+See @samp{In Memory Databases} in this node for a discussion on the use of undef
+in place of a filename.
+
+@unnumberedsubsec In Memory Databases
+
+Berkeley DB allows the creation of in-memory databases by using NULL
+(that is, a @code{(char *)0} in C) in place of the filename.  DB_File
+uses undef instead of NULL to provide this functionality.
+
+@unnumberedsec DB_HASH
+
+The DB_HASH file format is probably the most commonly used of the three
+file formats that DB_File supports. It is also very straightforward
+to use.
+
+@unnumberedsubsec A Simple Example.
+
+This example shows how to create a database, add key/value pairs to the
+database, delete keys/value pairs and finally how to enumerate the
+contents of the database.
+
+@example
+use DB_File ;
+use strict @'untie@' ;
+@end example
+
+@example
+tie %h, "DB_File", "fruit", O_RDWR|O_CREAT, 0640, $DB_HASH 
+    or die "Cannot open file @'fruit@': $!\n";
+@end example
+
+@example
+# Add a few key/value pairs to the file
+$h@{"apple"@} = "red" ;
+$h@{"orange"@} = "orange" ;
+$h@{"banana"@} = "yellow" ;
+$h@{"tomato"@} = "red" ;
+@end example
+
+@example
+# Check for existence of a key
+print "Banana Exists\n\n" if $h@{"banana"@} ;
+@end example
+
+@example
+# Delete a key/value pair.
+delete $h@{"apple"@} ;
+@end example
+
+@example
+# print the contents of the file
+while (($k, $v) = each %h)
+  @{ print "$k -> $v\n" @}
+@end example
+
+@example
+untie %h ;
+@end example
+
+here is the output:
+
+@example
+Banana Exists
+ 
+orange -> orange
+tomato -> red
+banana -> yellow
+@end example
+
+Note that the like ordinary associative arrays, the order of the keys
+retrieved is in an apparently random order.
+
+@unnumberedsec DB_BTREE
+
+The DB_BTREE format is useful when you want to store data in a given
+order. By default the keys will be stored in lexical order, but as you
+will see from the example shown in the next section, it is very easy to
+define your own sorting function.
+
+@unnumberedsubsec Changing the BTREE sort order
+
+This script shows how to override the default sorting algorithm that
+BTREE uses. Instead of using the normal lexical ordering, a case
+insensitive compare function will be used.
+
+@example
+use DB_File ;
+use strict @'untie@' ;
+@end example
+
+@example
+sub Compare
+@{
+    my ($key1, $key2) = @@_ ;
+    "\L$key1" cmp "\L$key2" ;
+@}
+@end example
+
+@example
+# specify the Perl sub that will do the comparison
+$DB_BTREE->@{@'compare@'@} = \&Compare ;
+@end example
+
+@example
+tie %h, "DB_File", "tree", O_RDWR|O_CREAT, 0640, $DB_BTREE 
+    or die "Cannot open file @'tree@': $!\n" ;
+@end example
+
+@example
+# Add a key/value pair to the file
+$h@{@'Wall@'@} = @'Larry@' ;
+$h@{@'Smith@'@} = @'John@' ;
+$h@{@'mouse@'@} = @'mickey@' ;
+$h@{@'duck@'@}  = @'donald@' ;
+@end example
+
+@example
+# Delete
+delete $h@{"duck"@} ;
+@end example
+
+@example
+# Cycle through the keys printing them in order.
+# Note it is not necessary to sort the keys as
+# the btree will have kept them in order automatically.
+foreach (keys %h)
+  @{ print "$_\n" @}
+@end example
+
+@example
+untie %h ;
+@end example
+
+Here is the output from the code above.
+
+@example
+mouse
+Smith
+Wall
+@end example
+
+There are a few point to bear in mind if you want to change the
+ordering in a BTREE database:
+
+@enumerate
+@item 
+The new compare function must be specified when you create the database.
+
+@item 
+You cannot change the ordering once the database has been created. Thus
+you must use the same compare function every time you access the
+database.
+
+@end enumerate
+@unnumberedsubsec Handling duplicate keys 
+
+The BTREE file type optionally allows a single key to be associated
+with an arbitrary number of values. This option is enabled by setting
+the flags element of @code{$DB_BTREE} to R_DUP when creating the database.
+
+There are some difficulties in using the tied hash interface if you
+want to manipulate a BTREE database with duplicate keys. Consider this
+code:
+
+@example
+use DB_File ;
+use strict @'untie@' ;
+ 
+$filename = "tree" ;
+unlink $filename ;
+ 
+# Enable duplicate records
+$DB_BTREE->@{@'flags@'@} = R_DUP ;
+ 
+tie %h, "DB_File", $filename, O_RDWR|O_CREAT, 0640, $DB_BTREE 
+	or die "Cannot open $filename: $!\n";
+ 
+# Add some key/value pairs to the file
+$h@{@'Wall@'@} = @'Larry@' ;
+$h@{@'Wall@'@} = @'Brick@' ; # Note the duplicate key
+$h@{@'Wall@'@} = @'Brick@' ; # Note the duplicate key and value
+$h@{@'Smith@'@} = @'John@' ;
+$h@{@'mouse@'@} = @'mickey@' ;
+@end example
+
+@example
+# iterate through the associative array
+# and print each key/value pair.
+foreach (keys %h)
+  @{ print "$_  -> $h@{$_@}\n" @}
+@end example
+
+@example
+untie %h ;
+@end example
+
+Here is the output:
+
+@example
+Smith   -> John
+Wall    -> Larry
+Wall    -> Larry
+Wall    -> Larry
+mouse   -> mickey
+@end example
+
+As you can see 3 records have been successfully created with key @code{Wall}
+- the only thing is, when they are retrieved from the database they
+@emph{seem} to have the same value, namely @code{Larry}. The problem is caused
+by the way that the associative array interface works. Basically, when
+the associative array interface is used to fetch the value associated
+with a given key, it will only ever retrieve the first value.
+
+Although it may not be immediately obvious from the code above, the
+associative array interface can be used to write values with duplicate
+keys, but it cannot be used to read them back from the database.
+
+The way to get around this problem is to use the Berkeley DB API method
+called @code{seq}.  This method allows sequential access to key/value
+pairs. See @samp{THE API INTERFACE} in this node for details of both the @code{seq} method
+and the API in general.
+
+Here is the script above rewritten using the @code{seq} API method.
+
+@example
+use DB_File ;
+use strict @'untie@' ;
+ 
+$filename = "tree" ;
+unlink $filename ;
+ 
+# Enable duplicate records
+$DB_BTREE->@{@'flags@'@} = R_DUP ;
+ 
+$x = tie %h, "DB_File", $filename, O_RDWR|O_CREAT, 0640, $DB_BTREE 
+	or die "Cannot open $filename: $!\n";
+ 
+# Add some key/value pairs to the file
+$h@{@'Wall@'@} = @'Larry@' ;
+$h@{@'Wall@'@} = @'Brick@' ; # Note the duplicate key
+$h@{@'Wall@'@} = @'Brick@' ; # Note the duplicate key and value
+$h@{@'Smith@'@} = @'John@' ;
+$h@{@'mouse@'@} = @'mickey@' ;
+ 
+# iterate through the btree using seq
+# and print each key/value pair.
+for ($status = $x->seq($key, $value, R_FIRST) ;
+     $status == 0 ;
+     $status = $x->seq($key, $value, R_NEXT) )
+  @{  print "$key -> $value\n" @}
+ 
+undef $x ;
+untie %h ;
+@end example
+
+that prints:
+
+@example
+Smith   -> John
+Wall    -> Brick
+Wall    -> Brick
+Wall    -> Larry
+mouse   -> mickey
+@end example
+
+This time we have got all the key/value pairs, including the multiple
+values associated with the key @code{Wall}.
+
+@unnumberedsubsec The get_dup method.
+
+DB_File comes with a utility method, called @code{get_dup}, to assist in
+reading duplicate values from BTREE databases. The method can take the
+following forms:
+
+@example
+$count = $x->get_dup($key) ;
+@@list  = $x->get_dup($key) ;
+%list  = $x->get_dup($key, 1) ;
+@end example
+
+In a scalar context the method returns the number of values associated
+with the key, @code{$key}.
+
+In list context, it returns all the values which match @code{$key}. Note
+that the values will be returned in an apparently random order.
+
+In list context, if the second parameter is present and evaluates TRUE,
+the method returns an associative array. The keys of the associative
+array correspond to the the values that matched in the BTREE and the
+values of the array are a count of the number of times that particular
+value occurred in the BTREE.
+
+So assuming the database created above, we can use @code{get_dup} like
+this:
+
+@example
+$cnt  = $x->get_dup("Wall") ;
+print "Wall occurred $cnt times\n" ;
+@end example
+
+@example
+%hash = $x->get_dup("Wall", 1) ;
+print "Larry is there\n" if $hash@{@'Larry@'@} ;
+print "There are $hash@{@'Brick@'@} Brick Walls\n" ;
+@end example
+
+@example
+@@list = $x->get_dup("Wall") ;
+print "Wall =>	[@@list]\n" ;
+@end example
+
+@example
+@@list = $x->get_dup("Smith") ;
+print "Smith =>	[@@list]\n" ;
+ 
+@@list = $x->get_dup("Dog") ;
+print "Dog =>	[@@list]\n" ;
+@end example
+
+and it will print:
+
+@example
+Wall occurred 3 times
+Larry is there
+There are 2 Brick Walls
+Wall =>	[Brick Brick Larry]
+Smith =>	[John]
+Dog =>	[]
+@end example
+
+@unnumberedsubsec Matching Partial Keys 
+
+The BTREE interface has a feature which allows partial keys to be
+matched. This functionality is @emph{only} available when the @code{seq} method
+is used along with the R_CURSOR flag.
+
+@example
+$x->seq($key, $value, R_CURSOR) ;
+@end example
+
+Here is the relevant quote from the dbopen man page where it defines
+the use of the R_CURSOR flag with seq:
+
+@example
+Note, for the DB_BTREE access method, the returned key is not
+necessarily an exact match for the specified key. The returned key
+is the smallest key greater than or equal to the specified key,
+permitting partial key matches and range searches.
+@end example
+
+In the example script below, the @code{match} sub uses this feature to find
+and print the first matching key/value pair given a partial key.
+
+@example
+use DB_File ;
+use Fcntl ;
+use strict @'untie@' ;
+@end example
+
+@example
+sub match
+@{
+    my $key = shift ;
+    my $value ;
+    my $orig_key = $key ;
+    $x->seq($key, $value, R_CURSOR) ;
+    print "$orig_key\t-> $key\t-> $value\n" ;
+@}
+@end example
+
+@example
+$filename = "tree" ;
+unlink $filename ;
+@end example
+
+@example
+$x = tie %h, "DB_File", $filename, O_RDWR|O_CREAT, 0640, $DB_BTREE
+    or die "Cannot open $filename: $!\n";
+ 
+# Add some key/value pairs to the file
+$h@{@'mouse@'@} = @'mickey@' ;
+$h@{@'Wall@'@} = @'Larry@' ;
+$h@{@'Walls@'@} = @'Brick@' ; 
+$h@{@'Smith@'@} = @'John@' ;
+ 
+@end example
+
+@example
+print "IN ORDER\n" ;
+for ($st = $x->seq($key, $value, R_FIRST) ;
+	 $st == 0 ;
+     $st = $x->seq($key, $value, R_NEXT) )
+	
+  @{  print "$key -> $value\n" @}
+ 
+print "\nPARTIAL MATCH\n" ;
+@end example
+
+@example
+match "Wa" ;
+match "A" ;
+match "a" ;
+@end example
+
+@example
+undef $x ;
+untie %h ;
+@end example
+
+Here is the output:
+
+@example
+IN ORDER
+Smith -> John
+Wall  -> Larry
+Walls -> Brick
+mouse -> mickey
+@end example
+
+@example
+PARTIAL MATCH
+Wa -> Wall  -> Larry
+A  -> Smith -> John
+a  -> mouse -> mickey
+@end example
+
+@unnumberedsec DB_RECNO
+
+DB_RECNO provides an interface to flat text files. Both variable and
+fixed length records are supported.
+
+In order to make RECNO more compatible with Perl the array offset for
+all RECNO arrays begins at 0 rather than 1 as in Berkeley DB.
+
+As with normal Perl arrays, a RECNO array can be accessed using
+negative indexes. The index -1 refers to the last element of the array,
+-2 the second last, and so on. Attempting to access an element before
+the start of the array will raise a fatal run-time error.
+
+@unnumberedsubsec A Simple Example
+
+Here is a simple example that uses RECNO.
+
+@example
+use DB_File ;
+use strict @'untie@' ;
+@end example
+
+@example
+tie @@h, "DB_File", "text", O_RDWR|O_CREAT, 0640, $DB_RECNO 
+    or die "Cannot open file @'text@': $!\n" ;
+@end example
+
+@example
+# Add a few key/value pairs to the file
+$h[0] = "orange" ;
+$h[1] = "blue" ;
+$h[2] = "yellow" ;
+@end example
+
+@example
+# Check for existence of a key
+print "Element 1 Exists with value $h[1]\n" if $h[1] ;
+@end example
+
+@example
+# use a negative index
+print "The last element is $h[-1]\n" ;
+print "The 2nd last element is $h[-2]\n" ;
+@end example
+
+@example
+untie @@h ;
+@end example
+
+Here is the output from the script:
+
+@example
+Element 1 Exists with value blue
+The last element is yellow
+The 2nd last element is blue
+@end example
+
+@unnumberedsubsec Extra Methods
+
+As you can see from the example above, the tied array interface is
+quite limited. To make the interface more useful, a number of methods
+are supplied with DB_File to simulate the standard array operations
+that are not currently implemented in Perl@'s tied array interface. All
+these methods are accessed via the object returned from the tie call.
+
+Here are the methods:
+
+@table @asis
+@item @strong{$X->push(list) ;}
+Pushes the elements of list to the end of the array.
+
+@item @strong{$value = $X->pop ;}
+Removes and returns the last element of the array.
+
+@item @strong{$X->shift}
+Removes and returns the first element of the array.
+
+@item @strong{$X->unshift(list) ;}
+Pushes the elements of list to the start of the array.
+
+@item @strong{$X->length}
+Returns the number of elements in the array.
+
+@end table
+@unnumberedsubsec Another Example
+
+Here is a more complete example that makes use of some of the methods
+described above. It also makes use of the API interface directly (see 
+@samp{THE API INTERFACE} in this node).
+
+@example
+use strict ;
+use vars qw(@@h $H $file $i) ;
+use DB_File ;
+use Fcntl ;
+
+$file = "text" ;
+@end example
+
+@example
+unlink $file ;
+@end example
+
+@example
+$H = tie @@h, "DB_File", $file, O_RDWR|O_CREAT, 0640, $DB_RECNO 
+    or die "Cannot open file $file: $!\n" ;
+
+# first create a text file to play with
+$h[0] = "zero" ;
+$h[1] = "one" ;
+$h[2] = "two" ;
+$h[3] = "three" ;
+$h[4] = "four" ;
+@end example
+
+@example
+# Print the records in order.
+    #
+    # The length method is needed here because evaluating a tied
+    # array in a scalar context does not return the number of
+    # elements in the array.  
+@end example
+
+@example
+print "\nORIGINAL\n" ;
+foreach $i (0 .. $H->length - 1) @{
+    print "$i: $h[$i]\n" ;
+@}
+@end example
+
+@example
+# use the push & pop methods
+$a = $H->pop ;
+$H->push("last") ;
+print "\nThe last record was [$a]\n" ;
+@end example
+
+@example
+# and the shift & unshift methods
+$a = $H->shift ;
+$H->unshift("first") ;
+print "The first record was [$a]\n" ;
+@end example
+
+@example
+# Use the API to add a new record after record 2.
+$i = 2 ;
+$H->put($i, "Newbie", R_IAFTER) ;
+@end example
+
+@example
+# and a new record before record 1.
+$i = 1 ;
+$H->put($i, "New One", R_IBEFORE) ;
+@end example
+
+@example
+# delete record 3
+$H->del(3) ;
+@end example
+
+@example
+# now print the records in reverse order
+print "\nREVERSE\n" ;
+for ($i = $H->length - 1 ; $i >= 0 ; -- $i)
+  @{ print "$i: $h[$i]\n" @}
+@end example
+
+@example
+# same again, but use the API functions instead
+print "\nREVERSE again\n" ;
+my ($s, $k, $v)  ;
+for ($s = $H->seq($k, $v, R_LAST) ; 
+         $s == 0 ; 
+         $s = $H->seq($k, $v, R_PREV))
+  @{ print "$k: $v\n" @}
+@end example
+
+@example
+undef $H ;
+untie @@h ;
+@end example
+
+and this is what it outputs:
+
+@example
+ORIGINAL
+0: zero
+1: one
+2: two
+3: three
+4: four
+@end example
+
+@example
+The last record was [four]
+The first record was [zero]
+@end example
+
+@example
+REVERSE
+5: last
+4: three
+3: Newbie
+2: one
+1: New One
+0: first
+@end example
+
+@example
+REVERSE again
+5: last
+4: three
+3: Newbie
+2: one
+1: New One
+0: first
+@end example
+
+Notes:
+
+@enumerate
+@item 
+Rather than iterating through the array, @code{@@h} like this:
+
+@example
+foreach $i (@@h)
+@end example
+
+it is necessary to use either this:
+
+@example
+foreach $i (0 .. $H->length - 1) 
+@end example
+
+or this:
+
+@example
+for ($a = $H->get($k, $v, R_FIRST) ;
+     $a == 0 ;
+     $a = $H->get($k, $v, R_NEXT) )
+@end example
+
+@item 
+Notice that both times the put method was used the record index was
+specified using a variable, @code{$i}, rather than the literal value
+itself. This is because put will return the record number of the
+inserted line via that parameter.
+
+@end enumerate
+@unnumberedsec THE API INTERFACE
+
+As well as accessing Berkeley DB using a tied hash or array, it is also
+possible to make direct use of most of the API functions defined in the
+Berkeley DB documentation.
+
+To do this you need to store a copy of the object returned from the tie.
+
+@example
+$db = tie %hash, "DB_File", "filename" ;
+@end example
+
+Once you have done that, you can access the Berkeley DB API functions
+as DB_File methods directly like this:
+
+@example
+$db->put($key, $value, R_NOOVERWRITE) ;
+@end example
+
+@strong{Important:} If you have saved a copy of the object returned from
+tie, the underlying database file will @emph{not} be closed until both
+the tied variable is untied and all copies of the saved object are
+destroyed. See @samp{The strict untie pragma} in this node for more details.
+
+@example
+use DB_File ;
+$db = tie %hash, "DB_File", "filename" 
+    or die "Cannot tie filename: $!" ;
+...
+undef $db ;
+untie %hash ;
+@end example
+
+All the functions defined in @samp{dbopen} in this node are available except for
+close() and dbopen() itself. The DB_File method interface to the
+supported functions have been implemented to mirror the way Berkeley DB
+works whenever possible. In particular note that:
+
+@itemize @bullet
+@item 
+The methods return a status value. All return 0 on success.
+All return -1 to signify an error and set $! to the exact
+error code. The return code 1 generally (but not always) means that the
+key specified did not exist in the database.
+
+Other return codes are defined. See below and in the Berkeley DB
+documentation for details. The Berkeley DB documentation should be used
+as the definitive source.
+
+@item 
+Whenever a Berkeley DB function returns data via one of its parameters,
+the equivalent DB_File method does exactly the same.
+
+@item 
+If you are careful, it is possible to mix API calls with the tied
+hash/array interface in the same piece of code. Although only a few of
+the methods used to implement the tied interface currently make use of
+the cursor, you should always assume that the cursor has been changed
+any time the tied hash/array interface is used. As an example, this
+code will probably not do what you expect:
+
+@example
+$X = tie %x, @'DB_File@', $filename, O_RDWR|O_CREAT, 0777, $DB_BTREE
+    or die "Cannot tie $filename: $!" ;
+@end example
+
+@example
+# Get the first key/value pair and set  the cursor
+$X->seq($key, $value, R_FIRST) ;
+@end example
+
+@example
+# this line will modify the cursor
+$count = scalar keys %x ; 
+@end example
+
+@example
+# Get the second key/value pair.
+# oops, it didn@'t, it got the last key/value pair!
+$X->seq($key, $value, R_NEXT) ;
+@end example
+
+The code above can be rearranged to get around the problem, like this:
+
+@example
+$X = tie %x, @'DB_File@', $filename, O_RDWR|O_CREAT, 0777, $DB_BTREE
+    or die "Cannot tie $filename: $!" ;
+@end example
+
+@example
+# this line will modify the cursor
+$count = scalar keys %x ; 
+@end example
+
+@example
+# Get the first key/value pair and set  the cursor
+$X->seq($key, $value, R_FIRST) ;
+@end example
+
+@example
+# Get the second key/value pair.
+# worked this time.
+$X->seq($key, $value, R_NEXT) ;
+@end example
+
+@end itemize
+All the constants defined in @samp{dbopen} in this node for use in the flags parameters
+in the methods defined below are also available. Refer to the Berkeley
+DB documentation for the precise meaning of the flags values.
+
+Below is a list of the methods available.
+
+@table @asis
+@item @strong{$status = $X->get($key, $value [, $flags]) ;}
+Given a key (@code{$key}) this method reads the value associated with it
+from the database. The value read from the database is returned in the
+$value parameter.
+
+If the key does not exist the method returns 1.
+
+No flags are currently defined for this method.
+
+@item @strong{$status = $X->put($key, $value [, $flags]) ;}
+Stores the key/value pair in the database.
+
+If you use either the R_IAFTER or R_IBEFORE flags, the @code{$key} parameter
+will have the record number of the inserted key/value pair set.
+
+Valid flags are R_CURSOR, R_IAFTER, R_IBEFORE, R_NOOVERWRITE and
+R_SETCURSOR.
+
+@item @strong{$status = $X->del($key [, $flags]) ;}
+Removes all key/value pairs with key @code{$key} from the database.
+
+A return code of 1 means that the requested key was not in the
+database.
+
+R_CURSOR is the only valid flag at present.
+
+@item @strong{$status = $X->fd ;}
+Returns the file descriptor for the underlying database.
+
+See @samp{Locking Databases} in this node for an example of how to make use of the
+@code{fd} method to lock your database.
+
+@item @strong{$status = $X->seq($key, $value, $flags) ;}
+This interface allows sequential retrieval from the database. See
+@samp{dbopen} in this node for full details.
+
+Both the @code{$key} and $value parameters will be set to the key/value
+pair read from the database.
+
+The flags parameter is mandatory. The valid flag values are R_CURSOR,
+R_FIRST, R_LAST, R_NEXT and R_PREV.
+
+@item @strong{$status = $X->sync([$flags]) ;}
+Flushes any cached buffers to disk.
+
+R_RECNOSYNC is the only valid flag at present.
+
+@end table
+@unnumberedsec HINTS AND TIPS 
+
+@unnumberedsubsec The strict untie pragma
+
+If you run Perl version 5.004 or later (actually any version from the
+5.003_01 development release on will suffice) and you make use of the
+Berkeley DB API, it is is @emph{very} strongly recommended that you always
+include the @code{use strict @'untie@'} pragma in any of your scripts that
+make use of DB_File.
+
+Even if you don@'t currently make use of the API interface, it is still
+a good idea to include the pragma. It won@'t affect the performance of
+your script, but it will prevent problems in the future.
+
+If possible you should try to run with the full strict pragma, but that
+is another story. For further details see @xref{strict,Strict}, and 
+@samp{WHY YOU SHOULD ALWAYS @code{use strict}}, @xref{(perl.info)perldsc,Perldsc},.
+
+To illustrate the importance of including the untie pragma, here is an
+example script that fails in an unexpected place because it doesn@'t use
+it:
+
+@example
+use DB_File ;
+use Fcntl ;
+ 
+$X = tie %x, @'DB_File@', @'tst.fil@' , O_RDWR|O_CREAT
+    or die "Cannot tie first time: $!" ;
+ 
+$x@{123@} = 456 ;
+ 
+untie %x ;
+ 
+$X = tie %x, @'DB_File@', @'tst.fil@' , O_RDWR|O_CREAT
+    or die "Cannot tie second time: $!" ;
+@end example
+
+@example
+untie %x ;
+@end example
+
+When run the script will produce this error message:
+
+@example
+Cannot tie second time: Invalid argument at bad.file line 12.
+@end example
+
+Although the error message above refers to the second tie statement in
+the script, the source of the problem is really with the untie
+statement that precedes it.
+
+To understand why there is a problem at all with the untie statement,
+consider what the tie does for a moment. 
+
+Whenever the tie is executed, it creates a logical link between a Perl
+variable, the associative array @code{%x} in this case, and a Berkeley DB
+database, @code{tst.fil}. The logical link ensures that all operation on
+the associative array are automatically mirrored to the database file.
+
+In normal circumstances the untie is enough to break the logical link
+and also close the database. In this particular case there is another
+logical link, namely the API object returned from the tie and stored in
+@code{$X}. Whenever the untie is executed in this case, only the link
+between the associative array and the database will be broken. The API
+object in @code{$X} is still valid, so the database will not be closed.
+
+The end result of this is that when the second tie is executed, the
+database will be in an inconsistent state (i.e. it is still opened by
+the first tie) - thus the second tie will fail.
+
+If the @code{use strict @'untie@'} pragma is included in the script, like
+this:
+
+@example
+use DB_File ;
+use Fcntl ;
+use strict @'untie@' ;
+ 
+$X = tie %x, @'DB_File@', @'tst.fil@' , O_RDWR|O_CREAT
+    or die "Cannot tie first time: $!" ;
+ 
+$x@{123@} = 456 ;
+ 
+untie %x ;
+ 
+$X = tie %x, @'DB_File@', @'tst.fil@' , O_RDWR|O_CREAT
+    or die "Cannot tie second time: $!" ;
+@end example
+
+then the error message becomes:
+
+@example
+Can@'t untie: 1 inner references still exist at bad.file line 11.
+@end example
+
+which pinpoints the real problem. Finally the script can now be
+modified to fix the original problem by destroying the API object
+before the untie:
+
+@example
+...
+$x@{123@} = 456 ;
+@end example
+
+@example
+undef $X ;
+untie %x ;
+ 
+$X = tie %x, @'DB_File@', @'tst.fil@' , O_RDWR|O_CREAT
+...
+@end example
+
+@unnumberedsubsec Locking Databases
+
+Concurrent access of a read-write database by several parties requires
+them all to use some kind of locking.  Here@'s an example of Tom@'s that
+uses the @emph{fd} method to get the file descriptor, and then a careful
+open() to give something Perl will flock() for you.  Run this repeatedly
+in the background to watch the locks granted in proper order.
+
+@example
+use strict @'untie@';
+use DB_File;
+@end example
+
+@example
+use strict;
+@end example
+
+@example
+sub LOCK_SH @{ 1 @}
+sub LOCK_EX @{ 2 @}
+sub LOCK_NB @{ 4 @}
+sub LOCK_UN @{ 8 @}
+@end example
+
+@example
+my($oldval, $fd, $db, %db, $value, $key);
+@end example
+
+@example
+$key = shift || @'default@';
+$value = shift || @'magic@';
+@end example
+
+@example
+$value .= " $$";
+@end example
+
+@example
+$db = tie(%db, @'DB_File@', @'/tmp/foo.db@', O_CREAT|O_RDWR, 0644) 
+	    || die "dbcreat /tmp/foo.db $!";
+$fd = $db->fd;
+print "$$: db fd is $fd\n";
+open(DB_FH, "+<&=$fd") || die "dup $!";
+@end example
+
+@example
+unless (flock (DB_FH, LOCK_SH | LOCK_NB)) @{
+	print "$$: CONTENTION; can@'t read during write update!
+		    Waiting for read lock ($!) ....";
+	unless (flock (DB_FH, LOCK_SH)) @{ die "flock: $!" @}
+@} 
+print "$$: Read lock granted\n";
+@end example
+
+@example
+$oldval = $db@{$key@};
+print "$$: Old value was $oldval\n";
+flock(DB_FH, LOCK_UN);
+@end example
+
+@example
+unless (flock (DB_FH, LOCK_EX | LOCK_NB)) @{
+	print "$$: CONTENTION; must have exclusive lock!
+		    Waiting for write lock ($!) ....";
+	unless (flock (DB_FH, LOCK_EX)) @{ die "flock: $!" @}
+@} 
+@end example
+
+@example
+print "$$: Write lock granted\n";
+$db@{$key@} = $value;
+$db->sync;
+sleep 10;
+@end example
+
+@example
+flock(DB_FH, LOCK_UN);
+undef $db;
+untie %db;
+close(DB_FH);
+print "$$: Updated db to $key=$value\n";
+@end example
+
+@unnumberedsubsec Sharing databases with C applications
+
+There is no technical reason why a Berkeley DB database cannot be
+shared by both a Perl and a C application.
+
+The vast majority of problems that are reported in this area boil down
+to the fact that C strings are NULL terminated, whilst Perl strings are
+not. 
+
+Here is a real example. Netscape 2.0 keeps a record of the locations you
+visit along with the time you last visited them in a DB_HASH database.
+This is usually stored in the file @file{~/.netscape/history.db}. The key
+field in the database is the location string and the value field is the
+time the location was last visited stored as a 4 byte binary value.
+
+If you haven@'t already guessed, the location string is stored with a
+terminating NULL. This means you need to be careful when accessing the
+database.
+
+Here is a snippet of code that is loosely based on Tom Christiansen@'s
+@emph{ggh} script (available from your nearest CPAN archive in
+@file{authors/id/TOMC/scripts/nshist.gz}).
+
+@example
+use DB_File ;
+use Fcntl ;
+use strict @'untie@' ;
+@end example
+
+@example
+$dotdir = $ENV@{HOME@} || $ENV@{LOGNAME@};
+@end example
+
+@example
+$HISTORY = "$dotdir/.netscape/history.db";
+@end example
+
+@example
+tie %hist_db, @'DB_File@', $HISTORY
+    or die "Cannot open $HISTORY: $!\n" ;;
+@end example
+
+@example
+# Dump the complete database
+while ( ($href, $binary_time) = each %hist_db ) @{
+@end example
+
+@example
+# remove the terminating NULL
+$href =~ s/\x00$// ;
+@end example
+
+@example
+# convert the binary time into a user friendly string
+$date = localtime unpack("V", $binary_time);
+print "$date $href\n" ;
+    @}
+@end example
+
+@example
+# check for the existence of a specific key
+# remember to add the NULL
+if ( $binary_time = $hist_db@{"http://mox.perl.com/\x00"@} ) @{
+    $date = localtime unpack("V", $binary_time) ;
+    print "Last visited mox.perl.com on $date\n" ;
+@}
+else @{
+    print "Never visited mox.perl.com\n"
+@}
+@end example
+
+@example
+untie %hist_db ;
+@end example
+
+@unnumberedsec COMMON QUESTIONS
+
+@unnumberedsubsec Why is there Perl source in my database?
+
+If you look at the contents of a database file created by DB_File,
+there can sometimes be part of a Perl script included in it.
+
+This happens because Berkeley DB uses dynamic memory to allocate
+buffers which will subsequently be written to the database file. Being
+dynamic, the memory could have been used for anything before DB
+malloced it. As Berkeley DB doesn@'t clear the memory once it has been
+allocated, the unused portions will contain random junk. In the case
+where a Perl script gets written to the database, the random junk will
+correspond to an area of dynamic memory that happened to be used during
+the compilation of the script.
+
+Unless you don@'t like the possibility of there being part of your Perl
+scripts embedded in a database file, this is nothing to worry about.
+
+@unnumberedsubsec How do I store complex data structures with DB_File?
+
+Although DB_File cannot do this directly, there is a module which
+can layer transparently over DB_File to accomplish this feat.
+
+Check out the MLDBM module, available on CPAN in the directory
+@file{modules/by-module/MLDBM}.
+
+@unnumberedsubsec What does "Invalid Argument" mean?
+
+You will get this error message when one of the parameters in the
+tie call is wrong. Unfortunately there are quite a few parameters to
+get wrong, so it can be difficult to figure out which one it is.
+
+Here are a couple of possibilities:
+
+@enumerate
+@item 
+Attempting to reopen a database without closing it. See 
+@samp{The strict untie pragma} in this node for an example.
+
+@item 
+Using the O_WRONLY flag.
+
+@end enumerate
+@unnumberedsubsec What does "Bareword @'DB_File@' not allowed" mean? 
+
+You will encounter this particular error message when you have the
+@code{strict @'subs@'} pragma (or the full strict pragma) in your script.
+Consider this script:
+
+@example
+use strict ;
+use DB_File ;
+use vars qw(%x) ;
+tie %x, DB_File, "filename" ;
+@end example
+
+Running it produces the error in question:
+
+@example
+Bareword "DB_File" not allowed while "strict subs" in use 
+@end example
+
+To get around the error, place the word DB_File in either single or
+double quotes, like this:
+
+@example
+tie %x, "DB_File", "filename" ;
+@end example
+
+Although it might seem like a real pain, it is really worth the effort
+of having a @code{use strict} in all your scripts.
+
+@unnumberedsec HISTORY
+
+@enumerate
+@item 
+First Release.
+
+@item 
+When DB_File is opening a database file it no longer terminates the
+process if @emph{dbopen} returned an error. This allows file protection
+errors to be caught at run time. Thanks to Judith Grass
+<grass@@cybercash.com> for spotting the bug.
+
+@item 
+Added prototype support for multiple btree compare callbacks.
+
+@item 
+DB_File has been in use for over a year. To reflect that, the
+version number has been incremented to 1.0.
+
+Added complete support for multiple concurrent callbacks.
+
+Using the push method on an empty list didn@'t work properly. This
+has been fixed.
+
+@item 
+Fixed a core dump problem with SunOS.
+
+The return value from TIEHASH wasn@'t set to NULL when dbopen returned
+an error.
+
+@item 
+Merged OS/2 specific code into DB_File.xs
+
+Removed some redundant code in DB_File.xs.
+
+Documentation update.
+
+Allow negative subscripts with RECNO interface.
+
+Changed the default flags from O_RDWR to O_CREAT|O_RDWR.
+
+The example code which showed how to lock a database needed a call to
+sync added. Without it the resultant database file was empty.
+
+Added get_dup method.
+
+@item 
+Documentation update.
+
+DB_File now imports the constants (O_RDWR, O_CREAT etc.) from Fcntl
+automatically.
+
+The standard hash function exists is now supported.
+
+Modified the behavior of get_dup. When it returns an associative
+array, the value is the count of the number of matching BTREE values.
+
+@end enumerate
+@unnumberedsec BUGS
+
+Some older versions of Berkeley DB had problems with fixed length
+records using the RECNO file format. The newest version at the time of
+writing was 1.85 - this seems to have fixed the problems with RECNO.
+
+I am sure there are bugs in the code. If you do find any, or can
+suggest any enhancements, I would welcome your comments.
+
+@unnumberedsec AVAILABILITY
+
+DB_File comes with the standard Perl source distribution. Look in
+the directory @file{ext/DB_File}.
+
+Berkeley DB is available at your nearest CPAN archive (see
+@samp{"CPAN"}, @xref{(perl.info)perlmod,Perlmod}, for a list) in @file{src/misc/db.1.85.tar.gz}, or via the
+host @file{ftp.cs.berkeley.edu} in @file{/ucb/4bsd/db.tar.gz}.  It is @emph{not} under
+the GPL.
+
+If you are running IRIX, then get Berkeley DB from
+@file{http://reality.sgi.com/ariel}. It has the patches necessary to
+compile properly on IRIX 5.3.
+
+@unnumberedsec SEE ALSO
+
+@samp{perl(1)} in this node, @samp{dbopen(3)} in this node, @samp{hash(3)} in this node, @samp{recno(3)} in this node, @samp{btree(3)} in this node 
+
+@unnumberedsec AUTHOR
+
+The DB_File interface was written by Paul Marquess
+<pmarquess@@bfsec.bt.co.uk>.
+Questions about the DB system itself may be addressed to Keith Bostic
+<bostic@@cs.berkeley.edu>.
+

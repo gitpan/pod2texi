@@ -1,0 +1,107 @@
+@node File/Recurse, File/Slurp, File/PathConvert, Module List
+@unnumbered Recurse over files, performing some function.
+
+
+@unnumberedsec NAME
+
+File::Recurse - Recurse over files, performing some function.
+
+@unnumberedsec SYNOPSIS
+
+@example
+use File::Recurse;
+use File::Copy;
+@end example
+
+@example
+recurse @{ print @} "/tmp";
+recurse @{copy($_,"elsewhere") if -f $_@} "dir";
+recurse(\&func, "/");
+@end example
+
+@unnumberedsec DESCRIPTION
+
+The @code{File::Recurse} module is designed for performing an operation
+on a tree of directories and files. The basic usage is simmilar
+to the @file{find.pl} library. Once one uses the File::Recurse module,
+you need only call the @code{recurse} function in order to perform
+recursive directory operations.
+
+The function takes two parameters a function reference and a
+directory. The function referenced by the first parameter
+should expect to take one
+parameter: the full path to the file currently being operated on. This
+function is called once for every file and directory under the
+directory named by the second parameter.
+
+For example:
+
+@example
+recurse(\&func, "/");
+@end example
+
+would start at the top level of the filesystem and call "func"
+for every file and directory found (not including "/").
+
+Perl allows a second form of calling this function which can be
+useful for situations where you want to do something simple in
+the function. In these cases, you can define an anonymous function
+by using braces like so:
+
+@example
+recurse @{print $_[0]@} "/";
+@end example
+
+This would print every file and directory in the filesystem. However,
+as an added convenience you can access the pathname in the variable
+$_. So the above could be rewritten as:
+
+@example
+recurse @{ print @} "/";
+@end example
+
+@unnumberedsubsec Context
+
+There is an optional third parameter which can be any scalar value
+(including a reference). This value is ignored by recurse, but will be
+passed as the second parameter to the user-defined function. This can
+be useful for building library routines that use recurse, so that
+they do not have to pass state to the function as global variables.
+
+@unnumberedsubsec Controling Recursion
+
+If you want to control how recursion happens, you have several
+options. First, there are some global variables that affect the overall
+operation of the recurse routine:
+
+@table @asis
+@item @code{$MAX_DEPTH}
+This variable controls how far down a tree of directories recurse
+will go before it assumes that something bad has happened. Default:
+100.
+
+@item @code{$FOLLOW_SYMLINKS}
+This variable tells recurse if it should descend into directories that are
+symbolic links. Default: 0.
+
+@end table
+Normally, the return value of the function called is not used, but
+if it is -1 or -2, there is a special action taken.
+
+If the function returns -1 and the current filename refers to a
+directory, recurse will @strong{not} descend into that directory. This
+can be used to prune searches and focus only on those directories
+which should be followed.
+
+If the function returns -2, the search is terminated, and recurse
+will return. This can be used to bail when a problem occurs, and you
+don@'t want to exit the program, or to end the search for some
+file once it is found.
+
+@unnumberedsec SEE ALSO
+
+@xref{File/Tools,File/Tools},
+
+@unnumberedsec AUTHOR
+
+Written in 1996 by Aaron Sherman, ajs@@ajs.com

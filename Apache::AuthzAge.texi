@@ -1,0 +1,54 @@
+@node Apache/AuthzAge, Apache/CGI, Apache/Authen, Module List
+@unnumbered Authorize based on age
+
+
+@unnumberedsec NAME
+
+Apache::AuthzAge - Authorize based on age
+
+@unnumberedsec SYNOPSIS
+
+@example
+#server config file
+@end example
+
+@example
+PerlModule Apache::AuthzAge
+@end example
+
+@example
+#access control directives
+@end example
+
+@example
+#use standard authentication modules
+AuthName SomeRealm
+Auth[DBM]UserFile /path/to/password/file
+
+PerlAuthzHandler Apache::AuthzAge::handler
+PerlSetVar       UserAgeFile  /path/to/dbm_file
+@end example
+
+@example
+#user must be at least 21
+<Limit GET>
+require age 21
+</Limit>
+@end example
+
+@unnumberedsec DESCRIPTION
+
+Decide if an authenticated user is authorized to complete a request
+based on age.  
+
+@strong{UserAgeFile} is a dbm file consisting of @emph{username} = @emph{age} value 
+pairs.
+
+@unnumberedsec SEE ALSO
+
+Apache(3)
+
+@unnumberedsec AUTHOR
+
+Doug MacEachern <dougm@@osf.org>
+

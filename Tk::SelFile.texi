@@ -1,0 +1,143 @@
+@node Tk/SelFile, Tk/WaitBox, Tk/FileDialog, Module List
+@unnumbered a widget for choosing a file to read or write
+
+
+@unnumberedsec NAME
+
+@example
+SelFile - a widget for choosing a file to read or write
+@end example
+
+@unnumberedsec SYNOPSIS
+
+@example
+use Tk;
+use Tk::SelFile;
+@end example
+
+@example
+$mw = MainWindow->new;  # As an example.
+@end example
+
+@example
+$start_dir = ".";       # As an example.
+$sfw = $mw->SelFile(
+		     -directory => $start_dir,
+		     -width     =>  30,
+		     -height    =>  20,
+		     -filelistlabel  => @'Files@',
+		     -filter         => @'*@',
+		     -filelabel      => @'File@',
+		     -dirlistlabel   => @'Directories@',
+		     -dirlabel       => @'Filter@',
+		     -readbutlabel   => @'Read@',
+		     -writebutlabel  => @'Write@',
+		     -cancelbutlabel => @'Cancel@',
+		     );
+Please see the Populate subroutine as the configuration
+list may change.
+@end example
+
+@example
+($opcode, $filename) = $sfw->Show;
+@end example
+
+@example
+$opcode will have the value -readbutlabel (e.g. @'READ@'),
+-writebutlabel (e.g. @'WRITE@') or -cancelbutlabel (e.g. @'CANCEL@').
+An empty string for the text assigned to -readbutlabel or
+-writebutlabel will eliminate that particular button.
+$filename will be a file pathname, or in the case of CANCEL
+it will be a single space character.
+@end example
+
+@example
+$SFref = $sfw->configure(option => value[, ...])
+@end example
+
+@unnumberedsec DESCRIPTION
+
+@example
+This Module pops up a file selector box, with a directory entry
+with filter on top, a list of directories in the current directory,
+a list of files in the current directory, an entry for entering
+or modifying a file name, a read button, a write button, a
+cancel button, a HOME button, and a button to return to the
+starting directory (-directory).
+@end example
+
+@example
+The button to return to the starting directory is motivated by
+the idea that an application may have a directory unrelated to
+the home directory, e.g. a library of data, that is set to be
+the starting directory.  If the user goes to the home directory,
+the user may not recall the starting directory that was set by
+the application.
+@end example
+
+@example
+A call to SelFile few (or no options, such as shown below)
+will result in the default values shown in the example
+given in the SYNOPSIS section.  The most uptodate list of
+configuration variables and default values can be found in the
+subroutine Populate as arguments to the subroutine ConfigSpecs.
+@end example
+
+@example
+$sfw = $mw->SelFile;
+@end example
+
+@example
+A dialog box error message is generated if the user clicks the
+Read button for a file that does not exist.
+For Write, a dialog box that requests whether the user wishes
+to overwrite the file is generated for a file that already exists.
+Also for Write, a dialog box error message is generated is the
+file name is blank.
+@end example
+
+@example
+This widget can be configured for requesting a file name to read,
+requesting a file name for writing, or for requesting either.
+For the initial call to SelFile that configures the widget,
+if -readbutlabel is not a member of the argument list, then
+the default value is used (i.e. Read).  If on the other hand
+it is present but specifies an empty string, as shown below
+-readbutlabel   => @'@',
+then the button is not created.  An analogous rule applies
+to the argument -writebutlabel.
+@end example
+
+@example
+The file name output is a single space character rather than undef
+when CANCEL is selected so that the user can process the return values
+without checking the values, e.g. storing the result for later use.
+@end example
+
+@unnumberedsec AUTHORS
+
+Based on original FileSelect by
+Klaus Lichtenwalder, Lichtenwalder@@ACM.org, Datapat GmbH, 
+Munich, April 22, 1995
+adapted by
+Frederick L. Wagner, derf@@ti.com, Texas Instruments Incorporated, 
+Dallas, 21Jun95
+further adapted by
+Alan Louis Scheinine, scheinin@@crs4.it,
+Centro di Ricerca, Sviluppo e Studi Superiori in Sardegna (CRS4)
+Cagliari, 14 November 1995
+
+@unnumberedsec HISTORY
+
+Alan Scheinine wants to thank David Greaves (davidg@@oak.reading.sgi.com)
+for pointing out errors and for suggesting improvements.  He also wants
+to thank Nick Ing-Simmons (nik@@tiuk.ti.com) for sending the soon-to-be
+FileSelect for Tk-b9.  This SelFile program diverges from SelectFile
+with regard to style but nonetheless has benefited from the ideas and
+actual code of SelectFile.
+
+Future history.  For Tk-b9, "show" and "subwidget" should become
+"Show" and "Subwidget"
+Change $cw->subwidget(@'dialog@')->show;  Tk-b8
+to     $cw->Subwidget(@'dialog@')->Show;  Tk-b9
+

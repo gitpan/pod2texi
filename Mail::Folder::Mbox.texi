@@ -1,0 +1,136 @@
+@node Mail/Folder/Mbox, Mail/Header, Mail/Folder/Emaul, Module List
+@unnumbered A Unix mbox interface for Mail::Folder.
+
+
+@unnumberedsec NAME
+
+Mail::Folder::Mbox - A Unix mbox interface for Mail::Folder.
+
+@strong{WARNING: This code is in alpha release. Expect the interface to
+change.}
+
+@unnumberedsec SYNOPSYS
+
+@code{use Mail::Folder::Mbox;}
+
+@unnumberedsec DESCRIPTION
+
+This module provides an interface to unix @strong{mbox} folders.
+
+The @strong{mbox} folder format is the standard monolithic folder structure
+prevalent on Unix.  A single folder is contained within a single file.
+Each message starts with a line matching @code{/^From /}.
+
+The folder architecture doesn@'t provide any persistantly stored
+current message variable, so the current message in this folder
+interface defaults to 1 and is not retained between opens of a
+folder.
+
+@code{Mbox} needs the following module packages:
+
+@table @asis
+@item @code{TimeDate}
+@itemx @code{File-Tools}
+@itemx @code{File-BasicFLock}
+@end table
+@unnumberedsec METHODS
+
+@unnumberedsubsec init
+
+Initializes various items specific to @strong{Mbox}.
+
+@itemize @bullet
+@item Determines an appropriate temporary directory.
+@item Bumps a sequence number used for unique temporary filenames.
+@item Initializes @code{$self->@{WorkingFile@}} to the name of a file that will be used to hold the temporary working of the folder.
+@item Initializes @code{$self->@{MsgFilePrefix@}} to a string that will be used to create temporary filenames when extracting messages from the folder.
+@end itemize
+@unnumberedsubsec open($folder_name)
+
+@itemize @bullet
+@item Call the superclass open method.
+@item Lock the folder.
+@item Copy the folder to a temporary location as a working copy.
+@item Unlock the folder.
+@item For every message in the folder, add the message_number to the object@'s list of messages.
+@end itemize
+@unnumberedsubsec close
+
+
+Deletes the working copy of the folder and calls the superclass
+close method.
+
+@unnumberedsubsec sync
+
+@itemize @bullet
+@item Call the superclass sync method
+@item Lock the folder
+@item Append new messages to the working copy that have been appended to the folder since the last time the folder was either opened or synced.
+@item Create a new copy of the folder and populate it with the messages in the working copy that aren@'t flagged for deletion.
+@item Move the original folder to a temp location
+@item Move the new folder into place
+@item Delete the old original folder
+@item Unlock the folder
+@end itemize
+@unnumberedsubsec pack
+
+
+Calls the superclass pack method.  This is essentially a no-op
+since mbox folders don@'t need to be packed.
+
+@unnumberedsubsec get_message($msg_number)
+
+@itemize @bullet
+@item Call the superclass get_message method.
+@item Create a temporary file with the contents of the given mail message.
+@item Absorb the temporary file into a @strong{Mail::Internet} object reference.
+@item Delete the temporary file.
+@item Return the @strong{Mail::Internet} object reference.
+@end itemize
+@unnumberedsubsec get_header($msg_number)
+
+
+If the particular header has never been retrieved then get_header
+loads (in a manner similar to get_message) the header of the given
+mail message into @code{$self->@{Messages@}@{$msg_number@}@{Header@}} and
+returns the object reference.
+
+If the header for the given mail message has already been retrieved in
+a prior call to get_header, then the cached entry is returned.
+
+It also calls the superclass get_header method.
+
+@unnumberedsubsec append_message($message_ref)
+
+@itemize @bullet
+@item Call the superclass @code{append_message} method.
+@item Lock the folder.
+@item If a @'From @' line isn@'t present in @code{$message_ref} then synthesize one.
+@item Append the contents of @code{$message_ref} to the folder.
+@item Adds a record of the new message in the internal data structures of @code{$self}.
+@item Unlock the folder.
+@end itemize
+@unnumberedsubsec update_message($msg_number, $message_ref)
+
+@itemize @bullet
+@item Call the superclass update_message method.
+@item Writes a new copy of the working folder file replacing the given message with the contents of the given @strong{Mail::Internet} message reference.  It will synthesize a @'From @' line if one isn@'t present in $message_ref.
+@end itemize
+@unnumberedsubsec create($foldername)
+
+
+Creates a new folder named @code{$foldername}.  Returns @code{0} if the folder
+already exists, otherwise returns of the folder creation was
+successful.
+
+@unnumberedsec AUTHOR
+
+Kevin Johnson <@file{kjj@@primenet.com}>
+
+@unnumberedsec COPYRIGHT
+
+Copyright (c) 1996 Kevin Johnson <kjj@@primenet.com>.
+
+All rights reserved. This program is free software; you can
+redistribute it and/or modify it under the same terms as Perl itself.
+

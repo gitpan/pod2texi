@@ -1,0 +1,20 @@
+@node LWP/IO, LWP/MediaTypes, LWP/Debug, Module List
+@unnumbered Low level I/O capability
+
+
+@unnumberedsec NAME
+
+LWP::IO - Low level I/O capability
+
+@unnumberedsec DESCRIPTION
+
+@unnumberedsubsec LWP::IO::read($fd, $data, $size, $offset, $timeout)
+
+@unnumberedsubsec LWP::IO::write($fd, $data, $timeout)
+
+These routines provide low level I/O with timeout capability for the
+LWP library.  These routines will only be installed if they are not
+already defined.  This fact can be used by programs that need to
+override these functions.  Just provide replacement functions before
+you require LWP. See also @xref{LWP/TkIO,LWP/TkIO},.
+

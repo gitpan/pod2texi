@@ -1,0 +1,111 @@
+@node Term/Cap, Term/Complete, Tcl/Tk, Module List
+@unnumbered Perl termcap interface
+
+
+@unnumberedsec NAME
+
+Term::Cap - Perl termcap interface
+
+@unnumberedsec SYNOPSIS
+
+@example
+require Term::Cap;
+$terminal = Tgetent Term::Cap @{ TERM => undef, OSPEED => $ospeed @};
+$terminal->Trequire(qw/ce ku kd/);
+$terminal->Tgoto(@'cm@', $col, $row, $FH);
+$terminal->Tputs(@'dl@', $count, $FH);
+$terminal->Tpad($string, $count, $FH);
+@end example
+
+@unnumberedsec DESCRIPTION
+
+These are low-level functions to extract and use capabilities from
+a terminal capability (termcap) database.
+
+The @strong{Tgetent} function extracts the entry of the specified terminal
+type @emph{TERM} (defaults to the environment variable @emph{TERM}) from the
+database.
+
+It will look in the environment for a @emph{TERMCAP} variable.  If
+found, and the value does not begin with a slash, and the terminal
+type name is the same as the environment string @emph{TERM}, the
+@emph{TERMCAP} string is used instead of reading a termcap file.  If
+it does begin with a slash, the string is used as a path name of
+the termcap file to search.  If @emph{TERMCAP} does not begin with a
+slash and name is different from @emph{TERM}, @strong{Tgetent} searches the
+files @file{$HOME/.termcap}, @file{/etc/termcap}, and @file{/usr/share/misc/termcap},
+in that order, unless the environment variable @emph{TERMPATH} exists,
+in which case it specifies a list of file pathnames (separated by
+spaces or colons) to be searched @strong{instead}.  Whenever multiple
+files are searched and a tc field occurs in the requested entry,
+the entry it names must be found in the same file or one of the
+succeeding files.  If there is a @code{:tc=...:} in the @emph{TERMCAP}
+environment variable string it will continue the search in the
+files as above.
+
+@emph{OSPEED} is the terminal output bit rate (often mistakenly called
+the baud rate).  @emph{OSPEED} can be specified as either a POSIX
+termios/SYSV termio speeds (where 9600 equals 9600) or an old
+BSD-style speeds (where 13 equals 9600).
+
+@strong{Tgetent} returns a blessed object reference which the user can
+then use to send the control strings to the terminal using @strong{Tputs}
+and @strong{Tgoto}.  It calls croak on failure.
+
+@strong{Tgoto} decodes a cursor addressing string with the given parameters.
+
+The output strings for @strong{Tputs} are cached for counts of 1 for performance.
+@strong{Tgoto} and @strong{Tpad} do not cache.  @code{$self->@{_xx@}} is the raw termcap
+data and @code{$self->@{xx@}} is the cached version.
+
+@example
+print $terminal->Tpad($self->@{_xx@}, 1);
+@end example
+
+@strong{Tgoto}, @strong{Tputs}, and @strong{Tpad} return the string and will also
+output the string to $FH if specified.
+
+The extracted termcap entry is available in the object
+as @code{$self->@{TERMCAP@}}.
+
+@unnumberedsec EXAMPLES
+
+@example
+# Get terminal output speed
+require POSIX;
+my $termios = new POSIX::Termios;
+$termios->getattr;
+my $ospeed = $termios->getospeed;
+@end example
+
+@example
+# Old-style ioctl code to get ospeed:
+#     require @'ioctl.pl@';
+#     ioctl(TTY,$TIOCGETP,$sgtty);
+#     ($ispeed,$ospeed) = unpack(@'cc@',$sgtty);
+@end example
+
+@example
+# allocate and initialize a terminal structure
+$terminal = Tgetent Term::Cap @{ TERM => undef, OSPEED => $ospeed @};
+@end example
+
+@example
+# require certain capabilities to be available
+$terminal->Trequire(qw/ce ku kd/);
+@end example
+
+@example
+# Output Routines, if $FH is undefined these just return the string
+@end example
+
+@example
+# Tgoto does the % expansion stuff with the given args
+$terminal->Tgoto(@'cm@', $col, $row, $FH);
+@end example
+
+@example
+# Tputs doesn@'t do any % expansion.
+$terminal->Tputs(@'dl@', $count = 1, $FH);
+@end example
+

@@ -1,0 +1,46 @@
+@node File/Flock, File/Listing, File/Find, Module List
+@unnumbered file locking with flock
+
+
+@unnumberedsec NAME
+
+@example
+File::Flock - file locking with flock
+@end example
+
+@unnumberedsec SYNOPSIS
+
+@example
+use File::Flock;
+@end example
+
+@example
+lock($filename);
+@end example
+
+@example
+lock($filename, @'shared@');
+@end example
+
+@example
+lock($filename, undef, @'nonblocking@');
+@end example
+
+@example
+lock($filename, @'shared@', @'nonblocking@');
+@end example
+
+@example
+unlock($filename);
+@end example
+
+@unnumberedsec DESCRIPTION
+
+Lock files using the flock() call.  If the file to be locked does not
+exist, then the file is created.  If the file was created then it will
+be removed when it is unlocked assuming it@'s still an empty file.
+
+@unnumberedsec AUTHOR
+
+David Muir Sharnoff, <muir@@idiom.com>
+

@@ -1,0 +1,101 @@
+@node Math/Approx, Math/BigFloat, Math/Amoeba, Module List
+@unnumbered Math::Approx
+
+
+@unnumberedsec NAME
+
+Math::Approx
+
+@unnumberedsec METHODS
+
+@unnumberedsubsec new
+
+@example
+new Math::Approx (\&poly, 5, %x);
+@end example
+
+The first argument after the class name must be a reference to
+function which takes two arguments: The @emph{degree} and the x value.
+
+For interpolation with plain polynomials @emph{poly} can be defined as:
+
+@example
+sub poly @{
+    my($n,$x) = @@_;
+
+    return $x ** $n;
+@}
+@end example
+
+The second argument is the maximum degree which should be used for
+interpolation. Degrees start with @strong{0}. 
+
+The rest of the arguments are treated as pairs of x and @strong{y}
+samples which should be approximated.
+
+The method returns a Math::Approx reference.
+
+@unnumberedsubsec approx
+
+@example
+$approximation->approx(17);
+@end example
+
+The method returns the approximated  @strong{y} value for the x value
+given as argument.
+
+@unnumberedsubsec fit
+
+@example
+$approximation->fit;
+@end example
+
+Returns the medim square error for the data points.
+
+@unnumberedsubsec plot
+
+@example
+$approximation->plot("tmp/app");
+@end example
+
+Prints all data pairs and the corresponding approximation pairs in a
+file whichs filename is given as argument. The file should be suitable
+for usage with gnuplot(1).
+
+@unnumberedsubsec print
+
+@example
+$approximation->print;
+@end example
+
+Prints information about the approximation on @emph{STDOUT}
+
+@unnumberedsec EXAMPLE
+
+@example
+use Math::Approx;
+
+sub poly @{
+    my($n,$x) = @@_;
+
+    return $x ** $n;
+@}
+
+for (1..20) @{
+    $x@{$_@} = sin($_/10)*cos($_/30)+0.3*rand;
+@}
+
+$a = new Math::Approx (\&poly, 5, %x);
+$a->print;
+$a->plot("mist");
+print "Fit: ", $a->fit, "\n";
+@end example
+
+@unnumberedsec SEE ALSO
+
+gnuplot(1).
+
+@unnumberedsec AUTHOR
+
+Ulrich Pfeifer <pfeifer@@ls6.informatik.uni-dortmund.de>
+

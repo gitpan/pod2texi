@@ -1,0 +1,268 @@
+@node CGI/Base, CGI/BasePlus, CGI, Module List
+@unnumbered HTTP Daemon Common Gateway Interface (CGI) Base Class
+
+
+@unnumberedsec NAME
+
+CGI::Base - HTTP Daemon Common Gateway Interface (CGI) Base Class
+
+@unnumberedsec SYNOPSIS
+
+@example
+@end example
+
+@example
+use CGI::Base;
+	
+$cgi = new CGI::Base;       # reads vars from environment
+	
+$cgi->var($name);           # get CGI variable value
+$cgi->var($name, $value);   # set CGI variable value
+	
+@@names  = $cgi->vars;       # lists standard CGI variables
+	
+$mime_type  = $cgi->accept_best(@@mime_types);
+$preference = $cgi->accept_type($mime_type);
+	
+$cgi->pass_thru($host, $port); # forward request to server
+$cgi->redirect($url);          # redirect client
+	
+$cgi->done($dump);     # end response, does NOT send </BODY>
+	
+$cgi->exit(@@log_msgs); # exit, optionally logging messages
+	
+	
+# Other functions:
+	
+@@escaped_texts = html_escape(@@texts);   # @'>@' -> @'&lt;@' etc
+@@texts         = html_br_lines(@@texts); #  \n -> @'<BR>@'
+	
+SendHeaders();  # send and flush HTTP header(s)
+	
+CGI::Base::Debug($level);
+@end example
+
+@unnumberedsec DESCRIPTION
+
+This module implements a CGI::Base object. This object represents the
+interface between the application and an HTTP deamon.
+
+In a typical CGI scenario the interface is just a collection of
+environment variables. This module makes those variables available
+either via a $cgi->var() method or optionally as plain perl variables
+(see IMPORTING CGI VARIABLES below).  Small scripts will tend to use
+the imported variables, larger scripts may prefer to use the var
+method.
+
+By default the CGI::Base class will transparently deal with POST and
+PUT submissions by reading STDIN into $QUERY_STRING.
+
+The CGI::Base module simplifies CGI debugging by providing logging
+methods (which redirect STDERR to a file) and a very handy test mode.
+The test mode automatically detects that the script is not being run by
+a HTTP server and requests test input from the user (or command line).
+
+@unnumberedsubsec IMPORTING CGI VARIABLES
+
+Users of this module can optionally import the CGI values as ordinary
+perl variables of the same name into their package. For example,
+saying:
+
+@example
+use CGI::Base qw(:DEFAULT QUERY_STRING REQUEST_METHOD);
+@end example
+
+will allow you to refer to the CGI query string and request method as
+simply $QUERY_STRING and $REQUEST_METHOD.  Any changes made to these
+variables will be reflected in the values returned by the var() method.
+
+To import all the fixed CGI variables (excludes optional variables
+string with HTTP_) use:
+
+@example
+use CGI::Base qw(:DEFAULT :CGI);
+@end example
+
+@unnumberedsubsec NOTES
+
+The CGI::Base class has been specifically designed to enable it to be
+subclassed to implement alternative interfaces. For example the
+CGI::MiniSvr class implements a @'mini http daemon@' which can be spawned
+from a CGI script in order, for example, to maintain state information
+for a client @'session@'.
+
+The CGI::Base class (and classes derived from it) are not designed to
+understand the contents of the data they are handling. Only basic data
+acquisition tasks and basic metadata parsing are performed by
+CGI::Base. The QUERY_STRING is not parsed.
+
+Higher level query processing (parsing of QUERY_STRING and handling of
+form fields etc) is performed by the CGI::Request module.
+
+Note that CGI application developers will generally deal with the
+CGI::Request class and not directly with the CGI::Base class.
+
+@unnumberedsubsec FEATURES
+
+Object oriented and sub-classable.
+
+Exporting of CGI environment variables as plain perl variables.
+
+Supports pass_thru and redirection of URL@'s.
+
+Extensible attribute system for CGI environment variables.
+
+Very handy automatic test mode if script is run manually.
+
+@unnumberedsubsec PRINCIPLES and ASSUMPTIONS
+
+These basic principles and assumptions apply to CGI::Base and can be
+built into any application using CGI::Base. Any subclass of CGI::Base,
+such as CGI::MiniSvr, must uphold these principles.
+
+STDIN, STDOUT are connected to the client, possibly via a server.
+
+STDERR can be used for error logging (see open_log method).
+
+%ENV should not be used to access CGI parameters. See ENVIRONMENT
+section below.
+
+@unnumberedsubsec ENVIRONMENT
+
+The CGI::Base module copies all the CGI/1.1 standard environment
+variables into internal storage. See the definition of %CgiEnv and
+ @@CgiObj. The stored values are available either via the var method
+or as exported variables.
+
+It is recommended that $ENV@{...@} is not used to access the CGI
+variables because alternative CGI interfaces, such as CGI::MiniSvr, may
+not bother to maintain %ENV consistent with the internal values. The
+simple scalar variables are also much faster to access.
+
+@unnumberedsubsec RECENT CHANGES
+
+@enumerate
+@item 
+Changes to create compatability with CGI::Form.
+
+@item 
+Miscellaneous small bug fixes.
+
+@item 
+get_url() now adds SERVER_PORT to the url. pass_thru() split into
+component methods forward_request() and pass_back().  The new
+forward_request method can shutdown() the sending side of the socket.
+SendHeaders does nothing and returns undef if called more than once.
+All these changes are useful for sophisticated applications.
+
+@item 
+and 2.3
+Slightly improved documentation. Added html_br_lines() to purify
+html_escape().  Added SIGPIPE handling (not used by default).
+Documented the automatic test mode. Assorted other minor clean ups.
+
+@item 
+Added support for any letter case in HTTP headers. Fixed (worked
+around) a perl/stdio bug which affected POST handling in the MiniSvr.
+Added $ENTITY_BODY to hold the Entity-Body for PUT, POST and CHECKIN
+methods. $QUERY_STRING now only set from $ENTITY_BODY if CONTENT_TYPE
+is application/x-www-form-urlencoded. Changed some uses of map to foreach.
+Slight improved performance of pass_thru.
+
+@item 
+A major overhaul. Now much more object oriented but retaining the
+ability to export CGI variables. A new var() method provides access
+to CGI variables in a controlled manner. Some rather fancy footwork
+with globs and references to hash elements enables the global variables
+and hash elements to be automatically kept in sync with each other.
+Take a look at the link_global_vars method. An export tag is provided
+to simplify importing the CGI variables.
+
+The new code is also much faster, mainly because it does less. Less
+work is done up front, more is defered until actually used. I have
+removed the @'expand variables@' concept for now. It might return later.
+The code for read_entity_body(), get_vars_from_env() and accept_best()
+and many others has been revised. All the code now compiles with use
+strict;
+
+SendHeaders can now be told to automatically add a server Status-Line
+header if one is not included in the headers to be output. This greatly
+simplifies header handling in the MiniSvr and fixes the redirect() method.
+
+The module file can be run as a cgi script to execute a demo/test. You
+may need to chmod +x this file and teach your httpd that it can execute
+*.pm files.
+
+@item 
+The done method no longer sends </BODY>. It was appealing but
+inappropriate for it to do so.  Added html_escape function and exported
+it by default (this should be moved into an HTML module once we have
+one). Applied html_escape to as_string.  ContentTypeHdr, LocationHdr,
+StatusHdr and ServerHdr no longer exported by default. Added Debug
+function.  Set default Debug level to 0 (off). Code to set $URI is no
+longer invoked by default and has been moved to a new get_uri method.
+This avoids the overhead for setting $URI which few people used.
+Methods like as_string which make use of $URI now call get_uri if
+needed.
+
+@item 
+POST data read more robust. fmt() renamed to as_string(). pass_thru()
+now takes host and port parameters, applies a timeout and has better
+logging.  HTTP_REFERER defined by default. Assorted fixes and tidyups.
+
+@end enumerate
+@unnumberedsubsec FUTURE DEVELOPMENTS
+
+Full pod documentation.
+
+None of this is perfect. All suggestions welcome.
+
+How reliable is CONTENT_LENGTH?
+
+Pod documentation for the methods needs to be added.
+
+Header handling is not ideal (but it@'s getting better).
+Header handling should be moved into an HTTP specific module.
+
+Need mechanism to identify a @'session@'. This may come out of the
+ongoing HTTP security work. A session-id would be very useful for any
+advanced form of inter-query state maintenance.  The CGI::Base module
+may have a hand in providing some form of session-id but would not be
+involved in any further use of it.
+
+For very large POST@'s we may need some mechanism to replace
+read_entity_body on a per call basis or at least prevent its automatic
+use. Subclassing is probably the @'right@' way to do this.
+
+These functions should be moved out into a CGI::BasePlus module since
+few simple CGI applications need them:  pass_thru, forward_request,
+pass_back, new_server_link, pass_thru_headers. The CGI::BasePlus module
+would still be a @'package CGI::Base;@'.
+
+@unnumberedsubsec AUTHOR, COPYRIGHT and ACKNOWLEDGEMENTS
+
+This code is Copyright (C) Tim Bunce 1995. All rights reserved.  This
+code is free software; you can redistribute it and/or modify it under
+the same terms as Perl itself.
+
+This code includes ideas from the work of Steven E. Brenner
+<S.E.Brenner@@bioc.cam.ac.uk> (cgi-lib), Lincoln Stein
+<lstein@@genome.wi.mit.edu> (CGI.pm), Pratap Pereira
+<pereira@@ee.eng.ohio-state.edu> (phttpd) and possibly others.
+
+IN NO EVENT SHALL THE AUTHORS BE LIABLE TO ANY PARTY FOR DIRECT,
+INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING OUT
+OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION (INCLUDING, BUT NOT
+LIMITED TO, LOST PROFITS) EVEN IF THE AUTHORS HAVE BEEN ADVISED OF
+THE POSSIBILITY OF SUCH DAMAGE.
+
+@unnumberedsubsec SEE ALSO
+
+URI::URL, CGI::Request, CGI::MiniSvr
+
+@unnumberedsubsec SUPPORT
+
+Please use comp.infosystems.www.* and comp.lang.perl.misc for support.
+Please do _NOT_ contact the author directly. I@'m sorry but I just don@'t
+have the time.
+

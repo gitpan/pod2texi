@@ -1,0 +1,174 @@
+@node Devel/TraceFuncs, DirHandle, Devel/Symdump, Module List
+@unnumbered trace function calls as they happen.
+
+
+@unnumberedsec NAME
+
+Devel::TraceFuncs - trace function calls as they happen.
+
+@unnumberedsec SYNOPSIS
+
+Usage:
+  
+  require Devel::TraceFuncs;
+
+@example
+max_trace_depth 5;
+trace_file "foo.out";
+trace_file $file_handle;
+@end example
+
+@example
+sub foo @{
+  IN(my $f, "a message");
+@end example
+
+@example
+DEBUG "hellooo!";
+  @}
+@end example
+
+@unnumberedsec DESCRIPTION
+
+Devel::TraceFuncs provides utilities to trace the execution of a
+program.  It can print traces that look something like:
+
+@example
++-> global: @'0@'
+|  +-> main::fo(4, 5) (in ./t.pm:32): @'now then@'
+|  |  +-> main::fp(4, 5) (in ./t.pm:19)
+|  |  |  +-> main::fq() (in ./t.pm:13)
+|  |  |  |  que pee doll (in ./t.pm:8)
+|  |  |  +-< main::fq() (in ./t.pm:13)
+|  |  |  cee dee (in ./t.pm:14)
+|  |  +-< main::fp(4, 5) (in ./t.pm:19)
+|  |  ha
+|  |  hs (in ./t.pm:20)
+|  +-< main::fo(4, 5) (in ./t.pm:32): @'now then@'
+|  done (in ./t.pm:34)
++-< global: @'0@'
+@end example
+
+@unnumberedsubsec IN
+
+A trace begins when a function calls IN.  A my@'d variable is passed
+in, such that when that function exits, the destructor for the
+variable is called.  If this trace is to be printed, the opening line
+of the trace in printed at this time.  Any other parameters are
+concatenated together, and printed on both the opening and closing
+lines of the trace.
+
+I wish the syntax could be a little nicer here, but I couldn@'t find
+anything in perl that resembles Tcl@'s @emph{uplevel} or @emph{upvar} commands.
+If I was one of the perl gods, I could have figured out a way to do
+something like perl5db.pl:
+
+@example
+sub sub @{
+  # create a new subroutine, with a my@'d TraceFunc object
+@}
+@end example
+
+@unnumberedsubsec DEBUG
+
+Print some text to the trace file, at the correct depth in the trace.
+If the last parameter ends in "!", the arguments are printed,
+regardless of current depth.
+
+@unnumberedsubsec trace_file
+
+trace_file takes one argument, which is either a file name or an
+open file handle.  All trace output will go to this file.
+
+@unnumberedsubsec max_trace_depth
+
+To avoid lots of nesting, particularly from recursive function calls,
+you can set the maximum depth to be traced.  If this is -1 (the
+default), all levels of functions are traced.  If it is 0, no trace
+output occurs, except for DEBUG statements that end in "!".
+
+@unnumberedsec EXAMPLE
+
+@example
+#!/usr/local/bin/perl -w
+
+use Devel::TraceFuncs;
+use strict;
+
+sub fq @{
+  IN(my $f);
+  DEBUG "que", "pee", "doll!";
+@}
+
+sub fp @{
+  IN(my $f);
+  fq();
+  DEBUG "cee", "dee";
+@}
+
+sub fo @{
+  IN(my $f, "now", "then");
+  &fp;
+  DEBUG "ha\nhs";
+@}
+
+if (@@ARGV) @{
+  max_trace_depth shift;
+@}
+
+if (@@ARGV) @{
+  trace_file shift;
+@}
+
+IN(my $f, 0);
+fo(4,5);
+
+DEBUG "done";
+
+=head1 BUGS
+@end example
+
+For some reason, the closing lines are reversed in this example:
+
+@example
+use Devel::TraceFuncs;
+@end example
+
+@example
+max_trace_depth -1;
+@end example
+
+@example
+sub g @{
+  IN(my $f);
+@}
+ 
+sub f @{
+  IN(my $f);
+  g();
+@}
+@end example
+
+@example
+f();
+@end example
+
+What it boils down to is not letting IN be the last line of a
+function.  In the debugger, the objects are destructed in the correct
+order, so this must be caused by some sort of performance optimization
+in the perl runtime.
+
+@unnumberedsec AUTHOR
+
+Joe Hildebrand
+
+@example
+Copyright (c) 1996 Joe Hildebrand. All rights reserved.
+This program is free software; you can redistribute it and/or
+modify it under the same terms as Perl itself.
+@end example
+
+@unnumberedsec MODIFICATION HISTORY
+
+Version 0.1, 1 Jun 1996
+

@@ -1,0 +1,105 @@
+@node Devel/DProf, Devel/Peek, Devel/CoreStack, Module List
+@unnumbered a Perl code profiler
+
+
+@unnumberedsec NAME
+
+Devel::DProf - a Perl code profiler
+
+@unnumberedsec SYNOPSIS
+
+@example
+perl5 -d:DProf test.pl
+@end example
+
+@unnumberedsec DESCRIPTION
+
+The Devel::DProf package is a Perl code profiler.  This will collect
+information on the execution time of a Perl script and of the subs in that
+script.  This information can be used to determine which subroutines are
+using the most time and which subroutines are being called most often.  This
+information can also be used to create an execution graph of the script,
+showing subroutine relationships.
+
+To profile a Perl script run the perl interpreter with the -d debugging
+switch.  The profiler uses the debugging hooks.  So to profile script
+@file{test.pl} the following command should be used:
+
+@example
+perl5 -d:DProf test.pl
+@end example
+
+When the script terminates the profiler will dump the profile information to
+a file called @file{tmon.out}.  A tool like @emph{dprofpp} can be used to interpret
+the information which is in that profile.  The following command will print
+the top 15 subroutines which used the most time:
+
+@example
+dprofpp
+@end example
+
+To print an execution graph of the subroutines in the script use the
+following command:
+
+@example
+dprofpp -T
+@end example
+
+Consult @samp{dprofpp} in this node for other options.
+
+@unnumberedsec PROFILE FORMAT
+
+The profile is a text file which looks like this:
+
+@example
+#fOrTyTwO
+$hz=100;
+$XS_VERSION=@'DProf 19960205@';
+# All values are given in HZ
+$rrun_utime=2; $rrun_stime=0; $rrun_rtime=7
+PART2
++ 26 28 566822884 DynaLoader::import
+- 26 28 566822884 DynaLoader::import
++ 27 28 566822885 main::bar
+- 27 28 566822886 main::bar
++ 27 28 566822886 main::baz
++ 27 28 566822887 main::bar
+- 27 28 566822888 main::bar
+[....]
+@end example
+
+The first line is the magic number.  The second line is the hertz value, or
+clock ticks, of the machine where the profile was collected.  The third line
+is the name and version identifier of the tool which created the profile.
+The fourth line is a comment.  The fifth line contains three variables
+holding the user time, system time, and realtime of the process while it was
+being profiled.  The sixth line indicates the beginning of the sub
+entry/exit profile section.
+
+The columns in @strong{PART2} are:
+
+@example
+sub entry(+)/exit(-) mark
+app@'s user time at sub entry/exit mark, in ticks
+app@'s system time at sub entry/exit mark, in ticks
+app@'s realtime at sub entry/exit mark, in ticks
+fully-qualified sub name, when possible
+@end example
+
+@unnumberedsec AUTOLOAD
+
+When Devel::DProf finds a call to an @code{&AUTOLOAD} subroutine it looks at the
+@code{$AUTOLOAD} variable to find the real name of the sub being called.  See
+@samp{"Autoloading"}, @xref{(perl.info)perlsub,Perlsub},.
+
+@unnumberedsec BUGS
+
+XSUBs, builtin functions, and destructors cannot be measured by Devel::DProf.
+
+Mail bug reports and feature requests to the perl5-porters mailing list at
+@file{<perl5-porters@@africa.nicoh.com>}.
+
+@unnumberedsec SEE ALSO
+
+@xref{(perl.info)perl,Perl},, @samp{dprofpp} in this node, times(2)
+

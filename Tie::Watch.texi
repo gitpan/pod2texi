@@ -1,0 +1,185 @@
+@node Tie/Watch, Time/CTime, Tie/SubstrHash, Module List
+@unnumbered place watchpoints on Perl variables.
+
+
+@unnumberedsec NAME
+
+@example
+Tie::Watch() - place watchpoints on Perl variables.
+@end example
+
+@unnumberedsec SYNOPSIS
+
+@example
+use Tie::Watch;
+@end example
+
+@example
+$watch = Tie::Watch->new(
+    -variable => \$frog,
+    -debug    => 1,
+    -fetch    => [\&fetch, @'arg1@', @'arg2@', ..., @'argn@'],
+    -store    => \&store,
+    -destroy  => sub @{print "Final value=$frog.\n"@},
+%vinfo = $watch->Info;
+$args  = $watch->Args(-fetch);
+$val   = $watch->Fetch;
+print "val=", $watch->Say($val), ".\n";
+$watch->Store(@'Hello@');
+$watch->Delete;
+@end example
+
+@unnumberedsec DESCRIPTION
+
+This class module binds subroutine(s) of your devising to a Perl variable.
+All variables can have FETCH, STORE and DESTROY callbacks.  Additionally,
+hashes can define CLEAR, DELETE, EXISTS, FIRSTKEY and NEXTKEY callbacks.
+With Tie::Watch you can:
+
+@example
+. alter a variable@'s value
+. prevent a variable@'s value from being changed
+. invoke a Perl/Tk callback when a variable changes
+. trace references to a variable
+@end example
+
+Callback format is patterned after the Perl/Tk scheme:  supply either a code
+reference, or, supply an array reference, and pass the callback code
+reference in the first element of the array, followed by callback arguments.
+(See examples in the Synopsis, above.)
+
+Tie::Watch provides default callbacks for any that you fail to specify.  Other
+than negatively impacting performance, they perform the standard action that
+you@'d expect, so the variable behaves "normally".
+
+Here are two callbacks for a scalar. The fetch (read) callback does nothing
+other than illustrate the fact that it returns the value to assign the
+variable.  The store (write) callback uppercases the variable.
+
+@example
+my $fetch_scalar = sub @{
+    my($self) = @@ARG;
+    $self->Fetch;
+@};
+@end example
+
+@example
+my $store_scalar = sub @{
+    my($self, $new_val) = @@ARG;
+    $self->Store(uc $new_val);
+@};
+@end example
+
+Here are fetch and store callbacks for either an array or hash.  They do
+essentially the same thing as the scalar callbacks, but provide a little
+more information.
+
+@example
+my $fetch = sub @{
+    my($self, $key) = @@ARG;
+    my $val = $self->Fetch($key);
+    print "In fetch callback, key=$key, val=", $self->Say($val);
+    my $args = $self->Args(-fetch);
+    print ", args=(@'", join("@', @'",  @@@{$args@}), "@')" if $args;
+    print ".\n";
+    $val;
+@};
+@end example
+
+@example
+my $store = sub @{
+    my($self, $key, $new_val) = @@ARG;
+    my $val = $self->Fetch($key);
+    $new_val = uc $new_val;
+    $self->Store($key, $new_val);
+    print "In store callback, key=$key, val=", $self->Say($val),
+      ", new_val=", $self->Say($new_val);
+    my $args = $self->Args(-store);
+    print ", args=(@'", join("@', @'",  @@@{$args@}), "@')" if $args;
+    print ".\n";
+    $new_val;
+@};
+@end example
+
+In all cases, the first parameter is a reference to the Watch object.  You
+can use this to invoke useful class methods.
+
+@unnumberedsec METHODS
+
+@unnumberedsubsec $watch = Tie::Watch->new(-options => values);
+
+-variable  = a *reference* to a scalar, array or hash variable.
+
+-debug     = 1 to activate debug print statements internal to Tie::Watch.
+
+Specify any of the following relevant callback parameters, in the format
+described above: -fetch -store -destroy -clear -delete -exists -firstkey
+and/or -nextkey.
+
+@unnumberedsubsec $args = $watch->Args(-fetch);
+
+Returns a reference to a list of arguments for the specified callback, or
+undef() if none.
+
+@unnumberedsubsec $watch->Delete;
+
+Stop watching the variable.
+
+@unnumberedsubsec $watch->Fetch;  $watch->Fetch($key);
+
+Return a variable@'s current value.  $key is required for an array or hash.
+
+@unnumberedsubsec %vinfo = $watch->Info;
+
+Returns a hash detailing the internals of the Watch object, with these keys:
+
+@example
+%vinfo = @{
+    -variable =>  SCALAR(0x200737f8)
+    -fetch    =>  ARRAY(0x200f8558)
+    -store    =>  ARRAY(0x200f85a0)
+    -destroy  =>  ARRAY(0x200f86cc)
+    -debug    =>  @'1@'
+    -value    =>  @'HELLO SCALAR@'
+    -legible  =>  above data formatted as a list of string, for printing
+@}
+@end example
+
+For array and hash Watch objects, the @'value@' key is replaced with a @'ptr@'
+key which is a reference to the parallel array or hash.  Additionally, for
+hashes, there are key/value pairs to the hash-specific callback options.
+
+@unnumberedsubsec $watch->Say($val);
+
+Used mainly for debugging, it returns $val in quotes if required, or
+returns the string "undefined" for undefined values.
+
+@unnumberedsubsec $watch->Store($new_val);  $watch->Store($key, $new_val);
+
+Store a variable@'s new value.  $key is required for an array or hash.
+
+@unnumberedsec EFFICIENCY CONSIDERATIONS
+
+If you can live using the class methods provided, please do so.  You can
+meddle with the object hash directly and improved watch performance, at
+the risk of your code breaking in the future.
+
+@unnumberedsec AUTHOR
+
+Stephen O. Lidie <lusol@@Lehigh.EDU>
+
+@unnumberedsec HISTORY
+
+@example
+lusol@@Lehigh.EDU, LUCC, 96/05/30
+. Original version 1.0 release, based on the Trace module from Hans Mulder,
+  and ideas from Tim Bunce.
+@end example
+
+@unnumberedsec COPYRIGHT
+
+Copyright (C) 1996 - 1996 Stephen O. Lidie. All rights reserved.
+
+This program is free software; you can redistribute it and/or modify it under
+the same terms as Perl itself.
+

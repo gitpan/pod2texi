@@ -1,0 +1,280 @@
+@node HTTPD/UserAdmin, I18N/Collate, HTTPD/GroupAdmin, Module List
+@unnumbered Management of HTTP server user databases
+
+
+@unnumberedsec NAME 
+
+HTTPD::UserAdmin - Management of HTTP server user databases
+
+@unnumberedsec SYNOPSIS
+
+require HTTPD::UserAdmin
+
+@unnumberedsec DESCRIPTION
+
+This software is meant to provide a generic interface that
+hides the inconsistencies across HTTP server implementations 
+of user and group databases.
+
+@unnumberedsec METHODS
+
+@unnumberedsubsec new ()
+
+Here@'s where we find out what@'s different about your server.
+
+Some examples:
+
+@example
+@@DBM = (DBType => @'DBM@',
+	    DB     => @'.htpasswd@',
+	    Server => @'apache@');
+@end example
+
+@example
+$user = new HTTPD::UserAdmin @@DBM;
+@end example
+
+This creates an object who@'s database is a DBM file named @'.htpasswd@', in a format that 
+the Apache server understands.
+
+@example
+@@Text = (DBType => @'Text@',
+	     DB     => @'.htpasswd@',
+	     Server => @'ncsa@');
+@end example
+
+@example
+$user = new HTTPD::UserAdmin @@Text;
+@end example
+
+This creates an object who@'s database is a plain text file named @'.htpasswd@', in a format that 
+the NCSA server understands.
+
+@example
+@@SQL =  (DBType =>    "SQL",          
+	     Host =>      "",             #server hostname 
+	     DB =>        "www",          #database name
+	     User =>      "", 	  	  #database login name	    
+	     Auth =>      "",             #database login password
+	     Driver =>    "mSQL",         #driver for DBI
+	     Server =>    "apache",       #HTTP server type, not required
+	     UserTable => "www-users",    #table with field names below
+	     NameField => "user",         #field for the name
+	     PasswordField => "password", #field for the password
+	     );
+@end example
+
+@example
+$user = new HTTPD::UserAdmin @@SQL;
+@end example
+
+This creates an object who@'s mSQL database is named @'www@', with a schema that
+the Apache server (extention) understands.
+
+Full list of constructor attributes:
+
+Note: Attribute names are case-insensitive
+
+@strong{DBType}  - The type of database, one of @'DBM@', @'Text@', or @'SQL@' (Default is @'DBM@')
+
+@strong{DB}      - The database name (Default is @'.htpasswd@' for DBM & Text databases)
+
+Server  - HTTP server name (Default is the generic class, that works with NCSA, Apache and possibly others)
+
+Note: run @'perl t/support.t matrix@' to see what support is currently availible
+
+@strong{Encrypt} - One of @'crypt@' or @'MD5@', defaults to @'crypt@'
+
+Locking - Boolean, Lock Text and DBM files (Default is true)
+
+Path    - Relative DB files are resolved to this value  (Default is @'.@')
+
+Debug   - Boolean, Turn on debug mode
+
+Specific to DBM files:
+
+@strong{DBMF}    - The DBM file implementation to use (Default is @'NDBM@')
+
+Flags   - The read, write and create flags.  
+There are four modes:
+@strong{rwc} - the default, open for reading, writing and creating.
+@strong{rw} - open for reading and writing.
+@strong{r} - open for reading only.
+w - open for writing only.
+
+@strong{Mode}    - The file creation mode, defaults to @'0644@'
+
+Specific to DBI:
+We talk to an SQL server via Tim Bunce@'s DBI switch, for more info see:
+http://www.hermetica.com/technologia/DBI/
+
+Host      - Server hostname
+
+User      - Database login name	    
+
+@strong{Auth}      - Database login password
+
+@strong{Driver}    - Driver for DBI  (Default is @'mSQL@')            
+
+@strong{UserTable} - Table with field names below
+
+@strong{NameField} - Field for the name  (Default is @'user@')
+
+@strong{PasswordField} - Field for the password  (Default is @'password@')
+
+From here on out, things should look the same for everyone.
+
+@unnumberedsubsec add($username,$password[,$noenc,@@fields])
+
+Add a user.
+
+If $noenc is true, the password is not encrypted, useful for copying/converting, or
+if you just prefer to store passwords in plain text.
+
+Fails if $username exists in the database
+
+@example
+if($user->add(@'dougm@', @'secret@')) @{
+	print "You have the power!\n";
+@}
+@end example
+
+You may need to pass additional fields, such as the user@'s real name.
+This depends on your server of course.
+
+@example
+$user->add(@'JoeUser@', @'try2guess@', @'@', @'Joseph A. User@');
+@end example
+
+@unnumberedsubsec delete($username)
+
+Delete a user
+
+@example
+if($user->delete(@'dougm@')) @{
+	print "He@'s gone\n";
+@}
+@end example
+
+@unnumberedsubsec exists($username)
+
+True if $username is found in the database
+
+@example
+if($user->exists(@'dougm@')) @{
+	die "oh no!";
+@}
+@end example
+
+@unnumberedsubsec password()
+
+Returns the encrypted password for a user
+
+@example
+$passwd = $user->password("dougm");
+@end example
+
+Useful for copying users to another database.
+
+@unnumberedsubsec list()
+
+Returns a list of usernames in the current database
+
+@example
+@@users = $user->list
+@end example
+
+@unnumberedsubsec update($username,$password)
+
+Update $username with a new $password
+
+@example
+if($user->update(@'dougm@', @'idunno@')) @{
+	print "Updated\n";
+@}
+@end example
+
+@unnumberedsubsec group()
+
+Short cut for creating an HTTPD::GroupAdmin object.
+All applicable attributes are inherited, but can be 
+overridden.
+
+@example
+$group = $user->group(NAME => @'www-group@');
+@end example
+
+(See HTTPD::GroupAdmin)
+
+@unnumberedsubsec convert(@@Attributes)
+
+Convert a database. 
+
+@example
+$dbmuser = $user->convert(@@Apache);
+@end example
+
+@unnumberedsubsec lock([$timeout]) =head2 unlock()
+
+These methods give you control of the locking mechanism.
+
+@example
+$user = new HTTPD::UserAdmin (Locking => 0); #turn off auto-locking
+$user->lock; #lock the object@'s database
+$user->add($username,$passwd); #write while file is locked
+$user->unlock; release the lock
+@end example
+
+@unnumberedsubsec db($dbname);
+
+Select a different database.
+
+@example
+$olddb = $user->db($newdb);
+print "Now we@'re reading and writing @'$newdb@', done with @'$olddb@'n\";
+@end example
+
+@unnumberedsec Message Digest User Databases
+
+Currently, you can store user info in a format for servers who understand
+Message Digest Authentication.  Here@'s an example:
+
+@example
+$user = new HTTPD::UserAdmin (DB => @'.htdigest@', Encrypt => @'MD5@');
+
+($username,$realm,$password) = (@'JoeUser@', @'SomePlace@', @'14me@');
+@end example
+
+@example
+#The checksum contains more info that just a password
+$user->add($username, "$username:$realm:$password");
+$user->update($username, "$username:$realm:newone");
+@end example
+
+@example
+$info = $user->password($username);
+($realm, $checksum) = split(":", $info);
+@end example
+
+@example
+$user->delete($username);                                
+@end example
+
+See <URL:http://hoohoo.ncsa.uiuc.edu/docs/howto/md5_auth.html> for NCSA@'s
+implementation.
+
+So, it@'s a little more work, but don@'t worry, a nicer interface is on the way.
+
+@unnumberedsec SEE ALSO
+
+HTTPD::GroupAdmin, HTTPD::Authen
+
+@unnumberedsec AUTHOR
+
+Doug MacEachern <dougm@@osf.org>
+
+Copyright (c) 1996, Doug MacEachern, OSF Research Institute
+
+This library is free software; 
+you can redistribute it and/or modify it under the same terms as Perl itself. 
+

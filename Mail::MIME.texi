@@ -1,0 +1,19 @@
+@node Mail/MIME, Mail/Mailer, Mail/Internet, Module List
+@unnumbered manipulate MIME (RFC 1521) mail messages
+
+
+@unnumberedsec NAME
+
+Mail::MIME - manipulate MIME (RFC 1521) mail messages
+
+@unnumberedsec SYNOPSIS
+
+use Mail::MIME;
+
+@unnumberedsec DESCRIPTION
+
+This package provides a class object to implement MIME message as
+specified in RFC 1521 @emph{Multipurpose Internet Mail Extensions}
+
+@unnumberedsec THIS PACKAGE IS EXPERIMENTAL AND ONLY HERE AS A PLACE HOLDER
+

@@ -1,0 +1,222 @@
+@node CGI/Imagemap, CGI/MiniSvr, CGI/Form, Module List
+@unnumbered imagemap behavior for CGI programs
+
+
+@unnumberedsec NAME
+
+CGI::Imagemap.pm - imagemap behavior for CGI programs
+
+@unnumberedsec SYNOPSIS
+
+@example
+use CGI::Imagemap;
+ 
+$map = new CGI::Imagemap;
+$map->setmap(@@map);
+$action = $map->action($x,$y);
+ 
+-- or --
+@end example
+
+@example
+use CGI::Imagemap @'action_map@';
+
+$action = action_map($x,$y,@@map);
+@end example
+
+@unnumberedsec DESCRIPTION
+
+CGI::Imagemap allows CGI programmers to place TYPE=IMAGE form fields on
+their HTML fill-out forms, with either client-side or server-side maps
+emulated.
+
+The imagemap file follows that of the NCSA imagemap program.  Each point
+is an x,y tuple.  Each line in the map consists of
+one of the following formats.  Comment lines start with "#".
+
+@example
+circle action center edgepoint
+rect action upperleft lowerright
+point action point
+poly action point1 point2 ... pointN
+default action
+@end example
+
+Using "point" and "default" in the same map makes no sense. If "point"
+is used, the action for the closest one is selected.
+
+To use CGI::Imagemap, define an image submit map on your form with
+something like:
+
+@example
+<input type=image name=mv_todo
+     SRC="image_url">
+@end example
+
+You can pass a "client-side" imagemap like this:
+
+@example
+<input type="hidden" name="todo.map"
+		value="rect action1 0,0 25,20">
+<input type="hidden" name="todo.map"
+		value="rect action2 26,0 50,20">
+<input type="hidden" name="todo.map"
+		value="rect action3 51,0 75,20">
+<input type="hidden" name="todo.map"
+		value="default action0">
+@end example
+
+If the @@map passed parameter contains a NUL (\0) in the first array
+position, the map is assumed to be null-separated and @@map is built
+by splitting it.  This allows a null-separated todo.map with
+multiple values (parsed by a cgi-lib.pl or the like) to be
+referenced.
+
+All of the following examples assume the above definitions in your
+form.
+
+@unnumberedsubsec Static Methods
+
+CGI::Imagemap allows the export of two routines, @emph{action_map} and
+@emph{map_untaint}.   If you choose to use CGI::Imagemap statically, call the
+module with:
+
+@example
+use CGI::Imagemap qw(action_map map_untaint);
+@end example
+
+@table @asis
+@item action_map(x,y,map)
+We are assuming the map definition above, with the @emph{type=image}
+variable named @file{todo}, and the map in @emph{todo.map}. You can pass the map
+in one of two ways.  The first is compatible with the CGI.pm (or CGI::*)
+modules, and passes the map as an array:
+
+@example
+$query = new CGI;
+my $x = $query->param(@'todo.x@');
+my $y = $query->param(@'todo.y@');
+my $map = $query->param(@'todo.map@');
+$action = action_map($x, $y, $map);
+@end example
+
+If you are using the old @emph{cgi-lib.pl} library, which places multiple
+instances of the same form variable in a scalar, separated by null (\0)
+characters, you can do this:
+
+@example
+ReadParse(*FORM);
+my $x = $FORM@{@'todo.x@'@};
+my $y = $FORM@{@'todo.y@'@};
+my $map = $FORM@{@'todo.map@'@};
+$action = action_map($x, $y, $map);
+@end example
+
+@item map_untaint($untaint)
+If you are running with taint checking, as is suggested for CGI programs,
+you can use map_untaint(1) to set map untainting on a global basis. 
+(If using class methods, each has its own instance of untainting).
+
+It ensures all characters in the action fit pattern of [-\w.+@@]+,
+meaning alphnumerics, underscores, dashes (-), periods, and the @@ sign.
+It also checks the methods (rect,poly,point,default,circle) and ensures
+that points/tuples are only integers.  Once that is done, it untaints
+the passed form variables.
+
+@example
+map_untaint(1);    # Turns on untainting
+map_untaint(@'yes@');# Same as above
+@end example
+
+@example
+map_untaint(0);    # Disable untainting
+map_untaint(@'no@'); # Same as above
+  
+$status = map_untaint(); # Get status
+@end example
+
+Default is no untainting.
+
+@end table
+@unnumberedsubsec Class Methods
+
+The class methods for CGI::Imagemap are much the same as above, with the
+exception that multiple imagemaps are then maintained by the module, with
+full independence. The following method definitions assume the CGI::Form
+module is being used, like this:
+
+@example
+use CGI::Form;
+use CGI::Imagemap;
+@end example
+
+@example
+$query  = new CGI::Form;
+$map    = new CGI::Imagemap;
+@end example
+
+@table @asis
+@item setmap(@@map)
+This sets the map for the instance.
+
+@example
+$map = new CGI::Imagemap;
+$map->setmap($query->param(@'todo.map@'));
+@end example
+
+@item addmap(@@map)
+This adds a new map action specification @emph{to the current map}.
+
+@example
+$map->addmap(@'point action5 3,9@'));
+@end example
+
+@item action(x,y)
+This finds the action, based on the active map and the values of x and y, 
+
+@example
+$x = $query->param(@'todo.x@');
+$y = $query->param(@'todo.y@');
+$action = $map->action($x, $y);
+@end example
+
+@item untaint()
+Sets, unsets, or returns the taint status for the instance.
+
+@example
+$map->untaint(1);       # Turns on untainting
+$map->untaint(@'yes@');   # Same as above
+$map->untaint(1);       # Disables untainting
+$map->untaint(@'yes@');   # Same as above
+$status = $map->untaint(); # Get status
+@end example
+
+@item version()
+Returns the version number of the module.
+
+@end table
+@unnumberedsec EXAMPLE
+
+A couple of self-contained examples are included in the CGI::Imagemap
+package.  They are:
+
+@example
+testmap     -  Uses the CGI::Form module
+testmap.old -  Uses the old cgi-lib.pl
+@end example
+
+@unnumberedsec BUGS
+
+The untainting stuff is not totally independent -- threading might
+not work very well.  This can be fixed if it is important -- in the
+CGI world, I doubt it.
+
+@unnumberedsec AUTHOR
+
+Mike Heins, Internet Robotics, <mikeh@@iac.net>
+
+@unnumberedsec CREDITS
+
+This work is heavily kited from the Perl imagemap program originally
+written by V. Khera <khera@@kciLink.com>.
+

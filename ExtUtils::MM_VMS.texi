@@ -1,0 +1,256 @@
+@node ExtUtils/MM_VMS, ExtUtils/MakeMaker, ExtUtils/MM_Unix, Module List
+@unnumbered methods to override UN*X behaviour in ExtUtils::MakeMaker
+
+
+@unnumberedsec NAME
+
+ExtUtils::MM_VMS - methods to override UN*X behaviour in ExtUtils::MakeMaker
+
+@unnumberedsec SYNOPSIS
+
+@example
+use ExtUtils::MM_VMS; # Done internally by ExtUtils::MakeMaker if needed
+@end example
+
+@unnumberedsec DESCRIPTION
+
+See ExtUtils::MM_Unix for a documentation of the methods provided
+there. This package overrides the implementation of these methods, not
+the semantics.
+
+@unnumberedsubsec Methods always loaded
+
+@table @asis
+@item eliminate_macros
+Expands MM[KS]/Make macros in a text string, using the contents of
+identically named elements of @code{%$self}, and returns the result
+as a file specification in Unix syntax.
+
+@item fixpath
+Catchall routine to clean up problem MM[SK]/Make macros.  Expands macros
+in any directory specification, in order to avoid juxtaposing two
+VMS-syntax directories when MM[SK] is run.  Also expands expressions which
+are all macro, so that we can tell how long the expansion is, and avoid
+overrunning DCL@'s command buffer when MM[KS] is running.
+
+If optional second argument has a TRUE value, then the return string is
+a VMS-syntax directory specification, otherwise it is a VMS-syntax file
+specification.
+
+@item catdir
+Concatenates a list of file specifications, and returns the result as a
+VMS-syntax directory specification.
+
+@item catfile
+Concatenates a list of file specifications, and returns the result as a
+VMS-syntax directory specification.
+
+@item curdir (override)
+Returns a string representing of the current directory.
+
+@item rootdir (override)
+Returns a string representing of the root directory.
+
+@item updir (override)
+Returns a string representing of the parent directory.
+
+@end table
+@unnumberedsubsec SelfLoaded methods
+
+Those methods which override default MM_Unix methods are marked
+"(override)", while methods unique to MM_VMS are marked "(specific)".
+For overridden methods, documentation is limited to an explanation
+of why this method overrides the MM_Unix method; see the ExtUtils::MM_Unix
+documentation for more details.
+
+@table @asis
+@item guess_name (override)
+Try to determine name of extension being built.  We begin with the name
+of the current directory.  Since VMS filenames are case-insensitive,
+however, we look for a @file{.pm} file whose name matches that of the current
+directory (presumably the @'main@' @file{.pm} file for this extension), and try
+to find a package statement from which to obtain the Mixed::Case
+package name.
+
+@item find_perl (override)
+Use VMS file specification syntax and CLI commands to find and
+invoke Perl images.
+
+@item path (override)
+Translate logical name DCL$PATH as a searchlist, rather than trying
+to split string value of @code{$ENV@{@'PATH@'@}}.
+
+@item maybe_command (override)
+Follows VMS naming conventions for executable files.
+If the name passed in doesn@'t exactly match an executable file,
+appends @file{.Exe} to check for executable image, and @file{.Com} to check
+for DCL procedure.  If this fails, checks @file{Sys$Share:} for an
+executable file having the name specified.  Finally, appends @file{.Exe}
+and checks again.
+
+@item maybe_command_in_dirs (override)
+Uses DCL argument quoting on test command line.
+
+@item perl_script (override)
+If name passed in doesn@'t specify a readable file, appends @file{.pl} and
+tries again, since it@'s customary to have file types on all files
+under VMS.
+
+@item file_name_is_absolute (override)
+Checks for VMS directory spec as well as Unix separators.
+
+@item replace_manpage_separator
+Use as separator a character which is legal in a VMS-syntax file name.
+
+@item init_others (override)
+Provide VMS-specific forms of various utility commands, then hand
+off to the default MM_Unix method.
+
+@item constants (override)
+Fixes up numerous file and directory macros to insure VMS syntax
+regardless of input syntax.  Also adds a few VMS-specific macros
+and makes lists of files comma-separated.
+
+@item const_loadlibs (override)
+Basically a stub which passes through library specfications provided
+by the caller.  Will be updated or removed when VMS support is added
+to ExtUtils::Liblist.
+
+@item cflags (override)
+Bypass shell script and produce qualifiers for CC directly (but warn
+user if a shell script for this extension exists).  Fold multiple
+/Defines into one, since some C compilers pay attention to only one
+instance of this qualifier on the command line.
+
+@item const_cccmd (override)
+Adds directives to point C preprocessor to the right place when
+handling #include <sys/foo.h> directives.  Also constructs CC
+command line a bit differently than MM_Unix method.
+
+@item pm_to_blib (override)
+DCL @emph{still} accepts a maximum of 255 characters on a command
+line, so we write the (potentially) long list of file names
+to a temp file, then persuade Perl to read it instead of the
+command line to find args.
+
+@item tool_autosplit (override)
+Use VMS-style quoting on command line.
+
+@item tool_sxubpp (override)
+Use VMS-style quoting on xsubpp command line.
+
+@item xsubpp_version (override)
+Test xsubpp exit status according to VMS rules ($sts & 1 ==> good)
+rather than Unix rules ($sts == 0 ==> good).
+
+@item tools_other (override)
+Adds a few MM[SK] macros, and shortens some the installatin commands,
+in order to stay under DCL@'s 255-character limit.  Also changes
+EQUALIZE_TIMESTAMP to set revision date of target file to one second
+later than source file, since MMK interprets precisely equal revision
+dates for a source and target file as a sign that the target needs
+to be updated.
+
+@item dist (override)
+Provide VMSish defaults for some values, then hand off to
+default MM_Unix method.
+
+@item c_o (override)
+Use VMS syntax on command line.  In particular, $(DEFINE) and
+$(PERL_INC) have been pulled into $(CCCMD).  Also use MM[SK] macros.
+
+@item xs_c (override)
+Use MM[SK] macros.
+
+@item xs_o (override)
+Use MM[SK] macros, and VMS command line for C compiler.
+
+@item top_targets (override)
+Use VMS quoting on command line for Version_check.
+
+@item dlsyms (override)
+Create VMS linker options files specifying universal symbols for this
+extension@'s shareable image, and listing other shareable images or 
+libraries to which it should be linked.
+
+@item dynamic_lib (override)
+Use VMS Link command.
+
+@item dynamic_bs (override)
+Use VMS-style quoting on Mkbootstrap command line.
+
+@item static_lib (override)
+Use VMS commands to manipulate object library.
+
+@item manifypods (override)
+Use VMS-style quoting on command line, and VMS logical name
+to specify fallback location at build time if we can@'t find pod2man.
+
+@item processPL (override)
+Use VMS-style quoting on command line.
+
+@item installbin (override)
+Stay under DCL@'s 255 character command line limit once again by
+splitting potentially long list of files across multiple lines
+in realclean target.
+
+@item subdir_x (override)
+Use VMS commands to change default directory.
+
+@item clean (override)
+Split potentially long list of files across multiple commands (in
+order to stay under the magic command line limit).  Also use MM[SK]
+commands for handling subdirectories.
+
+@item realclean (override)
+Guess what we@'re working around?  Also, use MM[SK] for subdirectories.
+
+@item dist_basics (override)
+Use VMS-style quoting on command line.
+
+@item dist_core (override)
+Syntax for invoking @file{VMS_Share} differs from that for Unix @file{shar},
+so @code{shdist} target actions are VMS-specific.
+
+@item dist_dir (override)
+Use VMS-style quoting on command line.
+
+@item dist_test (override)
+Use VMS commands to change default directory, and use VMS-style
+quoting on command line.
+
+@item install (override)
+Work around DCL@'s 255 character limit several times,and use
+VMS-style command line quoting in a few cases.
+
+@item perldepend (override)
+Use VMS-style syntax for files; it@'s cheaper to just do it directly here
+than to have the MM_Unix method call catfile repeatedly.  Also use
+config.vms as source of original config data if the Perl distribution
+is available; config.sh is an ancillary file under VMS.  Finally, if
+we have to rebuild Config.pm, use MM[SK] to do it.
+
+@item makefile (override)
+Use VMS commands and quoting.
+
+@item test (override)
+Use VMS commands for handling subdirectories.
+
+@item test_via_harness (override)
+Use VMS-style quoting on command line.
+
+@item test_via_script (override)
+Use VMS-style quoting on command line.
+
+@item makeaperl (override)
+Undertake to build a new set of Perl images using VMS commands.  Since
+VMS does dynamic loading, it@'s not necessary to statically link each
+extension into the Perl image, so this isn@'t the normal build path.
+Consequently, it hasn@'t really been tested, and may well be incomplete.
+
+@item nicetext (override)
+Insure that colons marking targets are preceded by space, in order
+to distinguish the target delimiter from a colon appearing as
+part of a filespec.
+
+@end table

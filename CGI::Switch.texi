@@ -1,0 +1,43 @@
+@node CGI/Switch, CGI/Wrap, CGI/Response, Module List
+@unnumbered Try more than one constructors and return the first object available
+
+
+@unnumberedsec NAME
+
+CGI::Switch - Try more than one constructors and return the first object available
+
+@unnumberedsec SYNOPSIS
+
+@example
+use CGISwitch;
+@end example
+
+@example
+-or-
+@end example
+
+@example
+use CGI::Switch This, That, CGI::XA, Foo, Bar, CGI;
+@end example
+
+@example
+my $q = new CGI::Switch;
+@end example
+
+@unnumberedsec DESCRIPTION
+
+Per default the new() method tries to call new() in the three packages
+Apache::CGI, CGI::XA, and CGI. It returns the first CGI object it
+succeeds with.
+
+The import method allows you to set up the default order of the
+modules to be tested.
+
+@unnumberedsec SEE ALSO
+
+perl(1), Apache(3), CGI(3), CGI::XA(3)
+
+@unnumberedsec AUTHOR
+
+Andreas König <a.koenig@@mind.de>
+

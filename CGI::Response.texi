@@ -1,0 +1,254 @@
+@node CGI/Response, CGI/Switch, CGI/Request, Module List
+@unnumbered Respond to CGI requests
+
+
+@unnumberedsec NAME
+
+@strong{CGI::Response} - Respond to CGI requests
+
+@unnumberedsec SYNOPSIS
+
+@unnumberedsubsec Simple Interface
+
+@example
+use CGI::Response qw(:Simple);
+print ContentType;
+print "<html><head>\n"; # .....
+@end example
+
+@unnumberedsubsec Full Interface
+
+@example
+use CGI::Response;
+$response = new CGI::Response;
+$response->content_type;
+print $response->as_string;
+print "<html><head>\n"; # .....
+@end example
+
+@unnumberedsec DESCRIPTION
+
+@strong{CGI::Response} is a Perl5 module for constructing responses to Common
+Gateway Interface (CGI) requests.  It is designed to be light-weight
+and efficient for the most common tasks, and also to provide access to
+all HTTP response features for more advanced CGI applications.
+
+There are two ways to use CGI::Response.  For basic applications, the
+Simple Interface provides a number of plain functions that cover the
+most commonly-used CGI response headers.  More advanced applications
+may employ the Full Interface object methods to access any HTTP
+header, or to add experimental or non-standard headers.  Both
+interfaces try to generate reasonable defaults whenever possible.
+
+For efficiency, just the Simple Interface functions are compiled on
+start-up.  Full Interface methods are compiled only when they are
+called.  This helps to make CGI::Response usable in a variety of
+applications.  [See @xref{SelfLoader,SelfLoader}, for more information.]
+
+@unnumberedsubsec Simple Interface
+
+The Simple Interface methods are @strong{not} exported by default.  In order
+to use them, you must import them explicitly.  You can import all of
+the methods at once by saying:
+
+@example
+use CGI::Response qw(:Simple);
+@end example
+
+Or, you can import just one function by listing it by name, as in:
+
+@example
+use CGI::Response qw(ContentType);
+@end example
+
+Only one Simple Interface function should be called in a response,
+since all of these functions terminate the response header (that is,
+send the blank line denoting the end of the header) immediately upon
+execution.  If you need to use a combination of headers not provided
+by the Simple Interface, use the Full Interface instead.
+
+All of the Simple Interface functions force a flush on the
+currently-selected output channel (that is, they set @code{$| = 1}).  This
+is done to prevent a common probelm in CGI scripts, where a
+@code{system()} or @code{exec()} call causes output before the response
+header, and generates a server error.  If you do not want @code{$| = 1},
+you should either set it back to 0 after using the Simple Interface,
+or you should employ the Full Interface, which does not have this side
+effect.
+
+For reference, below is a list of the headers sent by each function,
+and the default header values, if any.  Arguments are listed in the
+order they should appear.  Square brackets ([]) indicate optional
+arguments; angled brackets (<>) indicate required arguments.
+
+@example
+Function      Argument(s)      Header(s)      Default(s)
+--------      -----------      ---------      ----------
+&ContentType  [content-type]   Content-Type   text/html
+@end example
+
+@example
+&Redirect     <Location/URI>   Location       [none]
+              [permanent?]     URI            [none]
+                               Content-Type   text/html
+                               Status         302 Moved Temporarily
+@end example
+
+@example
+&NoCache      [content-type]   Content-Type   text/html
+                               Pragma         no-cache
+                               Expires        [now]
+@end example
+
+@example
+&NoContent                     Status         204 No Content
+@end example
+
+Each of these functions is documented more completely below, and
+examples for each are provided.
+
+@table @asis
+@item &ContentType
+This is the most commonly-used function.  It identifies the Internet
+Media Type of the entity that follows.  If you call it without an
+argument, it will send @code{text/html} as the content-type.
+
+@example
+use CGI::Response qw(:Simple);
+print &ContentType;   # defaults to text/html
+@end example
+
+Otherwise, you can specify some other content-type:
+
+@example
+use CGI::Response qw(:Simple);
+print &ContentType(@'image/gif@');
+@end example
+
+This function should be called as early as possible to prevent server
+errors (see the note on $| above).
+
+@item &Redirect
+A redirect causes the user-agent to make a follow-up request for some
+other resource.  Some user-agents will be better than others at
+complying with a redirect, so this function tries to be as explicit as
+possible.
+
+You are required to give one argument, specifying the URL which the
+user-agent should request.  A second argument is accepted as a Boolean
+value -- if any second argument is present, the browser will be told
+that the requested resource has moved permanently to a new URL (that
+is, future requests for the document should be to the new URL, not to
+the one which was first requested).  
+
+@example
+use CGI::Response qw(:Simple);
+print &Redirect(@'http://www.company.com/@', @'permanent@');
+# this resource has moved permanently, status 301
+@end example
+
+If no second argument is given, the redirect will be specified as
+temporary.
+
+@example
+use CGI::Response qw(:Simple);
+print &Redirect(@'http://www.company.com/@');   
+# this resource has moved temporarily, status 302
+@end example
+
+A brief HTML page is output after the header so that users whose
+user-agents fail to recognize the redirect will get an informative
+message with a link to the redirect.  Use the Full Interface to supply
+some other page or none at all.
+
+@item &NoCache
+This function tries to inform user-agents and proxy servers that the
+included resource should not be cached.  It does so by sending both an
+@code{Expires} header, set for immediate expiration, and a @code{Pragma:
+no-cache} header, which older user-agents and servers might not
+recognize.
+
+Preventing caching is important to CGI applications which produce
+output based on some factor of the request (such as which user-agent
+made the request).  For instance, a shopping-basket application would
+not want to allow caching of an order information page, which may
+contain user-specific information.
+
+It must be noted, however, that caches prevent excess network load and
+cache-friendly applications are always preferable to use of the
+&NoCache function.  This function should only be used when there is no
+other alternative.
+
+&NoCache takes one optional argument, the content-type of the entity
+to follow.  Therefore, its call is nearly identical to the
+&ContentType function, and the two functions may be interchanged
+easily.  As with &ContentType, if you call &NoCache without an
+argument, it will send @code{text/html} as the content-type.
+
+@example
+use CGI::Response qw(:Simple);
+print &NoCache;   # defaults to text/html
+@end example
+
+Otherwise, you can specify some other content-type:
+
+@example
+use CGI::Response qw(:Simple);
+print &NoCache(@'image/gif@');
+@end example
+
+As noted earlier, this function should be called as early as possible
+to prevent server errors (see the note on $| above).
+
+@item &NoContent
+&NoContent allows a script to accept input without changing the
+current page in the user-agent@'s view.  This may be useful for a
+successful form input that requires no response, or for an imagemap
+click that does not have a defined link.
+
+A No Content response does not reset form fields after submission.
+HTTP/1.1 will include a @code{205 Reset Document} status for this purpose,
+and a future version of this module will provide a &Reset function to
+support this status.
+
+This function sends only one header, @code{Status: 204 No Content}, and it
+takes no arguments.
+
+@example
+use CGI::Response qw(:Simple);
+print &NoContent;
+@end example
+
+@end table
+@unnumberedsubsec Full Interface
+
+The Full Interface is still under development and is not currently
+documented.
+
+@unnumberedsec DEPENDENCIES
+
+@unnumberedsec SEE ALSO
+
+CGI::Base(3pm), CGI::BasePlus(3pm), CGI::Request(3pm), CGI::Lite(3pm),
+CGI(3pm), CGI::Form(3pm), LWP(3pm), SelfLoader(3pm)
+
+@unnumberedsec NOTES
+
+Please note that future versions are not guaranteed to be
+backwards-compatible with this version.  The interface will be frozen
+at version 0.1 (first beta release).
+
+@unnumberedsec VERSION
+
+@example
+Version:      0.03 (alpha release)
+Release date: 02 December 1995
+@end example
+
+@unnumberedsec AUTHOR
+
+@example
+Marc Hedlund <hedlund@@best.com>
+Copyright 1995, All rights reserved
+@end example
+

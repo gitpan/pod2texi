@@ -1,0 +1,82 @@
+@node Crypt/IDEA, Cwd, Crypt/DES, Module List
+@unnumbered Perl interface to IDEA block cipher
+
+
+@unnumberedsec NAME
+
+IDEA - Perl interface to IDEA block cipher
+
+@unnumberedsec SYNOPSIS
+
+@example
+use Crypt::IDEA;
+
+@end example
+
+@unnumberedsec DESCRIPTION
+
+This perl extension is an implementation of the IDEA block cipher algorithm.
+The module implements the Crypt::BlockCipher interface,
+which has the following methods
+
+@table @asis
+@item blocksize =item keysize =item encrypt =item decrypt
+@end table
+@unnumberedsec FUNCTIONS
+
+@table @asis
+@item blocksize
+Returns the size (in bytes) of the block cipher.
+
+@item keysize
+Returns the size (in bytes) of the key.
+
+@item new
+@example
+my $cipher = new IDEA $key;
+@end example
+
+This creates a new IDEA BlockCipher object, using $key,
+where $key is a key of @code{keysize()} bytes.
+
+@item encrypt
+@example
+my $cipher = new IDEA $key;
+my $ciphertext = $cipher->encrypt($plaintext);
+@end example
+
+This function encrypts $plaintext and returns the $ciphertext
+where $plaintext and $ciphertext should be of @code{blocksize()} bytes.
+
+@item decrypt
+@example
+my $cipher = new IDEA $key;
+my $plaintext = $cipher->decrypt($ciphertext);
+@end example
+
+This function decrypts $ciphertext and returns the $plaintext
+where $plaintext and $ciphertext should be of @code{blocksize()} bytes.
+
+@end table
+@unnumberedsec EXAMPLE
+
+@example
+my $key = pack("H32", "0123456789ABCDEF0123456789ABCDEF");
+my $cipher = new IDEA $key;
+my $ciphertext = $cipher->encrypt("plaintex");	# NB - 8 bytes
+print unpack("H16", $ciphertext), "\n";
+@end example
+
+@unnumberedsec SEE ALSO
+
+Crypt::DES
+
+Bruce Schneier, @emph{Applied Cryptography}, 1995, Second Edition,
+published by John Wiley & Sons, Inc.
+
+@unnumberedsec COPYRIGHT
+
+This implementation is copyright Systemics Ltd ( http://www.systemics.com/ ).
+
+The IDEA algorithm is patented in Europe and the United States
+by Ascom-Tech AG.

@@ -1,0 +1,28 @@
+@node Search/Dict, SelectSaver, Search/Base, Module List
+@unnumbered search for key in dictionary file
+
+
+@unnumberedsec NAME
+
+Search::Dict, look - search for key in dictionary file
+
+@unnumberedsec SYNOPSIS
+
+@example
+use Search::Dict;
+look *FILEHANDLE, $key, $dict, $fold;
+@end example
+
+@unnumberedsec DESCRIPTION
+
+Sets file position in FILEHANDLE to be first line greater than or equal
+(stringwise) to @emph{$key}.  Returns the new file position, or -1 if an error
+occurs.
+
+The flags specify dictionary order and case folding:
+
+If @emph{$dict} is true, search by dictionary order (ignore anything but word
+characters and whitespace).
+
+If @emph{$fold} is true, ignore case.
+

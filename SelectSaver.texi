@@ -1,0 +1,40 @@
+@node SelectSaver, SelfLoader, Search/Dict, Module List
+@unnumbered save and restore selected file handle
+
+
+@unnumberedsec NAME
+
+SelectSaver - save and restore selected file handle
+
+@unnumberedsec SYNOPSIS
+
+@example
+use SelectSaver;
+@end example
+
+@example
+@{
+   my $saver = new SelectSaver(FILEHANDLE);
+   # FILEHANDLE is selected
+@}
+# previous handle is selected
+@end example
+
+@example
+@{
+   my $saver = new SelectSaver;
+   # new handle may be selected, or not
+@}
+# previous handle is selected
+@end example
+
+@unnumberedsec DESCRIPTION
+
+A @code{SelectSaver} object contains a reference to the file handle that
+was selected when it was created.  If its new method gets an extra
+parameter, then that parameter is selected; otherwise, the selected
+file handle remains unchanged.
+
+When a @code{SelectSaver} is destroyed, it re-selects the file handle
+that was selected when it was created.
+

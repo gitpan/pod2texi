@@ -1,0 +1,228 @@
+@node ExtUtils/Embed, ExtUtils/Install, Exporter, Module List
+@unnumbered Utilities for embedding Perl in C/C++ applications
+
+
+@unnumberedsec NAME
+
+ExtUtils::Embed - Utilities for embedding Perl in C/C++ applications
+
+@unnumberedsec SYNOPSIS
+
+@example
+perl -MExtUtils::Embed -e xsinit 
+perl -MExtUtils::Embed -e ldopts 
+@end example
+
+@unnumberedsec DESCRIPTION
+
+ExtUtils::Embed provides utility functions for embedding a Perl interpreter
+and extensions in your C/C++ applications.  
+Typically, an application @strong{Makefile} will invoke ExtUtils::Embed
+functions while building your application.  
+
+@unnumberedsec @@EXPORT
+
+ExtUtils::Embed exports the following functions:
+ 
+xsinit(), ldopts(), ccopts(), perl_inc(), ccflags(), 
+ccdlflags(), xsi_header(), xsi_protos(), xsi_body()
+
+@unnumberedsec FUNCTIONS
+
+@table @asis
+@item xsinit()
+Generate C/C++ code for the XS initializer function.
+
+When invoked as @code{@`perl -MExtUtils::Embed -e xsinit --@`}
+the following options are recognized:
+
+@strong{-o} <output filename> (Defaults to @strong{perlxsi.c})
+
+@strong{-o STDOUT} will print to STDOUT.
+
+@strong{-std} (Write code for extensions that are linked with the current Perl.)
+
+Any additional arguments are expected to be names of modules
+to generate code for.
+
+When invoked with parameters the following are accepted and optional:
+
+@code{xsinit($filename,$std,[@@modules])}
+
+Where,
+
+@strong{$filename} is equivalent to the @strong{-o} option.
+
+@strong{$std} is boolean, equivalent to the @strong{-std} option.  
+
+@strong{[@@modules]} is an array ref, same as additional arguments mentioned above.
+
+@item Examples
+@example
+perl -MExtUtils::Embed -e xsinit -- -o xsinit.c Socket
+@end example
+
+This will generate code with an @strong{xs_init} function that glues the perl @strong{Socket::bootstrap} function 
+to the C @strong{boot_Socket} function and writes it to a file named "xsinit.c".
+
+Note that DynaLoader is a special case where it must call @strong{boot_DynaLoader} directly.
+
+@example
+perl -MExtUtils::Embed -e xsinit
+@end example
+
+This will generate code for linking with DynaLoader and 
+each static extension found in @strong{$Config@{static_ext@}}.
+The code is written to the default file name @strong{perlxsi.c}.
+
+@example
+perl -MExtUtils::Embed -e xsinit -- -o xsinit.c -std DBI DBD::Oracle
+@end example
+
+Here, code is written for all the currently linked extensions along with code
+for @strong{DBI} and @strong{DBD::Oracle}.
+
+If you have a working DynaLoader then there is rarely any need to statically link in any 
+other extensions.
+
+@item ldopts()
+Output arguments for linking the Perl library and extensions to your
+application.
+
+When invoked as @code{@`perl -MExtUtils::Embed -e ldopts --@`}
+the following options are recognized:
+
+@strong{-std} 
+
+Output arguments for linking the Perl library and any extensions linked
+with the current Perl.
+
+-I <path1:path2>
+
+Search path for ModuleName.a archives.  
+Default path is @strong{@@INC}.
+Library archives are expected to be found as 
+@strong{/some/path/auto/ModuleName/ModuleName.a}
+For example, when looking for @strong{Socket.a} relative to a search path, 
+we should find @strong{auto/Socket/Socket.a}  
+
+When looking for @strong{DBD::Oracle} relative to a search path,
+we should find @strong{auto/DBD/Oracle/Oracle.a}
+
+Keep in mind, you can always supply @strong{/my/own/path/ModuleName.a}
+as an additional linker argument.
+
+@strong{--}  <list of linker args>
+
+Additional linker arguments to be considered.
+
+Any additional arguments found before the @strong{--} token 
+are expected to be names of modules to generate code for.
+
+When invoked with parameters the following are accepted and optional:
+
+@code{ldopts($std,[@@modules],[@@link_args],$path)}
+
+Where,
+
+@strong{$std} is boolean, equivalent to the @strong{-std} option.  
+
+@strong{[@@modules]} is equivalent to additional arguments found before the @strong{--} token.
+
+@strong{[@@link_args]} is equivalent to arguments found after the @strong{--} token.
+
+@strong{$path} is equivalent to the -I option.
+
+In addition, when ldopts is called with parameters, it will return the argument string
+rather than print it to STDOUT.
+
+@item Examples
+@example
+perl -MExtUtils::Embed -e ldopts
+@end example
+
+This will print arguments for linking with @strong{libperl.a}, DynaLoader and 
+extensions found in @strong{$Config@{static_ext@}}.  This includes libraries
+found in @strong{$Config@{libs@}} and the first ModuleName.a library
+for each extension that is found by searching @strong{@@INC} or the path 
+specifed by the -I option.  
+In addition, when ModuleName.a is found, additional linker arguments
+are picked up from the @strong{extralibs.ld} file in the same directory.
+
+@example
+perl -MExtUtils::Embed -e ldopts -- -std Socket
+
+@end example
+
+This will do the same as the above example, along with printing additional arguments for linking with the Socket extension.
+
+@example
+perl -MExtUtils::Embed -e ldopts -- DynaLoader
+@end example
+
+This will print arguments for linking with just the DynaLoader extension
+and @strong{libperl.a}.
+
+@example
+perl -MExtUtils::Embed -e ldopts -- -std Msql -- -L/usr/msql/lib -lmsql
+@end example
+
+Any arguments after the second @'--@' token are additional linker
+arguments that will be examined for potential conflict.  If there is no
+conflict, the additional arguments will be part of the output.  
+
+@item perl_inc()
+For including perl header files this function simply prints:
+
+@example
+-I$Config@{archlib@}/CORE  
+@end example
+
+So, rather than having to say:
+
+@example
+perl -MConfig -e @'print "-I$Config@{archlib@}/CORE"@'
+@end example
+
+Just say:
+
+@example
+perl -MExtUtils::Embed -e perl_inc
+@end example
+
+@item ccflags(), ccdlflags()
+These functions simply print $Config@{ccflags@} and $Config@{ccdlflags@}
+
+@item ccopts()
+This function combines perl_inc(), ccflags() and ccdlflags() into one.
+
+@item xsi_header()
+This function simply returns a string defining the same @strong{EXTERN_C} macro as
+@strong{perlmain.c} along with #including @strong{perl.h} and @strong{EXTERN.h}.  
+
+@item xsi_protos(@@modules)
+This function returns a string of @strong{boot_$ModuleName} prototypes for each @@modules.
+
+@item xsi_body(@@modules)
+This function returns a string of calls to @strong{newXS()} that glue the module @strong{bootstrap}
+function to @strong{boot_ModuleName} for each @@modules.
+
+xsinit() uses the xsi_* functions to generate most of it@'s code.
+
+@end table
+@unnumberedsec EXAMPLES
+
+For examples on how to use @strong{ExtUtils::Embed} for building C/C++ applications
+with embedded perl, see the eg/ directory and @xref{(perl.info)perlembed,Perlembed},.
+ 
+=head1 SEE ALSO
+
+@xref{(perl.info)perlembed,Perlembed},
+
+@unnumberedsec AUTHOR
+
+Doug MacEachern <@file{dougm@@osf.org}>
+
+Based on ideas from Tim Bunce <@file{Tim.Bunce@@ig.co.uk}> and
+@strong{minimod.pl} by Andreas Koenig <@file{k@@anna.in-berlin.de}> and Tim Bunce.
+

@@ -1,0 +1,581 @@
+@node MIME/Head, MIME/IO, MIME/Field/ParamVal, Module List
+@unnumbered MIME message header (a subclass of Mail::Header)
+
+
+@unnumberedsec NAME
+
+MIME::Head - MIME message header (a subclass of Mail::Header)
+
+@unnumberedsec SYNOPSIS
+
+Start off by requiring or using this package:
+
+@example
+require MIME::Head;
+@end example
+
+You can create a MIME::Head object in a number of ways:
+
+@example
+# Create a new, empty header, and populate it manually:    
+$head = MIME::Head->new;
+$head->set(@'content-type@', @'text/plain; charset=US-ASCII@');
+$head->set(@'content-length@', $len);
+
+# Create a new header by parsing in the STDIN stream:
+$head = MIME::Head->read(\*STDIN);
+
+# Create a new header by parsing in a file:
+$head = MIME::Head->from_file("/tmp/test.hdr");
+
+# Create a new header by running a program:
+$head = MIME::Head->from_file("cat a.hdr b.hdr |");
+@end example
+
+To get rid of all internal newlines in all fields (called @strong{unfolding}):
+
+@example
+# Get rid of all internal newlines:
+$head->unfold();
+@end example
+
+To test whether a given field exists:
+
+@example
+# Was a "Subject:" given?
+if ($head->exists(@'subject@')) @{
+    # yes, it does!
+@}
+@end example
+
+To @strong{get the contents of a field,} either a @emph{specific} occurence (defaults 
+to the first occurence in a scalar context) or all occurences 
+(in an array context):
+
+@example
+# Is this a reply?
+$reply = 1 if ($head->get(@'Subject@') =~ /^Re: /);
+
+# Get receipt information:
+print "Last received from: ", $head->get(@'Received@', 0), "\n";
+@@all_received = $head->get(@'Received@');
+@end example
+
+To @strong{get the first occurence} of a field as a string,
+regardless of context:
+
+@example
+# Print the subject, or the empty string if none:
+print "Subject: ", $head->get(@'Subject@',0), "\n";
+@end example
+
+To @strong{get all occurences} of a field as an array, regardless of context:
+
+@example
+# Too many hops?  Count @'em and see!
+if (int($head->get_all(@'Received@')) > 5) @{ ...
+@end example
+
+To @strong{set a field} to a given string:
+
+@example
+# Declare this to be an HTML header:
+$head->replace(@'Content-type@', @'text/html@');
+@end example
+
+To get certain commonly-used @strong{MIME information}:
+
+@example
+# The content type (e.g., "text/html"):
+$mime_type     = $head->mime_type;
+
+# The content transfer encoding (e.g., "quoted-printable"):
+$mime_encoding = $head->mime_encoding;
+
+# The recommended filename (e.g., "choosy-moms-choose.gif"):
+$file_name     = $head->recommended_filename;
+
+# The boundary text, for multipart messages:
+$boundary      = $head->multipart_boundary;
+@end example
+
+@unnumberedsec DESCRIPTION
+
+A class for parsing in and manipulating RFC-822 message headers, with some 
+methods geared towards standard (and not so standard) MIME fields as 
+specified in RFC-1521, @emph{Multipurpose Internet Mail Extensions}.
+
+@unnumberedsec PUBLIC INTERFACE
+
+@unnumberedsubsec Creation, input, and output
+
+@table @asis
+@item new [ARG],[OPTIONS]
+@emph{Class method.}
+@emph{Inherited.}
+Creates a new header object.  Arguments are the same as those in the 
+superclass.  
+
+@item from_file EXPR,OPTIONS
+@emph{Class or instance method}.
+For convenience, you can use this to parse a header object in from EXPR, 
+which may actually be any expression that can be sent to open() so as to 
+return a readable filehandle.  The "file" will be opened, read, and then 
+closed:
+
+@example
+# Create a new header by parsing in a file:
+my $head = MIME::Head->from_file("/tmp/test.hdr");
+@end example
+
+Since this method can function as either a class constructor @emph{or} 
+an instance initializer, the above is exactly equivalent to:
+
+@example
+# Create a new header by parsing in a file:
+my $head = MIME::Head->new->from_file("/tmp/test.hdr");
+@end example
+
+On success, the object will be returned; on failure, the undefined value.
+
+The OPTIONS are the same as in new(), and are passed into new()
+if this is invoked as a class method.
+
+@strong{NOTE:} This is really just a convenience front-end onto @code{read()},
+provided mostly for backwards-compatibility with MIME-parser 1.0.
+
+@item read FILEHANDLE
+@emph{Instance (or class) method.} 
+This initiallizes a header object by reading it in from a FILEHANDLE,
+until the terminating blank line is encountered.  
+A syntax error or end-of-stream will also halt processing.
+
+Supply this routine with a reference to a filehandle glob; e.g., @code{\*STDIN}:
+
+@example
+# Create a new header by parsing in STDIN:
+$head->read(\*STDIN);
+@end example
+
+On success, the self object will be returned; on failure, a false value.
+
+@strong{Note:} in the MIME world, it is perfectly legal for a header to be
+empty, consisting of nothing but the terminating blank line.  Thus,
+we can@'t just use the formula that "no tags equals error".
+
+Warning: as of the time of this writing, Mail::Header::read did not flag
+either syntax errors or unexpected end-of-file conditions (an EOF
+before the terminating blank line).  MIME::ParserBase takes this
+into account.
+
+@end table
+@unnumberedsubsec Getting/setting fields
+
+@strong{NOTE:} this interface is not as extensive as that of Mail::Internet;
+however, I have provided a set of methods that I can guarantee are 
+supportable across any changes to the internal implementation of this
+class.
+
+@table @asis
+@item add TAG,TEXT,[INDEX]
+@emph{Inherited.}
+Add a new occurence of the field named TAG, given by TEXT:
+
+@example
+# Add the trace information:    
+$head->add(@'Received@', @'from eryq.pr.mcs.net by gonzo.net with smtp@');
+@end example
+
+Normally, the new occurence will be @emph{appended} to the existing 
+occurences.  However, if the optional INDEX argument is 0, then the 
+new occurence will be @emph{prepended}.  If you want to be @emph{explicit} 
+about appending, specify an INDEX of -1.
+
+@strong{NOTE:} use of "BEFORE" (for index 0) or "AFTER" (for index -1)
+is still allowed, but deprecated.
+
+WARNING: this method always adds new occurences; it doesn@'t overwrite
+any existing occurences... so if you just want to @emph{change} the value
+of a field (creating it if necessary), then you probably @strong{don@'t} want to use 
+this method: consider using @code{set()} instead.
+
+@item delete TAG,[INDEX]
+@emph{Inherited.}
+Delete all occurences of the field named TAG.
+
+@example
+# Remove all the MIME information:
+$head->delete(@'MIME-Version@');
+$head->delete(@'Content-type@');
+$head->delete(@'Content-transfer-encoding@');
+$head->delete(@'Content-disposition@');
+@end example
+
+@item exists TAG
+Returns whether a given field exists:
+
+@example
+# Was a "Subject:" given?
+if ($head->exists(@'subject@')) @{
+    # yes, it does!
+@}
+@end example
+
+The TAG is treated in a case-insensitive manner.
+This method returns some false value if the field doesn@'t exist,
+and some true value if it does.
+
+@item get TAG,[INDEX]
+@emph{Inherited.}  
+Get the contents of field TAG.
+
+If a @strong{numeric INDEX} is given, returns the occurence at that index, 
+or undef if not present:
+
+@example
+# Print the first @'Received:@' entry (explicitly):
+print "Most recent: ", $head->get(@'received@',0), "\n";
+   
+# Print the last @'Received:@' entry:
+print "Least recent: ", $head->get(@'received@', -1), "\n"; 
+@end example
+
+If @strong{no INDEX} is given, but invoked in a scalar context, then
+INDEX simply defaults to 0:
+
+@example
+# Get the first @'Received:@' entry (implicitly):
+my $most_recent = $head->get(@'received@');
+@end example
+
+If @strong{no INDEX} is given, and invoked in an @strong{array} context, then
+all occurences of the field are returned:
+
+@example
+# Get all @'Received:@' entries:
+my @@all_received = $head->get(@'received@');
+@end example
+
+@strong{WARNING:} @emph{This has changed since MIME-parser 1.x.  
+You should now use the two-argument form if you want the old behavior, 
+or else tweak the module to emulate version 1.0.}
+
+@item get_all FIELD
+Returns the list of all occurences of the field, or the 
+empty list if the field is not present:
+
+@example
+# How did it get here?
+@@history = $head->get_all(@'Received@');
+@end example
+
+@strong{NOTE:} I had originally experimented with having @code{get()} return all 
+occurences when invoked in an array context... but that causes a lot of 
+accidents when you get careless and do stuff like this:
+
+@example
+print "\u$field: ", $head->get($field), "\n";
+@end example
+
+It also made the intuitive behaviour unclear if the INDEX argument 
+was given in an array context.  So I opted for an explicit approach
+to asking for all occurences.
+
+@item original_text
+Recover the original text that was read() in to create this object:
+
+@example
+print "PARSED FROM:\n", $head->original_text;    
+@end example
+
+@strong{WARNING:} does no such thing now.  Just returns a reasonable
+approximation of that text.
+
+@item set TAG,TEXT
+Set the field named TAG to [the single occurence given by the TEXT:
+
+@example
+# Set the MIME type:
+$head->set(@'content-type@', @'text/html@');
+
+The TAG is treated in a case-insensitive manner.
+@end example
+
+@strong{DEPRECATED.}  Use replace() instead.
+
+@item unfold [FIELD]
+Unfold the text of all occurences of the given FIELD.  
+If the FIELD is omitted, all fields are unfolded.
+
+"Unfolding" is the act of removing all newlines.
+
+@example
+$head->unfold;
+@end example
+
+Returns the "self" object.
+
+@end table
+@unnumberedsubsec MIME-specific methods
+
+All of the following methods extract information from the following fields:
+
+@example
+Content-type
+Content-transfer-encoding
+Content-disposition
+@end example
+
+Be aware that they do not just return the raw contents of those fields,
+and in some cases they will fill in sensible (I hope) default values.
+Use @code{get()} if you need to grab and process the raw field text.
+
+@strong{NOTE:} some of these methods are provided both as a convenience and
+for backwards-compatibility only, while others (like
+recommended_filename()) @emph{really do have to be in MIME::Head to work
+properly,} since they look for their value in more than one field.
+However, if you know that a value is restricted to a single
+field, you should really use the Mail::Field interface to get it.
+
+@table @asis
+@item mime_encoding
+Try @emph{real hard} to determine the content transfer encoding
+(e.g., @code{"base64"}, @code{"binary"}), which is returned in all-lowercase.
+
+If no encoding could be found, the default of @code{"7bit"} is returned.  
+I quote from RFC-1521 section 5:
+
+@example
+This is the default value -- that is, "Content-Transfer-Encoding: 7BIT" 
+is assumed if the Content-Transfer-Encoding header field is not present.
+@end example
+
+@item mime_type
+Try @code{real hard} to determine the content type (e.g., @code{"text/plain"},
+@code{"image/gif"}, @code{"x-weird-type"}, which is returned in all-lowercase.  
+
+If no content type could be found, the default of @code{"text/plain"} 
+is returned.  I quote from RFC-1521 section 7.1:
+
+@example
+The default Content-Type for Internet mail is 
+"text/plain; charset=us-ascii".
+@end example
+
+@item multipart_boundary
+If this is a header for a multipart message, return the 
+"encapsulation boundary" used to separate the parts.  The boundary
+is returned exactly as given in the @code{Content-type:} field; that
+is, the leading double-hyphen (@code{--}) is @emph{not} prepended.
+
+(Well, @emph{almost} exactly... from RFC-1521:
+
+@example
+(If a boundary appears to end with white space, the white space 
+must be presumed to have been added by a gateway, and must be deleted.)  
+@end example
+
+so we oblige and remove any trailing spaces.)
+
+Returns undef (@strong{not} the empty string) if either the message is not
+multipart, if there is no specified boundary, or if the boundary is
+illegal (e.g., if it is empty after all trailing whitespace has been
+removed).
+
+@item recommended_filename
+Return the recommended external filename.  This is used when
+extracting the data from the MIME stream.
+
+Returns undef if no filename could be suggested.
+
+@end table
+@unnumberedsubsec Compatibility tweaks
+
+@unnumberedsec NOTES
+
+@unnumberedsubsec Design issues
+
+@table @asis
+@item Why have separate objects for the entity, head, and body?
+See the documentation for the MIME-parser distribution
+for the rationale behind this decision.
+
+@item Why assume that MIME headers are email headers?
+I quote from Achim Bohnet, who gave feedback on v.1.9 (I think
+he@'s using the word header where I would use @emph{field}; e.g.,
+to refer to "Subject:", "Content-type:", etc.):
+
+@example
+There is also IMHO no requirement [for] MIME::Heads to look 
+like [email] headers; so to speak, the MIME::Head [simply stores] 
+the attributes of a complex object, e.g.:
+@end example
+
+@example
+new MIME::Head type => "text/plain",
+               charset => ...,
+               disposition => ..., ... ;
+@end example
+
+I agree in principle, but (alas and dammit) RFC-1521 says otherwise.
+RFC-1521 [MIME] headers are a syntactic subset of RFC-822 [email] headers.
+Perhaps a better name for these modules would be RFC1521:: instead of
+MIME::, but we@'re a little beyond that stage now.
+
+In my mind@'s eye, I see an abstract class, call it MIME::Attrs, which does
+what Achim suggests... so you could say:
+
+@example
+my $attrs = new MIME::Attrs type => "text/plain",
+				 charset => ...,
+                            disposition => ..., ... ;
+@end example
+
+We could even make it a superclass of MIME::Head: that way, MIME::Head
+would have to implement its interface, @emph{and} allow itself to be
+initiallized from a MIME::Attrs object.
+
+However, when you read RFC-1521, you begin to see how much MIME information
+is organized by its presence in particular fields.  I imagine that we@'d
+begin to mirror the structure of RFC-1521 fields and subfields to such 
+a degree that this might not give us a tremendous gain over just
+having MIME::Head.
+
+@item Why all this "occurence" and "index" jazz?  Isn@'t every field unique?
+Aaaaaaaaaahh....no.
+
+(This question is generic to all Mail::Header subclasses, but I@'ll
+field it here...)
+
+Looking at a typical mail message header, it is sooooooo tempting to just
+store the fields as a hash of strings, one string per hash entry.  
+Unfortunately, there@'s the little matter of the @code{Received:} field, 
+which (unlike @code{From:}, @code{To:}, etc.) will often have multiple 
+occurences; e.g.:
+
+@example
+Received: from gsfc.nasa.gov by eryq.pr.mcs.net  with smtp
+    (Linux Smail3.1.28.1 #5) id m0tStZ7-0007X4C; Thu, 21 Dec 95 16:34 CST
+Received: from rhine.gsfc.nasa.gov by gsfc.nasa.gov (5.65/Ultrix3.0-C)
+    id AA13596; Thu, 21 Dec 95 17:20:38 -0500
+Received: (from eryq@@localhost) by rhine.gsfc.nasa.gov (8.6.12/8.6.12) 
+    id RAA28069; Thu, 21 Dec 1995 17:27:54 -0500
+Date: Thu, 21 Dec 1995 17:27:54 -0500
+From: Eryq <eryq@@rhine.gsfc.nasa.gov>
+Message-Id: <199512212227.RAA28069@@rhine.gsfc.nasa.gov>
+To: eryq@@eryq.pr.mcs.net
+Subject: Stuff and things
+@end example
+
+The @code{Received:} field is used for tracing message routes, and although
+it@'s not generally used for anything other than human debugging, I
+didn@'t want to inconvenience anyone who actually wanted to get at that
+information.  
+
+I @emph{also} didn@'t want to make this a special case; after all, who
+knows what other fields could have multiple occurences in the
+future?  So, clearly, multiple entries had to somehow be stored
+multiple times... and the different occurences had to be retrievable.
+
+@end table
+@unnumberedsec WARNINGS
+
+@unnumberedsubsec NEWS FLASH! 
+
+Rejoice!  As of MIME-parser 2.0, this is a subclass of Mail::Header,
+as the Maker of All Things intended.  It will continue to exist, both
+for backwards-compatibility with MIME-parser 1.0, and to allow me to
+tinker with MIME-specific methods.
+
+If you are upgrading from the MIME-parser 1.0 package, and you used 
+this module directly, you may notice some warnings about deprecated 
+constructs in your code... all your stuff should (hopefully) 
+still work... you@'ll just see a lot of warnings.  
+@strong{However, you should read the @strong{COMPATIBILITY TWEAKS} and
+WARNINGS sections before installing it!} 
+
+I have also changed terminology to match with the new MailTools distribution.
+Thus, the @emph{name} of a field ("Subject", "From", "To", etc.) is now 
+called a @strong{"tag"} instead of a "field".
+
+However, I have retained all the documentation where appropriate,
+even when inheriting from the Mail::Header module.  Hopefully, you won@'t
+need to flip back and forth between man pages to use this module.
+
+@unnumberedsubsec UPGRADING FROM 1.x to 2.x
+
+@table @asis
+@item Altered methods/usage
+There are things you must beware of if you are either a MIME-parser 
+1.x user or a Mail::Header user:
+
+@table @asis
+@item Modified get() behavior
+In the old system, always @code{get()} returned a single value, and @code{get_all()}
+returned multiple values: array vs. scalar context was not used.
+
+Since Mail::Header does stuff differently, we have to obey our superclass
+or we might break some of its complex methods that use @code{get()}
+(like @code{Mail::Header::combine()}, which expects @code{get()} to return 
+all fields in an array context).  Unfortunately, this will break 
+some of @emph{your} old code. 
+
+@strong{For now,} you can tell the system to emulate the MIME-parser 
+version 1 behavior.
+
+@strong{For future compatibility,} you should, as soon as possible, modify
+your code to use the two-arg form of get if you want a single value, 
+with the second arg being 0.  This does what the old @code{get()} method did:
+
+@example
+print "Subject: ",  $head->get(@'subject@',0), "\n";
+@end example
+
+@end table
+@item Deprecated methods/usage
+The following are deprecated as of MIME-parser v.2.0.  
+In many cases, they are redundant with Mail::Header subroutines
+of different names:
+
+@table @asis
+@item add
+Use numeric index 0 for @'BEFORE@' and -1 for @'AFTER@'.
+
+@item add_text
+If you really need this, use the inherited @code{replace()} method instead.
+The current implementation is now somewhat inefficient.
+
+@item copy
+Use the inherited @code{dup()} method instead.
+
+@item fields
+Use the inherited @code{tags()} method instead.  @strong{Beware:} that method does not
+automatically downcase its output for you: you will have to do that
+yourself.
+
+@item params
+Use the new MIME::Field interface classes (subclasses of Mail::Field)
+to access portions of a structured MIME field.
+
+@item set
+Use the inherited @code{replace()} method instead.
+
+@item tweak_FROM_parsing 
+Use the inherited @code{mail_from()} method instead.
+
+@end table
+@end table
+@unnumberedsec AUTHOR
+
+Copyright (c) 1996 by Eryq / eryq@@rhine.gsfc.nasa.gov  
+
+All rights reserved.  This program is free software; you can redistribute 
+it and/or modify it under the same terms as Perl itself.
+
+The more-comprehensive filename extraction is courtesy of 
+Lee E. Brotzman, Advanced Data Solutions.
+
+@unnumberedsec VERSION
+
+$Revision: 2.9 $ $Date: 1996/10/28 18:29:55 $
+

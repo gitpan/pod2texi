@@ -1,0 +1,455 @@
+@node CGI/Request, CGI/Response, CGI/Out, Module List
+@unnumbered Parse client request via a CGI interface
+
+
+@unnumberedsec NAME
+
+CGI::Request - Parse client request via a CGI interface
+
+@unnumberedsec SYNOPSIS
+
+@example
+@end example
+
+@example
+use CGI::Request;
+	
+# Simple interface: (combines SendHeaders, new and import_names)
+	
+$req = GetRequest($pkg);
+	
+print FmtRequest();            # same as: print $req->as_string
+	
+	
+# Full Interface:
+	
+$req = new CGI::Request;       # fetch and parse request
+	
+$field_value = $req->param(@'FieldName@');
+@@selected    = $req->param(@'SelectMultiField@');
+@@keywords    = $req->keywords; # from ISINDEX
+	
+print $req->as_string;         # format Form and CGI variables
+	
+# import form fields into a package as perl variables!
+$req->import_names(@'R@');
+print "$R::FieldName";
+print "@@R::SelectMultiField";
+	
+@@value = $req->param_or($fieldname, $default_return_value);
+@end example
+
+@example
+# Access to CGI interface (see CGI::Base)
+@end example
+
+@example
+$cgi_obj = $req->cgi;
+$cgi_var = $req->cgi->var("REMOTE_ADDR");
+	
+	
+# Other Functions:
+	
+CGI::Request::Interface($cgi);  # specify alternative CGI
+	
+CGI::Request::Debug($level);    # log to STDERR (see CGI::Base)
+	
+	
+# Cgi-lib compatibility functions
+# use CGI::Request qw(:DEFAULT :cgi-lib); to import them
+	
+&ReadParse(*input);
+&MethGet;
+&PrintHeader;
+&PrintVariables(%input);
+	
+@end example
+
+@unnumberedsec DESCRIPTION
+
+This module implements the CGI::Request object. This object represents
+a single query / request / submission from a WWW user. The CGI::Request
+class understands the concept of HTML forms and fields, specifically
+how to parse a CGI QUERY_STRING.
+
+@unnumberedsubsec SMALLEST EXAMPLE
+
+This is the smallest useful CGI::Request script:
+
+@example
+use CGI::Request;
+GetRequest();
+print FmtRequest();
+@end example
+
+@unnumberedsubsec SIMPLE EXAMPLE
+
+This example demonstrates a simple ISINDEX based query, importing results
+into a package namespace and escaping of text:
+
+@example
+#!/usr/local/bin/perl  # add -T to test tainted behaviour
+@end example
+
+@example
+use CGI::Base;
+use CGI::Request;
+@end example
+
+@example
+GetRequest(@'R@');       # get and import request into R::...
+@end example
+
+@example
+# Just to make life more interesting add an ISINDEX.
+# Try entering: "aa bb+cc dd=ee ff&gg hh<P>ii"
+print "<ISINDEX>\r\n";
+@end example
+
+@example
+print "<B>You entered:</B> ", # print results safely
+      join(@', @', CGI::Base::html_escape(@@R::KEYWORDS))."\r\n";
+@end example
+
+@example
+print FmtRequest();    # show formatted version of request
+@end example
+
+@unnumberedsubsec CGI
+
+A CGI::Request object contains a reference to a CGI::Base object
+(or an object derived from CGI::Base). It uses the services of
+that object to get the raw request information.
+
+Note that CGI::Request does not inherit from CGI::Base it just uses
+an instance of a CGI::Base object.
+
+See the cgi method description for more information.
+
+@unnumberedsubsec FEATURES
+
+Is object oriented and sub-classable.
+
+Can export form field names as normal perl variables.
+
+Integrates with CGI::MiniSvr.
+
+@unnumberedsubsec RECENT CHANGES
+
+@enumerate
+@item 
+Fixed bug in import_names().  Now works properly with both
+scalar and array elements.
+
+@item 
+through 2.74
+Minor changes to accomodate Forms interface. 
+
+@item 
+thru 2.3
+Minor enhancements to documentation and debugging. Added notes about
+relationship with CGI and how to access CGI variables.
+
+@item 
+Updates for changed CGI:Base export tags. No longer setting
+ @@CGI::Request::QUERY_STRING. Added param_or() method.
+
+The module file can be run as a cgi script to execute a demo/test. You
+may need to chmod +x this file and teach your httpd that it can execute
+*.pm files (or create a copy/symlink with another name).
+
+@item 
+GetRequest now call SendHeaders (in CGI::Base) for you. This works
+*much* better than the old @'print PrintHeaders;@'. PrintHeaders is no
+longer exported by default. as_string now uses the new html_escape
+method (in CGI::Base) to safely format strings with embedded html.
+Debugging now defaults to off. New Debug function added. Image map
+coords are automatically recognised and stored as parameters X and Y.
+Added a sequence number mechanism to assist debugging MiniSvr
+applications (does not impact/cost anything for non minisvr apps).
+
+@item 
+Default package for import_names() removed, you must supply a package
+name. GetRequest() won@'t call import_names unless a package name has
+been given, thus GetRequest no longer defaults to importing names.
+Added as_string() method (which automatically calls cgi->as_string).
+param() will croak if called in a scalar context for a multi-values
+field.
+
+@end enumerate
+@unnumberedsubsec FUTURE DEVELOPMENTS
+
+None of this is perfect. All suggestions welcome.
+
+Note that this module is *not* the place to put code which generates
+HTML.  We@'ll need separate modules for that (which are being developed).
+
+@unnumberedsubsec AUTHOR, COPYRIGHT and ACKNOWLEDGEMENTS
+
+This code is Copyright (C) Tim Bunce 1995. All rights reserved.  This
+code is free software; you can redistribute it and/or modify it under
+the same terms as Perl itself.
+
+The cgi-lib functions are based on cgi-lib.pl version 1.7 which is
+Copyright 1994 Steven E. Brenner.
+
+IN NO EVENT SHALL THE AUTHORS BE LIABLE TO ANY PARTY FOR DIRECT,
+INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING OUT
+OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION (INCLUDING, BUT NOT
+LIMITED TO, LOST PROFITS) EVEN IF THE AUTHORS HAVE BEEN ADVISED OF
+THE POSSIBILITY OF SUCH DAMAGE.
+
+@unnumberedsubsec SEE ALSO
+
+CGI::Base, URI::Escape
+
+@unnumberedsubsec SUPPORT
+
+Please use comp.infosystems.www.* and comp.lang.perl.misc for support.
+Please do _NOT_ contact the author directly. I@'m sorry but I just don@'t
+have the time.
+
+@unnumberedsec FUNCTIONS
+
+@unnumberedsubsec GetRequest
+
+@example
+@end example
+
+@example
+GetRequest();
+GetRequest($package_name);
+$req = GetRequest(...);
+@end example
+
+GetRequest is the main entry point for simple (non-object oriented) use
+of the CGI::Request module. It combines output (and flushing) of the
+standard Content-Type header, request processing and optional importing
+of the resulting values into a package (see import_names).
+
+This function also enables autoflush on stdout. This has a slight
+efficiency cost but huge benefits in reduced frustration by novice
+users wondering why, for example, the output of system("foo") appears
+before their own output.
+
+See @code{new CGI::Request} for more details.
+
+@unnumberedsubsec FmtRequest
+
+@example
+@end example
+
+@example
+print FmtRequest();
+@end example
+
+Return a HTML string which describes the last (current) client request
+parameters and the current raw CGI parameters.  Designed to be used for
+debugging purposes.
+
+@unnumberedsubsec Interface
+
+@example
+@end example
+
+@example
+$cgi = Interface();
+@end example
+
+Return the default CGI interface object. Rarely used by applications.
+
+If no interface has been defined yet it will automatically create a new
+CGI::Base object, set that as the default interface and return it. This
+is the mechanism by which simple applications get to use the CGI::Base
+interface without knowing anything about it.
+
+This function can also be use to define a new default interface (such
+as CGI::MiniSvr) by passing a reference to a CGI::Base object or a
+object derived from CGI::Base.
+
+@unnumberedsubsec Debug
+
+@example
+@end example
+
+@example
+$old_level = CGI::Request::Debug();
+$old_level = CGI::Request::Debug($new_level);
+@end example
+
+Set debug level for the CGI::Request module. Debugging info is logged
+to STDERR (see CGI::Base for examples of how to redirect STDERR).
+
+@unnumberedsec METHODS
+
+@unnumberedsubsec new
+
+@example
+@end example
+
+@example
+$req = new CGI::Request;
+$req = new CGI::Request $cgi_interface;
+$req = new CGI::Request $cgi_interface, $timeout_in_seconds;
+@end example
+
+CGI::Request object constructor. Only the first form listed above
+should be used by most applications.
+
+Note that, unlike GetRequest, new CGI::Request does not call
+SendHeaders for you. You have the freedom to control how you send your
+headers and what headers to send.
+
+The returned $req CGI::Request object stores the request parameter
+values. Parameters can be retrieved using the param method.
+
+Index keywords (ISINDEX) are automatically recognised, parsed and
+stored as values of the @'KEYWORDS@' parameter. The keywords method
+provides an easy way to retrieve the list of keywords.
+
+Image Map (ISMAP) coordinates are automatically recognised, parsed and
+stored as parameters @'X@' and @'Y@'.
+
+@unnumberedsubsec as_string
+
+@example
+@end example
+
+@example
+print $req->as_string;
+@end example
+
+Return an HTML string containing all the query parameters and CGI
+parameters neatly and safely formatted. Very useful for debugging.
+
+@unnumberedsubsec extract_values
+
+@example
+@end example
+
+@example
+$req->extract_values($QUERY_STRING)
+@end example
+
+This method extracts parameter name/value pairs from a string
+(typically QUERY_STRING) and stores them in the objects hash.  Not
+normally called by applications, new() calls it automatically.
+
+The parameter names and values are individually unescaped using the
+uri_unescape() function in the URI::URL module.
+
+For ISINDEX keyword search requests (QUERY_STRING contains no @'=@' or
+@'&@') the string is split on /+/ and the keywords are then individually
+unescaped and stored.  Either the keywords() method (or param(@'KEYWORDS@'))
+can be used to recover the values.
+
+@unnumberedsubsec keywords
+
+@example
+@end example
+
+@example
+@@words = $req->keywords
+@end example
+
+Return the keywords associated with an ISINDEX query.
+
+@unnumberedsubsec params
+
+@example
+@end example
+
+@example
+@@names = $req->params
+@end example
+
+Return a list of all known parameter names in the order in which they@'re defined
+
+@unnumberedsubsec param
+
+@example
+@end example
+
+@example
+$value  = $req->param(@'field_name1@');
+@@values = $req->param(@'field_name2@');	# e.g. select multiple
+$req->param(@'field_name3@', $new_value);
+$req->param(@'field_name4@', @@new_values);
+@end example
+
+Returns the value(s) of a named parameter. Returns an empty
+list/undef if the parameter name is not known. Returns @'@' for a
+parameter which had no value.
+
+If invoked in a list context param returns the list of values in
+the same order they were returned by the client (typically from
+a select multiple form field).
+
+Warning: If invoked in a scalar context and the parameter has more than
+one value the param method will die. This catches badly constructed
+forms where a field may have been copied but its name left unchanged.
+
+If more than one argument is provided, the second and subsequent
+arguments are used to set the value of the parameter. The previous
+values, if any, are returned. Note that setting a new value has no
+external effect and is only included for completeness.
+
+Note that param does not return CGI variables (REMOTE_ADDR etc) since
+those are CGI variables and not form parameters. To access CGI
+variables see the cgi method in this module and the CGI::Base module
+documentation.
+
+@unnumberedsubsec delete
+
+@example
+$req->delete(@'field_name1@');
+@end example
+
+Remove the specified field name from the parameter list
+
+@unnumberedsubsec param_or
+
+@example
+$value  = $req->param_or(@'field_name1@', $default);
+@@values = $req->param_or(@'field_name2@', @@defaults);
+@end example
+
+If the current request was a query (QUERY_STRING defined) then this
+method is identical to the param method with only one argument.
+
+If the current request was not a query (QUERY_STRING undefined) then
+this method simply returns its second and subsequent parameters.
+
+The method is designed to be used as a form building utility.
+
+@unnumberedsubsec import_names
+
+@example
+@end example
+
+@example
+$req->import_names(@'R@')
+@end example
+
+Convert all request parameters into perl variables in a specified
+package. This avoids the need to use $req->param(@'name@'), you can
+simply sat $R::name (@'R@' is the recommended package names).
+
+Note: This is a convenience function for simple CGI scripts. It should
+@strong{not} be used with the MiniSvr since there is no way to reset or
+unimport the values from one request before importing the values of the
+next.
+
+@unnumberedsubsec cgi
+
+@example
+@end example
+
+@example
+$cgi = $req->cgi;
+@end example
+
+This method returns the current CGI::Request default CGI interface
+object.  It is primarily intended as a handy shortcut for accessing
+CGI::Base methods: $req->cgi->done(), $req->cgi->var("REMOTE_ADDR");
+

@@ -1,0 +1,84 @@
+@node MIME/Latin1, MIME/OLD/ParserUtil, MIME/IO, Module List
+@unnumbered translate ISO-8859-1 into 7-bit approximations
+
+
+@unnumberedsec NAME
+
+MIME::Latin1 - translate ISO-8859-1 into 7-bit approximations
+
+@unnumberedsec SYNOPSIS
+
+@example
+use MIME::Latin1 qw(latin1_to_ascii);
+
+$dirty = "Fran\347ois";
+print latin1_to_ascii($dirty);      # prints out "Fran\c,ois"
+@end example
+
+@unnumberedsec DESCRIPTION
+
+This is a small package used by the @code{"7bit"} encoder/decoder for
+handling the case where a user wants to 7bit-encode a document
+that contains 8-bit (presumably Latin-1) characters.
+
+@unnumberedsec PUBLIC INTERFACE 
+
+@table @asis
+@item latin1_to_ascii STRING,[OPTS]
+Map the Latin-1 characters in the string to sequences of the form:
+
+@example
+\xy
+@end example
+
+Where @code{xy} is a two-character sequence that visually approximates
+the Latin-1 character.  For example:
+
+@example
+c cedilla      => \c,
+n tilde        => \n~
+AE ligature    => \AE
+small o slash  => \o/
+@end example
+
+The sequences are taken almost exactly from the Sun character composition
+sequences for generating these characters.  The translation may be further
+tweaked by the OPTS string:
+
+@strong{If no OPTS string is given,} only 8-bit characters are affected,
+and their output is of the form @code{\xy}:
+
+@example
+\<<Fran\c,ois M\u"ller\>>   c:\usr\games
+@end example
+
+@strong{If the OPTS string contains @'NOSLASH@',} then the leading @code{"\"}
+is not output, and the output is more compact:
+
+@example
+<<Franc,ois Mu"ller>>       c:\usr\games
+@end example
+
+@strong{If the OPTS string contains @'ENCODE@',} then not only is the leading @code{"\"}
+output, but any other occurences of @code{"\"} are escaped as well by turning
+them into @code{"\\"}.  This produces output which may easily be parsed
+and turned back into the original 8-bit characters, so in a way it is
+its own full-fledged encoding... and given that @code{"\"} is a rare-enough
+character, not much uglier that the normal output: 
+
+@example
+\<<Fran\c,ois M\u"ller\>>   c:\\usr\\games
+@end example
+
+@end table
+@unnumberedsec AUTHOR
+
+Copyright (c) 1996 by Eryq / eryq@@rhine.gsfc.nasa.gov
+
+All rights reserved.  This program is free software; you can redistribute 
+it and/or modify it under the same terms as Perl itself.
+
+@unnumberedsec VERSION
+
+$Revision: 1.2 $ $Date: 1996/10/18 21:32:56 $
+

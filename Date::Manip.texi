@@ -1,0 +1,734 @@
+@node Date/Manip, Date/Parse, Date/Format, Module List
+@unnumbered date manipulation routines
+
+
+@unnumberedsec NAME
+
+Date::Manip - date manipulation routines
+
+@unnumberedsec SYNOPSIS
+
+@example
+use Date::Manip;
+@end example
+
+@example
+$date=&ParseDate(\@@args)
+$date=&ParseDate($string)
+$date=&ParseDate(\$string)
+@end example
+
+@example
+@@date=&UnixDate($date,@@format)
+$date=&UnixDate($date,@@format)
+@end example
+
+@example
+$delta=&ParseDateDelta(\@@args)
+$delta=&ParseDateDelta($string)
+$delta=&ParseDateDelta(\$string)
+@end example
+
+@example
+$d=&DateCalc($d1,$d2,$errref,$del)
+@end example
+
+@example
+$date=&Date_SetTime($date,$hr,$min,$sec)
+$date=&Date_SetTime($date,$time)
+@end example
+
+@example
+$date=&Date_GetPrev($date,$dow,$today,$hr,$min,$sec)
+$date=&Date_GetPrev($date,$dow,$today,$time)
+@end example
+
+@example
+$date=&Date_GetNext($date,$dow,$today,$hr,$min,$sec)
+$date=&Date_GetNext($date,$dow,$today,$time)
+@end example
+
+@example
+&Date_Init($lang,$format,$tz,$convtz)
+@end example
+
+@example
+$version=&DateManipVersion
+@end example
+
+@example
+The following routines are used by the above routines (though they can
+also be called directly).  Make sure that $y is entered as the full 4
+digit year... 2 digit years may give wrong results.  Most (if not all)
+of the information below can be gotten from UnixDate which is really
+the way I intended it to be gotten.
+@end example
+
+@example
+$day=&Date_DayOfWeek($m,$d,$y)
+$secs=&Date_SecsSince1970($m,$d,$y,$h,$mn,$s)
+$days=&Date_DaysSince999($m,$d,$y)
+$day=&Date_DayOfYear($m,$d,$y)
+$days=&Date_DaysInYear($y)
+$wkno=&Date_WeekOfYear($m,$d,$y,$first)
+$flag=&Date_LeapYear($y)
+$day=&Date_DaySuffix($d)
+$tz=&Date_TimeZone()
+@end example
+
+@unnumberedsec DESCRIPTION
+
+This is a set of routines to work with the Gregorian calendar (the one
+currently in use).  The Julian calendar defined leap years as every 4th
+year.  The Gregorian calendar improved this by making every 100th year
+NOT a leap year, unless it was also the 400th year.  The Gregorian
+calendar has been extrapolated back to the year 1000 AD and forward to
+the year 9999 AD.  Note that in historical context, the Julian calendar
+was in use until 1582 when the Gregorian calendar was adopted by the
+Catholic church.  Protestant countries did not accept it until later;
+Germany and Netherlands in 1698, British Empire in 1752, Russia in 1918.
+
+Note that the Gregorian calendar is itself imperfect.  Each year is on
+average 26 seconds too long, which means that every 3,323 years, a day
+should be removed from the calendar.  No attempt is made to correct for
+that.
+
+Among other things, these routines allow you to:
+
+1.  Enter a date and be able to choose any format conveniant
+
+2.  Compare two dates, entered in widely different formats to determine
+    which is earlier
+
+3.  Extract any information you want from ANY date using a format string
+    similar to the Unix date command
+
+4.  Determine the amount of time between two dates
+
+5.  Add a time offset to a date to get a second date (i.e. determine the
+    date 132 days ago or 2 years and 3 months after Jan 2, 1992)
+
+6.  Work with dates with dates using international formats (foreign month
+    names, 12-10-95 referring to October rather than December, etc.).
+
+Each of these tasks is trivial (one or two lines at most) with this package.
+
+Although the word date is used extensively here, it is actually somewhat
+misleading.  This package works with the full date AND time (year, month,
+day, hour, minute, second, timezone).
+
+In the documentation below, US formats are used, but in most cases, a
+non-English equivalent will work equally well.
+
+@unnumberedsec EXAMPLES
+
+1.  Parsing a date from any conveniant format
+
+@example
+$date=&ParseDate("today");
+$date=&ParseDate("1st thursday in June 1992");
+$date=&ParseDate("05-10-93");
+$date=&ParseDate("12:30 Dec 12th 1880");
+$date=&ParseDate("8:00pm december tenth");
+if (! $date) @{
+  # Error in the date
+@}
+@end example
+
+2.  Compare two dates
+
+@example
+$date1=&ParseDate($string1);
+$date2=&ParseDate($string2);
+if ($date1 lt $date2) @{
+  # date1 is earlier
+@} else @{
+  # date2 is earlier (or the two dates are identical)
+@}
+@end example
+
+3.  Extract information from a date.
+
+@example
+print &UnixDate("today","The time is now %T on %b %e, %Y.");
+=>  "The time is now 13:24:08 on Feb  3, 1996."
+@end example
+
+4.  The amount of time between two dates.
+
+@example
+$date1=&ParseDate($string1);
+$date2=&ParseDate($string2);
+$delta=&DateCalc($date1,$date2,\$err);
+=> 0:0:DD:HH:MM:SS   the days, hours, minutes, and seconds between the two
+$delta=&DateCalc($date1,$date2,\$err,1);
+=> YY:MM:DD:HH:MM:SS  the years, months, etc. between the two
+@end example
+
+@example
+Read the documentation below for an explanation of the difference.
+@end example
+
+5.  To determine a date a given offset from another.
+
+@example
+$date=&DateCalc("today","+ 3hours 12minutes 6 seconds",\$err);
+$date=&DateCalc("12 hours ago","12:30 6Jan90",\$err);
+@end example
+
+6.  To work with dates in another language.
+
+@example
+&Date_Init("French","non-US");
+$date=&ParseDate("1er decembre 1990");
+@end example
+
+@table @asis
+@item ParseDate
+@example
+$date=&ParseDate(\@@args)
+$date=&ParseDate($string)
+$date=&ParseDate(\$string)
+@end example
+
+This takes an array or a string containing a date and parses it.  When the
+date is included as an array (for example, the arguments to a program) the
+array should contain a valid date in the first one or more elements
+(elements after a valid date are ignored).  Elements containing a valid
+date are shifted from the array.  The largest possible number of elements
+which can be correctly interpreted as a valid date are always used.  If a
+string is entered rather than an array, that string is tested for a valid
+date.  The string is unmodified, even if passed in by reference.
+
+Times may be written as:
+  1) HH:MN  [Zone]
+     HH:MN:SS  [Zone]
+     HH:MN am  [Zone]
+     HH:MN:SS am  [Zone]
+  2) hh:MN  [Zone]
+     hh:MN:SS  [Zone]
+     hh:MN am  [Zone]
+     hh:MN:SS am [Zone]
+
+Fractional seconds are also supported in parsing both as:
+  HH:MN:SS:SSSS  [Zone]
+  HH:MN:SS.SSSS  [Zone]
+but the fractional part is discarded.
+
+The time may also include the timezone.  Timezones always appear after the
+time and must be separated from all other parts of the time/date by spaces.
+For now, only rudimentary timezone handling is done.  At the time the date
+is parsed, it is converted to a specific time zone (which defaults to
+whatever time zone you are in, but this can be overridden using the
+Date_Init routine described below).  After that, the time zone is never
+used.  Once converted, information about the time zone is no longer stored
+or used.
+
+Valid formats for a full date and time (and examples of how Dec 10, 1965 at
+9:00 pm might appear) are:
+  DateTime
+     Date=YYMMDD             1965121021:00:00  65121021:00
+     Time=format 1
+
+@example
+Date Time
+Date%Time
+  Date=mm%dd, mm%dd%YY     12/10/65 21:00    12 10 1965 9:00pm
+  Date=mmm%dd, mmm%dd%YY   December-10-65-9:00:00pm
+  Date=dd%mmm, dd%mmm%YY   10/December/65 9:00:00pm
+@end example
+
+@example
+Date Time
+  Date=mmmdd, mmmdd YY, mmmDDYY, mmm DDYY
+                           Dec10 65 9:00:00 pm    December 10 1965 9:00pm
+  Date=ddmmm, ddmmm YY, ddmmmYY, dd mmmYY
+                           10Dec65 9:00:00 pm     10 December 1965 9:00pm
+@end example
+
+@example
+TimeDate
+Time Date
+Time%Date
+  Date=mm%dd, mm%dd%YY     9:00pm 12.10.65      21:00 12/10/1965
+  Date=mmm%dd, mmm%dd%YY   9:00pm December/10/65
+  Date=dd%mmm, dd%mmm%YY   9:00pm 10-December-65  21:00/10/Dec/65
+@end example
+
+@example
+TimeDate
+Time Date
+  Date=mmmdd, mmmdd YY, mmmDDYY
+                           21:00:00DeCeMbEr10
+  Date=ddmmm, ddmmm YY, ddmmmYY, dd mmmYY
+                           21:00 10Dec95
+@end example
+
+@example
+which dofw in mmm at time
+which dofw in mmm YY at time  "first sunday in june 1996 at 14:00"
+@end example
+
+In addition, the following strings are recognized:
+  today
+  now       (synonym for today)
+  yesterday (exactly 24 hours before now)
+  tomorrow  (exactly 24 hours from now)
+
+@example
+%       One of the valid date separators: - . / or whitespace (the same
+        character must be used for all occurences of a single date)
+        example: mm%dd%YY works for 1-1-95, 1 1 95, or 1/1/95
+YY      year in 2 or 4 digit format
+MM      two digit month (01 to 12)
+mm      one or two digit month (1 to 12 or 01 to 12)
+mmm     month name or 3 character abbreviation
+DD      two digit day (01 to 31)
+dd      one or two digit day (1 to 31 or 01 to 31)
+HH      two digit hour in 12 or 24 hour mode (00 to 23)
+hh      one or two digit hour in 12 or 24 hour mode (0 to 23 or 00 to 23)
+MN      two digit minutes (00 to 59)
+SS      two digit seconds (00 to 59)
+which   one of the strings (first-fifth, 1st-5th, or last)
+dofw    either the 3 character abbreviation or full name of a day of
+        the week
+@end example
+
+Some things to note:
+
+All strings are case insensitive.  "December" and "DEceMBer" both work.
+
+When a part of the date is not given, defaults are used: year defaults
+to current year; hours, minutes, seconds to 00.
+
+In the above, the mm%dd formats can be switched to dd%mm by calling
+Date_Init and telling it to use a non-US date format.
+
+All "Date Time" and "DateTime" type formats allow the word "at" in them
+(i.e.  Jan 12 at 12:00) (and at can replace the space).  So the following
+are both acceptable: "Jan 12at12:00" and "Jan 12 at 12:00".
+
+A time is usually entered in 24 hour mode.  It can be followed by "am" or
+"pm" to force it to be read in in 12 hour mode.
+
+The year may be entered as 2 or 4 digits.  If entered as 2 digits, it is
+taken to be the year in the range CurrYear-89 to CurrYear+10.  So, if the
+current year is 1996, the range is [1907 to 2006] so entering the year 00
+refers to 2000, 05 to 2005, but 07 refers to 1907.
+
+Any number of spaces or tabs can be used anyhere whitespace is appropriate.
+
+Dates are always checked to make sure they are valid.
+
+In all of the formats, the day of week ("Friday") can be entered anywhere
+in the date and it will be checked for accuracy.  In other words,
+  "Tue Jul 16 1996 13:17:00"
+will work but
+  "Jul 16 1996 Wednesday 13:17:00"
+will not (because Jul 16, 1996 is Tuesday, not Wednesday).  Note that
+depending on where the weekday comes, it may give unexpected results when
+used in array context.  For example, the date ("Jun","25","Sun","1990")
+would return June 25 of the current year since only Jun 25, 1990 is not
+Sunday.
+
+The date returned is YYYYMMDDHH:MM:SS.  The advantage of this time
+format is that two times can be compared using simple string
+comparisons to find out which is later.  Also, it is readily understood
+by a human.
+
+@item UnixDate
+@example
+@@date=&UnixDate($date,@@format)
+$date=&UnixDate($date,@@format)
+@end example
+
+This takes a date and a list of strings containing formats roughly
+identical to the format strings used by the UNIX date(1) command.  Each
+format is parsed and an array of strings corresponding to each format is
+returned.
+
+$date must be of the form produced by &ParseDate.
+
+The format options are:
+
+@example
+Year
+    %y     year                     - 00 to 99
+    %Y     year                     - 0001 to 9999
+Month, Week
+    %m     month of year            - 01 to 12
+    %f     month of year            - " 1" to "12"
+    %b,%h  month abbreviation       - Jan to Dec
+    %B     month name               - January to December
+    %U     week of year, Sunday
+           as first day of week     - 00 to 53
+    %W     week of year, Monday
+           as first day of week     - 00 to 53
+Day
+    %j     day of the year          - 001 to 366
+    %d     day of month             - 01 to 31
+@end example
+
+@example
+%e     day of month             - " 1" to "31"
+%v     weekday abbreviation     - " S"," M"," T"," W","Th"," F","Sa"
+%a     weekday abbreviation     - Sun to Sat
+%A     weekday name             - Sunday to Saturday
+%w     day of week              - 0 (Sunday) to 6
+%E     day of month with suffix - 1st, 2nd, 3rd...
+ Hour
+%H     hour                     - 00 to 23
+%k     hour                     - " 0" to "23"
+%i     hour                     - " 1" to "12"
+%I     hour                     - 01 to 12
+%p     AM or PM
+ Minute, Second, Timezone
+%M     minute                   - 00 to 59
+%S     second                   - 00 to 59
+%s     seconds from Jan 1, 1970 - negative if before 1/1/1970
+%z,%Z  timezone (3 characters)  - "EDT"
+ Date, Time
+%c     %a %b %e %H:%M:%S %Y     - Fri Apr 28 17:23:15 1995
+%C,%u  %a %b %e %H:%M:%S %z %Y  - Fri Apr 28 17:25:57 EDT 1995
+%D,%x  %m/%d/%y                 - 04/28/95
+%l     date in ls(1) format
+         %b %e $H:$M            - Apr 28 17:23  (if within 6 months)
+         %b %e  %Y              - Apr 28  1993  (otherwise)
+%r     %I:%M:%S %p              - 05:39:55 PM
+%R     %H:%M                    - 17:40
+%T,%X  %H:%M:%S                 - 17:40:58
+%V     %m%d%H%M%y               - 0428174095
+%Q     %Y%m%d                   - 19961025
+%F     %A, %B %e, %Y            - Sunday, January  1, 1996
+ Other formats
+%n     insert a newline character
+%t     insert a tab character
+%%     insert a @`%@' character
+%+     insert a @`+@' character
+ All other formats insert the character following the %.  If a lone
+ percent is the final character in a format, it is ignored.
+@end example
+
+Note that the ls format applies to date within the past OR future 6 months!
+
+The following formats are currently unused but may be used in the future:
+  goq GJKLNOP 1234567890 !@@#$^&*()_|-=\@`[];@',./~@{@}:<>?
+
+This routine is loosely based on date.pl (version 3.2) by Terry McGonigal.
+No code was used, but most of his formats were.
+
+@item ParseDateDelta
+@example
+$delta=&ParseDateDelta(\@@args)
+$delta=&ParseDateDelta($string)
+$delta=&ParseDateDelta(\$string)
+@end example
+
+This takes an array and shifts a valid delta date (an amount of time)
+from the array.  Recognized deltas are of the form:
+  +Yy +Mm +Dd +Hh +MNmn +Ss
+      examples:
+         +4 hours +3mn -2second
+         + 4 hr 3 minutes -2
+         4 hour + 3 min -2 s
+  +Y:+M:+D:+H:+MN:+S
+      examples:
+         0:0:0:4:3:-2
+         +4:3:-2
+  mixed format
+      examples:
+         4 hour 3:-2
+
+A field in the format +Yy is a sign, a number, and a string specifying
+the type of field.  The sign is "+", "-", or absent (defaults to the
+last sign given).  The valid strings specifying the field type
+are:
+   y:  y, yr, year, years
+   m:  m, mon, month, months
+   d:  d, day, days
+   h:  h, hr, hour, hours
+   mn: mn, min, minute, minutes
+   s:  s, sec, second, seconds
+
+Also, the "s" string may be omitted.  The sign, number, and string may
+all be separated from each other by any number of whitespaces.
+
+In the date, all fields must be given in the order: y m d h mn s.  Any
+number of them may be omitted provided the rest remain in the correct
+order.  In the 2nd (colon) format, from 2 to 6 of the fields may be given.
+For example +D:+H:+MN:+S may be given to specify only four of the fields.
+In any case, both the MN and S field may be present.  No spaces may be
+present in the colon format.
+
+Deltas may also be given as a combination of the two formats.  For example,
+the following is valid: +Yy +D:+H:+MN:+S.  Again, all fields must be given
+in the correct order.
+
+The word "in" may be prepended to the delta ("in 5 years") and the word
+"ago" may be appended ("6 months ago").  The "in" is completely ignored.
+The "ago" has the affect of reversing all signs that appear in front of the
+components of the delta.  I.e. "-12 yr 6 mon ago" is identical to "+12yr
++6mon" (don@'t forget that there is an impled minus sign in front of the 6
+because when no sign is explicitely given, it carries the previously
+entered sign).
+
+One thing is worth noting.  When a delta consists only of day/hour/min/sec,
+it is returned in a "normalized" form.  That is, the signs are adjusted
+so as to be all positive or all negative.  For example, "+ 2 day - 2hour"
+does not return "0:0:2:-2:0:0".  It returns "0:0:1:22:0:0" (1 day 22 hours
+which is equivalent).  I find (and I think most others agree) that this is
+a more useful form.
+
+@item DateCalc
+@example
+$d=&DateCalc($d1,$d2,\$err [,$del])
+@end example
+
+This takes two dates, deltas, or one of each and performs the appropriate
+calculation with them.  Dates must be in the format given by &ParseDate and
+or must be a string which can be parsed as a date.  Deltas must be in the
+format returned by &ParseDateDelta or must be a string that can be parsed
+as a delta.  Two deltas add together to form a third delta.  A date and a
+delta returns a 2nd date.  Two dates return a delta (the difference between
+the two dates).
+
+Note that in many cases, it is somewhat ambiguous what the delta actually
+refers to.  Although it is ALWAYS known how many months in a year, hours in
+a day, etc., it is NOT known how many days form a month.  As a result, the
+part of the delta containing month/year and the part with sec/min/hr/day
+must be treated separately.  For example, "Mar 31, 12:00:00" plus a delta
+of 1month 2days would yield "May 2 12:00:00".  The year/month is first
+handled while keeping the same date.  Mar 31 plus one month is Apr 31 (but
+since Apr only has 30 days, it becomes Apr 30).  Apr 30 + 2 days is May 2.
+
+In the case where two dates are entered, the resulting delta can take on
+two different forms.  By default, an absolutely correct delta (ignoring
+daylight savings time) is returned in days, hours, minutes, and seconds.
+If $del is non-nil, a delta is returned using years and months as well.
+The year and month part is calculated first followed by the rest.  For
+example, the two dates "Mar 12 1995" and "Apr 10 1995" would have an
+absolutely correct delta of "29 days" but if $del is non-nil, it would be
+returned as "1 month - 2 days".  Also, "Mar 31" and "Apr 30" would have
+deltas of "30 days" or "1 month" (since Apr 31 doesn@'t exist, it drops down
+to Apr 30).  The latter is (sometimes) a more human way of looking at
+things (you@'d say 1 month and 2 days more often then 33 days), but it is
+not a meaningful in terms of absolute time.
+
+$err is set to:
+   1 is returned if $d1 is not a delta or date
+   2 is returned if $d2 is not a delta or date
+   3 is returned if the date is outside the years 1000 to 9999
+
+Nothing is returned if an error occurs.
+
+If $del is non-nil, both $d1 and $d2 must be dates.
+
+When an absolutely correct delta is returned, signs are adjusted so that
+they are all positive or all negative.  See the note above in the
+ParseDateDelta section for more explanation.
+
+@item Date_SetTime
+@example
+$date=&Date_SetTime($date,$hr,$min,$sec)
+$date=&Date_SetTime($date,$time)
+@end example
+
+This takes a date sets the time in that date.  For example, to get
+the time for 7:30 tomorrow, use the lines:
+
+@example
+$date=&ParseDate("tomorrow")
+$date=&Date_SetTime($date,"7:30")
+@end example
+
+@item Date_GetPrev
+@example
+$date=&Date_GetPrev($date,$dow,$today,$hr,$min,$sec)
+$date=&Date_GetPrev($date,$dow,$today,$time)
+@end example
+
+This takes a date and returns the date of the previous $day.  For example,
+if $dow is "Fri", it returns the date of the previous Friday.  If $date is
+Friday, it will return either $date (if $today is non-zero) or the Friday a
+week before (if $today is 0).  The time is also set according to the
+optional $hr,$min,$sec (or $time in the format HH:MM:SS or HH:MM).
+
+@item Date_GetNext
+@example
+$date=&Date_GetNext($date,$dow,$today,$hr,$min,$sec)
+$date=&Date_GetNext($date,$dow,$today,$time)
+@end example
+
+Similar to Date_GetPrev.
+
+@item Date_DayOfWeek
+@example
+$day=&Date_DayOfWeek($m,$d,$y);
+@end example
+
+Returns the day of the week (0 for Sunday, 6 for Saturday).  Dec 31, 0999
+was Tuesday.
+
+@item Date_SecsSince1970
+@example
+$secs=&Date_SecsSince1970($m,$d,$y,$h,$mn,$s)
+@end example
+
+Returns the number of seconds since Jan 1, 1970 00:00 (negative if date is
+earlier).
+
+@item Date_DaysSince999
+@example
+$days=&Date_DaysSince999($m,$d,$y)
+@end example
+
+Returns the number of days since Dec 31, 0999.
+
+@item Date_DayOfYear
+@example
+$day=&Date_DayOfYear($m,$d,$y);
+@end example
+
+Returns the day of the year (001 to 366)
+
+@item Date_DaysInYear
+@example
+$days=&Date_DaysInYear($y);
+@end example
+
+Returns the number of days in the year (365 or 366)
+
+@item Date_WeekOfYear
+@example
+$wkno=&Date_WeekOfYear($m,$d,$y,$first);
+@end example
+
+Figure out week number.  $first is the first day of the week which is
+usually 0 (Sunday) or 1 (Monday), but could be any number between 0 and 6
+in practice.
+
+@item Date_LeapYear
+@example
+$flag=&Date_LeapYear($y);
+@end example
+
+Returns 1 if the argument is a leap year
+Written by David Muir Sharnoff <muir@@idiom.com>
+
+@item Date_DaySuffix
+@example
+$day=&Date_DaySuffix($d);
+@end example
+
+Add @`st@', @`nd@', @`rd@', @`th@' to a date (ie 1st, 22nd, 29th).  Works for
+international dates.
+
+@item Date_TimeZone
+@example
+$tz=&Date_TimeZone
+@end example
+
+This returns a timezone.  It looks in the following places for a
+timezone in the following order:
+   $ENV@{TZ@}
+   $main::TZ
+   /etc/TIMEZONE
+   date @'+%Z@'
+If it@'s not found in any of those places, GMT is returned.
+Obviously, this does not guarantee the correct timezone.
+
+@item Date_Init
+@example
+$flag=&Date_Init();
+$flag=&Date_Init($lang,$format,$tz,$convtz);
+@end example
+
+Normally, it is not necessary to explicitely call Date_Init.  The first
+time any of the other routines are called, Date_Init will be called to set
+everything up.  If for some reason you want to parse dates in multiple
+languages, you can pass in the language and format information and
+reinitialize everything for a different language.
+
+Recognized values of $lang are:
+   English
+   French
+   Swedish
+Others will be added in the future (contributions are welcome).
+
+$format should be "US" or any other string.  Most US people look at the
+date 12/10/96 as MM/DD/YY or Dec 10, 1996.  Many countries would regard
+this as Oct 12, 1996 instead.  Setting the $form variable to "US" forces
+the first one.  Anything else forces the 2nd.
+
+$tz and $convtz are both time zones.  $tz should be the current time zone
+and $convtz should be the time zone you want to work in (GMT for example).
+
+All four arguments are optional.  For example, to stop working in the
+current time zone and start working in GMT, use:
+
+@example
+$flag=&Date_Init("","","","GMT");
+@end example
+
+If you change timezones in the middle of using Date::Manip, comparing dates
+from before the switch to dates from after the switch will produce incorrect
+results.
+
+@item DateManipVersion
+@example
+$version=&DateManipVersion
+@end example
+
+Returns the version of Date::Manip.
+
+@end table
+@unnumberedsec KNOWN BUGS
+
+If you use Date::Manip to sort a number of dates, you must call Date_Init
+either explicitely, or by way of some other Date::Manip routine before it
+is used in the sort.  For example, the following code fails:
+
+@example
+use Date::Manip;
+# &Date_Init;
+sub sortDate @{
+    my($date1, $date2);
+    $date1 = &ParseDate($a);
+    $date2 = &ParseDate($b);
+    return ($date1 cmp $date2);
+@}
+@@date = ("Fri 16 Aug 96",
+         "Mon 19 Aug 96",
+         "Thu 15 Aug 96");
+@@i=sort sortDate @@dates;
+@end example
+
+but if you uncomment the Date_Init line, it works.  The reason for this
+is that the first time you call Date_Init, it initializes a number of
+items used by Date::Manip.  Some of these are sorted.  It turns out that
+perl does not like a sort within a sort.  The solution is to do the
+initialization sorting ahead of time by calling Date_Init explicitely.
+
+If you are running a script which uses Date::Manip over a period of time
+which starts in one time zone and ends in another (i.e. it switches form
+Daylight Savings Time to Standard Time or vice versa), many things may be
+wrong (especially elapsed time).  Since the most likely place for
+Date::Manip probably gets the current time zone is from an environment
+variable, you will have to reset this variable (by logging out or other
+means) and restart the script under the new environment before it is back
+to normal.
+
+If you try to put Date::Manip under RCS control, you are going to have
+problems.  RCS replaces strings of the form "$Date...$" with the current
+date.  This form occurs all over in Date::Manip.  Since very few people
+will ever have a desire to do this, I have not worried about it.  Perhaps
+some time in the future.
+
+One other feature (not a bug :-) is that the "%s" format in UnixDate
+returns the number of seconds since Jan 1, 1970 in the CURRENT time zone,
+not since GMT.
+
+@unnumberedsec AUTHOR
+
+Sullivan Beck (beck@@qtp.ufl.edu)
+

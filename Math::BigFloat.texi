@@ -1,0 +1,61 @@
+@node Math/BigFloat, Math/BigInt, Math/Approx, Module List
+@unnumbered Arbitrary length float math package
+
+
+@unnumberedsec NAME
+
+Math::BigFloat - Arbitrary length float math package
+
+@unnumberedsec SYNOPSIS
+
+@example
+use Math::BogFloat;
+$f = Math::BigFloat->new($string);
+@end example
+
+@example
+$f->fadd(NSTR) return NSTR            addition
+$f->fsub(NSTR) return NSTR            subtraction
+$f->fmul(NSTR) return NSTR            multiplication
+$f->fdiv(NSTR[,SCALE]) returns NSTR   division to SCALE places
+$f->fneg() return NSTR                negation
+$f->fabs() return NSTR                absolute value
+$f->fcmp(NSTR) return CODE            compare undef,<0,=0,>0
+$f->fround(SCALE) return NSTR         round to SCALE digits
+$f->ffround(SCALE) return NSTR        round at SCALEth place
+$f->fnorm() return (NSTR)             normalize
+$f->fsqrt([SCALE]) return NSTR        sqrt to SCALE places
+@end example
+
+@unnumberedsec DESCRIPTION
+
+All basic math operations are overloaded if you declare your big
+floats as
+
+@example
+$float = new Math::BigFloat "2.123123123123123123123123123123123";
+@end example
+
+@table @asis
+@item number format
+canonical strings have the form /[+-]\d+E[+-]\d+/ .  Input values can
+have inbedded whitespace.
+
+@item Error returns @'NaN@'
+An input parameter was "Not a Number" or divide by zero or sqrt of
+negative number.
+
+@item Division is computed to 
+@code{max($div_scale,length(dividend)+length(divisor))} digits by default.
+Also used for default sqrt scale.
+
+@end table
+@unnumberedsec BUGS
+
+The current version of this module is a preliminary version of the
+real thing that is currently (as of perl5.002) under development.
+
+@unnumberedsec AUTHOR
+
+Mark Biggar
+

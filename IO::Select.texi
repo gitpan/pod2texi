@@ -1,0 +1,136 @@
+@node IO/Select, IO/Socket, IO/Seekable, Module List
+@unnumbered OO interface to the select system call
+
+
+@unnumberedsec NAME
+
+IO::Select - OO interface to the select system call
+
+@unnumberedsec SYNOPSIS
+
+@example
+use IO::Select;
+@end example
+
+@example
+$s = IO::Select->new();
+@end example
+
+@example
+$s->add(\*STDIN);
+$s->add($some_handle);
+@end example
+
+@example
+@@ready = $s->can_read($timeout);
+@end example
+
+@example
+@@ready = IO::Select->new(@@handles)->read(0);
+@end example
+
+@unnumberedsec DESCRIPTION
+
+The @code{IO::Select} package implements an object approach to the system select
+function call. It allows the user to see what IO handles, see @xref{IO/Handle,IO/Handle},,
+are ready for reading, writing or have an error condition pending.
+
+@unnumberedsec CONSTRUCTOR
+
+@table @asis
+@item new ( [ HANDLES ] )
+The constructor creates a new object and optionally initialises it with a set
+of handles.
+
+@end table
+@unnumberedsec METHODS
+
+@table @asis
+@item add ( HANDLES )
+Add the list of handles to the @code{IO::Select} object. It is these values that
+will be returned when an event occurs. @code{IO::Select} keeps these values in a
+cache which is indexed by the fileno of the handle, so if more than one
+handle with the same fileno is specified then only the last one is cached.
+
+@item remove ( HANDLES )
+Remove all the given handles from the object. This method also works
+by the fileno of the handles. So the exact handles that were added
+need not be passed, just handles that have an equivalent fileno
+
+@item can_read ( [ TIMEOUT ] )
+Return an array of handles that are ready for reading. @code{TIMEOUT} is the maximum
+amount of time to wait before returning an empty list. If @code{TIMEOUT} is
+not given then the call will block.
+
+@item can_write ( [ TIMEOUT ] )
+Same as can_read except check for handles that can be written to.
+
+@item has_error ( [ TIMEOUT ] )
+Same as can_read except check for handles that have an error condition, for
+example EOF.
+
+@item count ()
+Returns the number of handles that the object will check for when
+one of the @code{can_} methods is called or the object is passed to
+the select static method.
+
+@item select ( READ, WRITE, ERROR [, TIMEOUT ] )
+select is a static method, that is you call it with the package name
+like new. @code{READ}, @code{WRITE} and @code{ERROR} are either undef or
+@code{IO::Select} objects. @code{TIMEOUT} is optional and has the same effect as
+before.
+
+The result will be an array of 3 elements, each a reference to an array
+which will hold the handles that are ready for reading, writing and have
+error conditions respectively. Upon error an empty array is returned.
+
+@end table
+@unnumberedsec EXAMPLE
+
+Here is a short example which shows how @code{IO::Select} could be used
+to write a server which communicates with several sockets while also
+listening for more connections on a listen socket
+
+@example
+use IO::Select;
+use IO::Socket;
+@end example
+
+@example
+$lsn = new IO::Socket::INET(Listen => 1, LocalPort => 8080);
+$sel = new IO::Select( $lsn );
+
+while(@@ready = $sel->can_read) @{
+    foreach $fh (@@ready) @{
+        if($fh == $lsn) @{
+            # Create a new socket
+            $new = $lsn->accept;
+            $sel->add($new);
+        @}
+        else @{
+            # Process socket
+@end example
+
+@example
+# Maybe we have finished with the socket
+$sel->remove($fh);
+$fh->close;
+            @}
+        @}
+    @}
+@end example
+
+@unnumberedsec AUTHOR
+
+Graham Barr <@file{Graham.Barr@@tiuk.ti.com}>
+
+@unnumberedsec REVISION
+
+$Revision: 1.9 $
+
+@unnumberedsec COPYRIGHT
+
+Copyright (c) 1995 Graham Barr. All rights reserved. This program is free
+software; you can redistribute it and/or modify it under the same terms
+as Perl itself.
+

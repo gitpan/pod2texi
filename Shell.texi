@@ -1,0 +1,65 @@
+@node Shell, Socket, Set/IntSpan, Module List
+@unnumbered run shell commands transparently within perl
+
+
+@unnumberedsec NAME
+
+Shell - run shell commands transparently within perl
+
+@unnumberedsec SYNOPSIS
+
+See below.
+
+@unnumberedsec DESCRIPTION
+
+@example
+Date: Thu, 22 Sep 94 16:18:16 -0700
+Message-Id: <9409222318.AA17072@@scalpel.netlabs.com>
+To: perl5-porters@@isu.edu
+From: Larry Wall <lwall@@scalpel.netlabs.com>
+Subject: a new module I just wrote
+@end example
+
+Here@'s one that@'ll whack your mind a little out.
+
+@example
+#!/usr/bin/perl
+@end example
+
+@example
+use Shell;
+@end example
+
+@example
+$foo = echo("howdy", "<funny>", "world");
+print $foo;
+@end example
+
+@example
+$passwd = cat("</etc/passwd");
+print $passwd;
+@end example
+
+@example
+sub ps;
+print ps -ww;
+@end example
+
+@example
+cp("/etc/passwd", "/tmp/passwd");
+@end example
+
+That@'s maybe too gonzo.  It actually exports an AUTOLOAD to the current
+package (and uncovered a bug in Beta 3, by the way).  Maybe the usual
+usage should be
+
+@example
+use Shell qw(echo cat ps cp);
+@end example
+
+Larry
+
+@unnumberedsec AUTHOR
+
+Larry Wall
+

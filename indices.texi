@@ -1,0 +1,19 @@
+
+@node Function Index, Predefined Variable Index, , Top
+@comment    node-name,         next,       previous, up
+@unnumbered Function Index
+
+@printindex fn
+
+@node Predefined Variable Index, Diagnostics Index, Function Index, Top
+@comment    node-name,         next,       previous, up
+@unnumbered Predefined Variable Index
+
+@printindex vr
+
+@node     Diagnostics Index,  , Predefined Variable Index, Top
+@comment      node-name, next,       previous, up
+@unnumbered Diagnostics Index
+
+@printindex dg
+

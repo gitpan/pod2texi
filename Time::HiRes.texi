@@ -1,0 +1,163 @@
+@node Time/HiRes, Time/JulianDay, Time/DaysInMonth, Module List
+@unnumbered Perl extension for ualarm, usleep, and gettimeofday
+
+
+@unnumberedsec NAME
+
+Time::HiRes - Perl extension for ualarm, usleep, and gettimeofday
+
+@unnumberedsec SYNOPSIS
+
+@example
+use Time::HiRes;
+@end example
+
+@example
+Time::HiRes::usleep ($microseconds);
+@end example
+
+@example
+Time::HiRes::ualarm ($microseconds, $interval_microseconds);
+@end example
+
+@example
+$t0 = [Time::HiRes::gettimeofday];
+($seconds, $microseconds) = Time::HiRes::gettimeofday;
+@end example
+
+@example
+$elapsed = Time::HiRes::tv_interval ( $t0, [$seconds, $microseconds]);
+$elapsed = Time::HiRes::tv_interval ( $t0, [Time::HiRes::gettimeofday]);
+$elapsed = Time::HiRes::tv_interval ( $t0 );
+@end example
+
+@example
+$now_fractions = Time::HiRes::time;
+@end example
+
+@example
+Time::HiRes::sleep ($floating_seconds);
+@end example
+
+@example
+Time::HiRes::alarm ($floating_seconds);
+Time::HiRes::alarm ($floating_seconds, $floating_interval);
+ 
+use Time::HiRes qw ( time alarm sleep );
+$now_fractions = time;
+sleep ($floating_seconds);
+alarm ($floating_seconds);
+@end example
+
+@unnumberedsec DESCRIPTION
+
+The @code{Time::HiRes} package implements a Perl interface to usleep, ualarm,
+and gettimeofday system calls. See the EXAMPLES section below and the test
+scripts for usage; see your system documentation for the description of
+the underlying gettimeofday, usleep, and ualarm calls.
+
+@table @asis
+@item gettimeofday
+Returns a 2 element array with the second and microseconds since the epoch.
+
+@item usleep ( $useconds )
+Issues a usleep for the # of microseconds specified. See also 
+Time::HiRes::sleep.
+
+@item ualarm ( $useconds [, $interval_useconds ] )
+Issues a ualarm call; interval_useconds is optional and will be 0 if 
+unspecified, resulting in alarm-like behaviour.
+
+@item tv_interval ( $ref_to_gettimeofday [, $ref_to_later_gettimeofday] )
+Returns the floating seconds between the two times, which should have been 
+returned by Time::HiRes::gettimeofday. If the second is omitted, then the
+current time is use.
+
+@item time 
+Returns a floating seconds since the epoch. This function can be exported,
+resulting in a nice drop-in replacement for the time provided with perl,
+see the EXAMPLES below.
+
+@item sleep ( $floating_seconds )
+Converts $floating_seconds to microseconds and issues a usleep for the 
+result.  This function can be exported, resulting in a nice drop-in 
+replacement for the sleep provided with perl, see the EXAMPLES below.
+
+@item alarm ( $floating_seconds [, $interval_floating_seconds ] )
+Converts $floating_seconds and $interval_floating_seconds and issues a
+ualarm for the results.  $interval_floating_seconds is optional and will 
+be 0 if unspecified, resulting in alarm-like behaviour.  This function can 
+be exported, resulting in a nice drop-in 
+replacement for the alarm provided with perl, see the EXAMPLES below.
+
+@end table
+@unnumberedsec EXAMPLES
+
+@example
+use Time::HiRes;
+@end example
+
+@example
+$microseconds = 750_000;
+Time::HiRes::usleep ($microseconds);
+@end example
+
+@example
+# signal alarm in 2.5s & every .1 s thereafter
+Time::HiRes::ualarm (2_500_000, 100_000);	
+@end example
+
+@example
+# get seconds and microseconds since the epoch
+($s, $usec) = Time::HiRes::gettimeofday;
+@end example
+
+@example
+# measure elapsed time 
+# (could also do by subtracting 2 Time::HiRes:gettimeofday_f return values)
+$t0 = [Time::HiRes::gettimeofday];
+# do bunch of stuff here
+$t1 = [Time::HiRes::gettimeofday];
+# do more stuff here
+$t0_t1 = Time::HiRes::tv_interval ($t0, $t1);
+
+$elapsed = Time::HiRes::tv_interval ($t0, [Time::HiRes::gettimeofday]);
+$elapsed = Time::HiRes::tv_interval ($t0);	# equivalent code
+@end example
+
+@example
+#
+# replacements for time, alarm and sleep that know about floating seconds
+#
+use Time::HiRes;
+$now_fractions = Time::HiRes::time;
+Time::HiRes::sleep (2.5);
+Time::HiRes::alarm (10.6666666);
+ 
+use Time::HiRes qw ( time alarm sleep );
+$now_fractions = time;
+sleep (2.5);
+alarm (10.6666666);
+@end example
+
+@unnumberedsec AUTHOR
+
+D. Wegscheid <wegscd@@whirlpool.com>
+
+@unnumberedsec REVISION
+
+$Id: HiRes.pm,v 1.1 1996/10/17 20:53:31 wegscd Exp $
+
+$Log: HiRes.pm,v $
+Revision 1.1  1996/10/17 20:53:31  wegscd
+Fix =head1 being next to __END__ so pod2man works
+
+Revision 1.0  1996/09/03 18:25:15  wegscd
+Initial revision
+
+@unnumberedsec COPYRIGHT
+
+Copyright (c) 1996 Douglas E. Wegscheid.
+All rights reserved. This program is free software; you can
+redistribute it and/or modify it under the same terms as Perl itself.
+

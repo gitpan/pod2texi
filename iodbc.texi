@@ -1,0 +1,883 @@
+@node iodbc, less, integer, Module List
+@unnumbered Perl extension for the iODBC API
+
+
+@unnumberedsec NAME
+
+iodbc - Perl extension for the iODBC API
+
+@unnumberedsec SYNOPSIS
+
+This man page is not intended to be a manual on the ODBC API.  Please see an ODBC manual for extended documentation on the usage of ODBC commands.
+
+To use iodbc functions:
+
+@code{use iodbc;}
+
+@unnumberedsec DESCRIPTION   
+
+Everything in the extension follows the ODBC core API except that all function calls are pass by value.  The one exception is SQLBindCol which needs to be passed a reference to a scalar.  For More information please seek a ODBC manual and remember that this extension only works with core implementations.
+
+@unnumberedsubsec Functions
+
+The following functions are included with this iodbc extension.  Parameters marked [i] are for input into the function while parameters marked [r] return data from a function.
+
+@itemize @bullet
+@item 
+SQLAllocEnv
+
+@table @asis
+@item Syntax
+@code{SQLAllocEnv($hEnv);}
+
+@item Parameters
+@itemx 
+$hEnv 
+
+@table @asis
+@item 
+[o]  The environment handle.  This will be passed to other functions.
+
+@end table
+@end table
+@item 
+SQLAllocConnect
+
+@table @asis
+@item Syntax
+@code{SQLAllocConnect($hEnv, $hDbc);}
+
+@item Parameters
+@itemx 
+$hEnv 
+
+@table @asis
+@item 
+[i]  The environment handle as it is returned from @code{SQLAllocEnv()}.
+
+@end table
+@item 
+$hDbc
+
+@table @asis
+@item 
+[o]  The connection handle.  This will be passed to other functions.
+
+@end table
+@end table
+@item 
+SQLConnect
+
+@table @asis
+@item Syntax
+@code{SQLConnect($hDbc, $pvDsn, $ivfDsnSize, $pvUid, $ivfUidSize, $pvPwd, $ivfPwdSize);}
+
+@item Parameters
+@itemx 
+$hDbc 
+
+@table @asis
+@item 
+[i]  The connection handle as it is returned from @code{SQLAllocConnect()}.
+
+@end table
+@item 
+$pvDsn
+
+@table @asis
+@item 
+[i]  The data source name.  This should be a string.
+
+@end table
+@item 
+$ivfDsnSize
+
+@table @asis
+@item 
+[i]  The size of $pvDsn.  It should be @code{SQL_NTS}.  This stands for a null terminated string.
+
+@end table
+@item 
+$pvUid 
+
+@table @asis
+@item 
+[i]  The user id.  This should also be a string.  
+
+@end table
+@item 
+$ivfUidSize
+
+@table @asis
+@item 
+[i]  The size of $pvUid.  It should also be @code{SQL_NTS}.
+
+@end table
+@item 
+$pvPwd 
+
+@table @asis
+@item 
+[i]  The password.  Once again it should be a string.
+
+@end table
+@item 
+$ivfPwdSize 
+
+@table @asis
+@item 
+[i]  The size of pvPwd.  Once again it should be @code{SQL_NTS}
+
+@end table
+@end table
+@item 
+SQLAllocStmt
+
+@table @asis
+@item Syntax
+@code{SQLAllocStmt($hDbc, $hStmt);}
+
+@item Parameters
+@itemx 
+$hDbc 
+
+@table @asis
+@item 
+[i]  The connection handle as it is returned from @code{SQLAllocConnect()}.
+
+@end table
+@item 
+$hStmt
+
+@table @asis
+@item 
+[o]  The statement handle.  This will be passed to other functions.
+
+@end table
+@end table
+@item 
+SQLGetCursorName
+
+@table @asis
+@item Syntax
+@code{SQLGetCursorName($hStmt, $pvCursor, $ivCursorMax, $ivCursorSize);}
+
+@item Parameters
+@itemx 
+$hStmt 
+
+@table @asis
+@item 
+[i]  The statement handle as it is returned from @code{SQLAllocStmt()}.
+
+@end table
+@item 
+$pvCursor
+
+@table @asis
+@item 
+[o]  The cursor name associated with the $hStmt.  This will be returned from the function as a string of maximum length $ivCursorMax.
+
+@end table
+@item 
+$ivCursorMax
+
+@table @asis
+@item 
+[i]  The maximum size of $ivCursor.
+
+@end table
+@item 
+$ivCursorSize
+
+@table @asis
+@item 
+[i]  The actual size of the string available for return to $pvCursor.
+
+@end table
+@end table
+@item 
+SQLSetCursorName
+
+@table @asis
+@item Syntax
+@code{SQLSetCursorName($hStmt, $pvCursor, $ivfCursorSize);}
+
+@item Parameters
+@itemx 
+$hStmt 
+
+@table @asis
+@item 
+[i]  The statement handle as it is returned from @code{SQLAllocStmt()}.
+
+@end table
+@item 
+$pvCursor
+
+@table @asis
+@item 
+[i]  The Cursor Name to be associated with the $hStmt.  This should be a string.
+
+@end table
+@item 
+$ivfCursorSize
+
+@table @asis
+@item 
+[i]  The size of $pvCursor.  This should be @code{SQL_NTS}.
+
+@end table
+@end table
+@item 
+SQLPrepare
+
+@table @asis
+@item Syntax
+@code{SQLPrepare($hStmt, $pvSql, $ivfSqlSize);}
+
+@item Parameters
+@itemx 
+$hStmt 
+
+@table @asis
+@item 
+[i]  The statement handle as it is returned from @code{SQLAllocStmt()}.
+
+@end table
+@item 
+$pvSql
+
+@table @asis
+@item 
+[i]  The SQL statement to be prepared.  This should be a string.
+
+@end table
+@item 
+$ivfSqlSize
+
+@table @asis
+@item 
+[i]  The size of $Sql.  This should be @code{SQL_NTS}.
+
+@end table
+@end table
+@item 
+SQLExecute
+
+@table @asis
+@item Syntax
+@code{SQLExecute($hStmt);}
+
+@item Parameters
+@itemx 
+$hStmt 
+
+@table @asis
+@item 
+[i]  The statement handle as it is returned from @code{SQLAllocStmt()}.
+
+@end table
+@end table
+@item 
+SQLExecDirect
+
+@table @asis
+@item Syntax
+@code{SQLExecDirect($hStmt, $pvSql, $ivfSqlSize);}
+
+@item Parameters
+@itemx 
+$hStmt 
+
+@table @asis
+@item 
+[i]  The statement handle as it is returned from @code{SQLAllocStmt()}.
+
+@end table
+@item 
+$pvSql
+
+@table @asis
+@item 
+[i]  The SQL statement to be prepared.  This should be a string.
+
+@end table
+@item 
+$ivfSqlSize
+
+@table @asis
+@item 
+[i]  The size of $pvSql.  This should be @code{SQL_NTS}.
+
+@end table
+@end table
+@item 
+SQLRowCount
+
+@table @asis
+@item Syntax
+@code{SQLRowCount($hStmt, $ivNumRows);}
+
+@item Parameters
+@itemx 
+$hStmt
+
+@table @asis
+@item 
+[i]  The statement handle as it is returned from @code{SQLAllocStmt()}.
+
+@end table
+@item 
+$ivNumCols
+
+@table @asis
+@item 
+[o]  The number of rows affected by the SQL statement just executed in $hStmt.  This works for @code{UPDATE}, @code{INSERT} and DELETE statements.
+
+@end table
+@end table
+@item 
+SQLNumResultCols
+
+@table @asis
+@item Syntax
+@code{SQLNumResultCols($hStmt, $ivNumCols);}
+
+@item Parameters
+@itemx 
+$hStmt 
+
+@table @asis
+@item 
+[i]  The statement handle as it is returned from @code{SQLAllocStmt()}.
+
+@end table
+@item 
+$ivNumCols
+
+@table @asis
+@item 
+[o]  The Number of columns returned in a result set of a SQL statement in $hStmt.  
+
+@end table
+@end table
+@item 
+SQLDescribeCol
+
+@table @asis
+@item Syntax
+@code{SQLDescribeCol($hStmt, $ivCol, $pvColName, $ivColNameMax, $ivColNameSize, $fSqlType, $ivPrecision, $ivScale, $fNullable);}
+
+@item Parameters
+@itemx 
+$hStmt 
+
+@table @asis
+@item 
+[i]  The statement handle as it is returned from @code{SQLAllocStmt()}.
+
+@end table
+@item 
+$ivCol
+
+@table @asis
+@item 
+[i]  The function will return a description of this column.
+
+@end table
+@item 
+$pvColName
+
+@table @asis
+@item 
+[o]  A string that contains the name of column $ivCol
+
+@end table
+@item 
+$ivColNameMax
+
+@table @asis
+@item 
+[i]  The maximum size of the column name to return to $pvColName
+
+@end table
+@item 
+$ivColNameSize
+
+@table @asis
+@item 
+[o]  The size of the column name available to return to $pvColName
+
+@end table
+@item 
+$fSqlType
+
+@table @asis
+@item 
+[o]  The type of data contained in column $ivCol.
+
+@end table
+@item 
+$ivPrecision 
+
+@table @asis
+@item 
+[o]  The precision of column $ivCol.
+
+@end table
+@item 
+$ivScale
+
+@table @asis
+@item 
+[o]  The scale of column $ivCol.
+
+@end table
+@item 
+$fNullable
+
+@table @asis
+@item 
+[o]  Returns whether column $ivCol allows null values.
+
+@end table
+@end table
+@item 
+SQLColAttributes
+
+@table @asis
+@item Syntax
+@code{SQLColAttributes($hStmt, $ivCol, $fType, $pvAttrib, $ivAttribMax, $ivAttribSize, $ivAttrib);}
+
+@item Parameters
+@itemx 
+$hStmt 
+
+@table @asis
+@item 
+[i]  The statement handle as it is returned from @code{SQLAllocStmt()}.
+
+@end table
+@item 
+$ivCol
+
+@table @asis
+@item 
+[i]  The function will return a attributes from column $ivCol.
+
+@end table
+@item 
+$fType
+
+@table @asis
+@item 
+[i]  The type of attribute to return. 
+
+@end table
+@item 
+$pvAttrib
+
+@table @asis
+@item 
+[o]  The attribute.   This will be returned from the function as a string.
+
+@end table
+@item 
+$ivAttribMax
+
+@table @asis
+@item 
+[i]  The maximum size of $pvAttrib
+
+@end table
+@item 
+$ivAttribSize 
+
+@table @asis
+@item 
+[o]  The size of the attribute string available to return to $pvAttrib.
+
+@end table
+@item 
+$ivAttrib
+
+@table @asis
+@item 
+[o]  The attribute.  This will be returned as an integer.
+
+@end table
+@end table
+@item 
+SQLBindCol
+
+@table @asis
+@item Syntax
+@code{SQLBindCol($hStmt, $ivCol, $fType, $svValue, $ivValueMax, $ivValueSize);}
+
+@item Parameters
+@itemx 
+$hStmt 
+
+@table @asis
+@item 
+[i]  The statement handle as it is returned from @code{SQLAllocStmt()}.
+
+@end table
+@item 
+$ivCol
+
+@table @asis
+@item 
+[i]  The function will bind this column.
+
+@end table
+@item 
+$fType
+
+@table @asis
+@item 
+[i]  The data type to bind.
+
+@end table
+@item 
+$svValue
+
+@table @asis
+@item 
+[i]  A reference to a scalar that will store the data from a result set.
+
+@end table
+@item 
+$ivValueMax
+
+@table @asis
+@item 
+[i]  The maximum size allowed for the scalar referenced by $svValue
+
+@end table
+@item 
+$ivValueSize
+
+@table @asis
+@item 
+[i]  Size available to return to the scalar referenced by $svValue before @code{SQLFetch()} is called.
+
+@end table
+@end table
+@item 
+SQLFetch
+
+@table @asis
+@item Syntax
+@code{SQLFetch($hStmt);}
+
+@item Parameters
+@itemx 
+$hStmt 
+
+@table @asis
+@item 
+[i]  The statement handle as it is returned from @code{SQLAllocStmt()}.
+
+@end table
+@item Notes
+@code{SQLFetch()} returns data from each bound column to the scalar that was referenced by the $svValue parameter when the @code{SQLBindCol()} function was called.
+
+@end table
+@item 
+SQLError
+
+@table @asis
+@item Syntax
+@code{SQLError($hfEnv, $hfDbc, $hfStmt, $pvSqlState, $fNativeError, $pvErrorMsg, $ivErrorMsgMax, $ivErrorMsgSize);}
+
+@item Parameters
+@itemx 
+$hfEnv 
+
+@table @asis
+@item 
+[i]  The environment handle as it is returned from @code{SQLAllocEnv()} or SQL_NULL_HENV.
+
+@end table
+@item 
+$hfDbc
+
+@table @asis
+@item 
+[i]  The connection handle as it is returned from @code{SQLAllocConnect()} or SQL_NULL_HDBC.
+
+@end table
+@item 
+$hfStmt
+
+@table @asis
+@item 
+[i]  The statement handle as it is returned from @code{SQLAllocStmt()} or SQL_NULL_HSTMT.
+
+@end table
+@item 
+$pvSqlState
+
+@table @asis
+@item 
+[o]  This returns the SQLSTATE as a string.
+
+@end table
+@item 
+$fNativeError
+
+@table @asis
+@item 
+[o]  This returns a Native Error Code.
+
+@end table
+@item 
+$pvErrorMsg
+
+@table @asis
+@item 
+[o]  This returns an Error Message as a string.
+
+@end table
+@item 
+$ivErrorMsgMax
+
+@table @asis
+@item 
+[i]  The maximum size of $pvErrorMsg 
+
+@end table
+@item 
+$ivErrorMsgSize
+
+@table @asis
+@item 
+[o]  The size of the string available to return to $pvErrorMsg 
+
+@end table
+@end table
+@item 
+SQLFreeStmt
+
+@table @asis
+@item Syntax
+@code{SQLFreeStmt($hStmt, $fOption);}
+
+@item Parameters
+@itemx 
+$hStmt 
+
+@table @asis
+@item 
+[i]  The statement handle as it is returned from @code{SQLAllocStmt()}.
+
+@end table
+@item 
+$fOption
+
+@table @asis
+@item 
+[i]  The action to be taken by the function.
+
+@end table
+@end table
+@item 
+SQLCancel
+
+@table @asis
+@item Syntax
+@code{SQLCancel($hStmt);}
+
+@item Parameters
+@itemx 
+$hStmt 
+
+@table @asis
+@item 
+[i]  The statement handle as it is returned from @code{SQLAllocStmt()}.
+
+@end table
+@end table
+@item 
+SQLTransact
+
+@table @asis
+@item Syntax
+@code{SQLTransact($hEnv, $hDbc, $fType);}
+
+@item Parameters
+@itemx 
+$hEnv 
+
+@table @asis
+@item 
+[i]  The environment handle as it is returned from @code{SQLAllocEnv()}.
+
+@end table
+@item 
+$hDbc
+
+@table @asis
+@item 
+[i]  The connection handle as it is returned from @code{SQLAllocConnect}.
+
+@end table
+@item 
+$fType
+
+@table @asis
+@item 
+[i]  The type of transaction to take
+
+@end table
+@end table
+@item 
+SQLDisconnect
+
+@table @asis
+@item Syntax
+@code{SQLDisconnect($hDbc);}
+
+@item Parameters
+@itemx 
+$hDbc 
+
+@table @asis
+@item 
+[i]  The connection handle as it is returned from @code{SQLAllocConnect()}.
+
+@end table
+@end table
+@item 
+SQLFreeConnect
+
+@table @asis
+@item Syntax
+@code{SQLFreeConnect($hDbc);}
+
+@item Parameters
+@itemx 
+$hDbc 
+
+@table @asis
+@item 
+[i]  The connection handle as it is returned from @code{SQLAllocConnect()}.
+
+@end table
+@end table
+@item 
+SQLFreeEnv
+
+@table @asis
+@item Syntax
+@code{SQLFreeEnv($hEnv);}
+
+@item Parameters
+@itemx 
+$hEnv 
+
+@table @asis
+@item 
+[i]  The connection handle as it is returned from @code{SQLAllocEnv()}.
+
+@end table
+@end table
+@end itemize
+@unnumberedsec EXAMPLES
+
+@code{use iodbc;}
+
+#
+
+#To start I allocate handles and connect to my favorite data source.  Notice I check every return code.
+
+@code{checkretcode(&SQLAllocEnv($henv));}
+
+@code{checkretcode(SQLAllocConnect($henv, $hdbc));}
+
+@code{checkretcode(SQLConnect($hdbc, "favorite_datsource", SQL_NTS, "user", SQL_NTS, "password", SQL_NTS));}
+
+@code{checkretcode(SQLAllocStmt($hdbc,$hstmt));}
+
+#
+
+#Then I execute a simple SQL statement
+
+@code{checkretcode(SQLExecDirect($hstmt, "SELECT * FROM sample_table", SQL_NTS));}
+
+#Bind column one to $rgbValue
+
+@code{checkretcode(SQLBindCol($hstmt, 1, SQL_C_DEFAULT, \$rgbValue, 24, SQL_NULL_DATA));}
+
+#Fetch all the rows and print them out
+
+@code{while(checkretcode(SQLFetch($hstmt))==SQL_SUCCESS)@{}
+
+@code{    print "$rgbValue\n";}
+
+@code{@}}
+
+#
+
+#Finally close up shop by freeing statements and disconnecting.
+
+@code{checkretcode(SQLFreeStmt($hstmt, SQL_DROP));}
+
+@code{checkretcode(SQLDisconnect($hdbc));}
+
+@code{checkretcode(SQLFreeConnect($hdbc));}
+
+@code{checkretcode(SQLFreeEnv($henv));}
+
+#
+
+#This subroutine checks the return code to make sure that the function executed correctly
+
+@code{sub checkretcode @{}
+
+@code{    my $retcode = shift;}
+
+
+
+@code{    if (($retcode==SQL_SUCCESS)||($retcode==SQL_NO_DATA_FOUND)) @{}
+
+@code{	return $retcode;}
+
+@code{    @} else @{}
+
+@code{	die "some error";}
+
+@code{    @}}
+
+@code{@}}
+
+@unnumberedsec TO DO
+
+@itemize @bullet
+@item 
+Further testing.  In particular add @code{SQLCancel()} and @code{SQLTransact()} to the test scripts.
+
+@item 
+Add ODBC 1.0 and then ODBC 2.0 support.
+
+@item 
+Put an DBD/DBI face on top of iODBC.
+
+@item 
+Improvement of the documentation.
+
+@end itemize
+@unnumberedsec BUGS
+
+Let me know if you find any.
+
+@unnumberedsec AUTHOR
+
+J. Michael Mahan, mahanm@@nextwork.rose-hulman.edu
+
+@unnumberedsec SEE ALSO
+
+perl(1).
+

@@ -1,0 +1,214 @@
+@node Statistics/ChiSquare, Statistics/LTU, Sprite, Module List
+@unnumbered How random is your data?
+
+
+@unnumberedsec NAME
+
+@code{Statistics::ChiSquare} - How random is your data?
+
+@unnumberedsec SYNOPSIS
+
+@example
+use Statistics::ChiSquare;
+@end example
+
+@example
+@end example
+
+@example
+print chisquare(@@actual_occurrences);
+print chisquare_nonuniform([actual_occurrences], [expected_occurrences]);
+@end example
+
+The Statistics::ChiSquare module is available at a CPAN site near you.
+
+@unnumberedsec DESCRIPTION
+
+Suppose you flip a coin 100 times, and it turns up heads 70 times.
+@emph{Is the coin fair?}
+
+Suppose you roll a die 100 times, and it shows 30 sixes.  
+@emph{Is the die loaded?}
+
+In statistics, the @strong{chi-square} test calculates "how random" a series
+of numbers is.  But it doesn@'t simply say "random" or "not random".
+Instead, it gives you a @emph{confidence interval}, which sets upper and
+lower bounds on the likelihood that the variation in your data is due
+to chance.  See the examples below.
+
+If you@'ve ever studied elementary genetics, you@'ve probably heard
+about Gregor Mendel.  He was a wacky Austrian botanist who discovered
+(in 1865) that traits could be inherited in a predictable fashion.  He
+performed lots of experiments with cross-fertilizing peas: green peas, yellow
+peas, smooth peas, wrinkled peas.  A veritable Brave New World of legumes.
+
+How many fertilizations are needed to be sure that the variations in
+the results aren@'t due to chance?  Well, you can never be entirely
+sure.  But the chi-square test tells you @emph{how sure you should be}.
+
+(As it turns out, Mendel faked his data.  A statistician by the name
+of R. A. Fisher used the chi-square test again, in a slightly more
+sophisticated way, to show that Mendel was either very very lucky or a
+little dishonest.)
+
+There are two functions in this module: chisquare() and
+chisquare_nonuniform().  chisquare() expects an array of occurrences:
+if you flip a coin seven times, yielding three heads and four tails,
+that array is (3, 4).  chisquare_nonuniform() is a bit trickier---more about it later.
+
+Instead of returning the bounds on the confidence interval in a tidy
+little two-element array, these functions return an English string.
+This was a deliberate design choice---many people misinterpret
+chi-square results; the text helps clarify the meaning.  Both
+chisquare() and chisquare_nonuniform() return UNDEF if the arguments
+aren@'t "proper".
+
+Upon success, the string returned by chisquare() will always match one
+of these patterns:
+
+@example
+There@'s a >\d+% chance, and a <\d+% chance, that this data is random.
+@end example
+
+or 
+
+@example
+There@'s a <\d+% chance that this data is random.
+@end example
+
+unless there@'s an error.  Here@'s one error you should know about:
+
+@example
+(I can@'t handle \d+ choices without a better table.)
+@end example
+
+That deserves an explanation.  The "modern" chi-square test uses a
+table of values (based on Pearson@'s approximation) to avoid expensive
+calculations.  Thanks to the table, the chisquare() calculation is
+quite fast, but there are some collections of data it can@'t handle,
+including any collection with more than 21 slots.  So you can@'t
+calculate the randomness of a 30-sided die.
+
+chisquare_nonuniform() expects @emph{two} arguments: a reference to an array of actual occurrences followed by a reference to an array of expected occurrences.
+
+chisquare_nonuniform() is used when you expect a nonuniform
+distribution of your data; for instance, if you expect twice as many
+heads as tails and want to see if your coin lives up to that
+hypothesis.  With such a coin, you@'d expect 40 heads (and 20 tails) in
+60 flips; if you actually observed 42 heads (and 18 tails), you@'d call
+
+@example
+chisquare_nonuniform([42, 18], [40, 20])
+@end example
+
+The strings returned by chisquare_nonuniform() look like this:
+
+@example
+There@'s a >\d+% chance, and a <\d+% chance, 
+     that this data is distributed as you expect.
+@end example
+
+@unnumberedsec EXAMPLES
+
+Imagine a coin flipped 1000 times.  The most likely outcome is 
+500 heads and 500 tails:
+
+@example
+@@coin = (500, 500);
+print chisquare(@@coin);
+@end example
+
+which prints 
+
+@example
+There@'s a >99% chance, and a <100% chance, 
+     that this data is evenly distributed.
+@end example
+
+Imagine a die rolled 60 times that shows sixes just a wee bit too often.
+
+@example
+@@die1  = (9, 8, 10, 9, 9, 15);
+print chisquare(@@die1);
+@end example
+
+which prints 
+
+@example
+There@'s a >50% chance, and a <70% chance, 
+     that this data is evenly distributed.
+@end example
+
+Imagine a die rolled 600 times that shows sixes @strong{way} too often.
+
+@example
+@@die2  = (80, 70, 90, 80, 80, 200);
+print chisquare(@@die2);
+@end example
+
+which prints 
+
+@example
+There@'s a <1% chance that this data is evenly distributed.
+@end example
+
+How random is rand()?
+
+@example
+srand(time ^ $$);
+@@rands = ();
+for ($i = 0; $i < 60000; $i++) @{
+    $slot = int(rand(6));
+    $rands[$slot]++;
+@}
+print "@@rands\n";
+print chisquare(@@rands);
+@end example
+
+which prints (on my machine):
+
+@example
+9987 10111 10036 9975 9984 9907
+  There@'s a >70% chance, and a <90% chance, 
+       that this data is evenly distributed.
+@end example
+
+(So much for pseudorandom number generation.)
+
+All the above examples assume that you@'re testing a uniform
+distribution---testing whether the coin is fair (i.e. a 1:1
+distribution), or whether the die is fair (i.e. a 1:1:1:1:1:1
+distribution).  That@'s why chisquare() could be used instead of
+chisquare_nonuniform().
+
+Suppose a mother with blood type AB, and a father with blood type Ai
+(that is, blood type A, but heterozygous) have one hundred children.
+You@'d expect 50 kids to have blood type A, 25 to have blood type AB,
+and 25 to have blood type B.  Plain old chisquare() isn@'t good enough
+when you expect a nonuniform distribution like 2:1:1.
+
+Let@'s say that couple has 40 kids with blood type A, 30 with blood type
+AB, and 30 with blood type B.  Here@'s how you@'d settle any nagging
+questions of paternity:
+
+@example
+@@data = (40, 30, 30);
+@@dist = (50, 25, 25);
+print chisquare_nonuniform(\@@data, \@@dist);
+@end example
+
+which prints 
+
+@example
+There@'s a >10% chance, and a <30% chance, 
+     that this data is distributed as you expect.
+@end example
+
+@unnumberedsec AUTHOR
+
+Jon Orwant
+
+MIT Media Lab
+
+@strong{orwant@@media.mit.edu}
+

@@ -1,0 +1,73 @@
+@node Apache/Authen, Apache/AuthzAge, Apache/AccessLimitNum, Module List
+@unnumbered Perl Apache authentication handlers
+
+
+@unnumberedsec NAME
+
+Apache::Authen - Perl Apache authentication handlers
+
+@unnumberedsec SYNOPSIS
+
+@example
+#httpd.conf or srm.conf
+@end example
+
+@example
+PerlModule Apache::Authen
+@end example
+
+@example
+#.htaccess
+AuthName DBI
+AuthType Basic
+@end example
+
+@example
+#authenticate via DBI
+PerlAuthenHandler Apache::DBIAuthen::handler
+@end example
+
+@example
+PerlSetVar AuthDBIDB     dbname
+PerlSetVar AuthDBIUser   username
+PerlSetVar AuthDBIAuth   password
+PerlSetVar AuthDBIDriver Oracle
+#DBI->connect(qw(AuthDBIDB AuthDBIUser AuthDBIAuth AuthDBIDriver))
+@end example
+
+@example
+PerlSetVar AuthDBIUserTable www_users
+PerlSetVar AuthDBINameField user
+PerlSetVar AuthDBIPasswordField password
+@end example
+
+<Limit GET POST>
+require valid-user
+</Limit>
+
+@unnumberedsec DESCRIPTION
+
+With the PerlAuthenHandler set, you may define a subroutine handler
+to preform the authentication check.
+This module provides some building blocks and some full-fledged handlers.
+
+@unnumberedsec HANDLERS
+
+@table @asis
+@item Apache::AuthenDBI::handler
+This handler authenticates against a database such as Oracle, DB2, Sybase,
+and others supported by the DBI module.
+For supported drivers see:
+http://www.hermetica.com/technologia/DBI
+
+This handler users @xref{HTTPD/UserAdmin,HTTPD/UserAdmin}, to lookup the username and password.
+This may change.
+
+@end table
+@unnumberedsec SEE ALSO
+
+Apache(3), HTTPD::UserAdmin(3), DBI(3)
+
+@unnumberedsec AUTHOR
+
+Doug MacEachern <dougm@@osf.org>

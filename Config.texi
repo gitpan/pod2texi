@@ -1,0 +1,106 @@
+@node Config, ConfigFile, Compress/Zlib, Module List
+@unnumbered access Perl configuration information
+
+
+@unnumberedsec NAME
+
+Config - access Perl configuration information
+
+@unnumberedsec SYNOPSIS
+
+@example
+use Config;
+if ($Config@{@'cc@'@} =~ /gcc/) @{
+	print "built by gcc\n";
+@} 
+@end example
+
+@example
+use Config qw(myconfig config_sh config_vars);
+@end example
+
+@example
+print myconfig();
+@end example
+
+@example
+print config_sh();
+@end example
+
+@example
+config_vars(qw(osname archname));
+@end example
+
+@unnumberedsec DESCRIPTION
+
+The Config module contains all the information that was available to
+the @code{Configure} program at Perl build time (over 900 values).
+
+Shell variables from the @file{config.sh} file (written by Configure) are
+stored in the readonly-variable @code{%Config}, indexed by their names.
+
+Values stored in config.sh as @'undef@' are returned as undefined
+values.  The perl exists function can be used to check if a
+named variable exists.
+
+@table @asis
+@item myconfig()
+Returns a textual summary of the major perl configuration values.
+See also -V in @samp{Switches}, @xref{(perl.info)perlrun,Perlrun},.
+
+@item config_sh()
+Returns the entire perl configuration information in the form of the
+original config.sh shell variable assignment script.
+
+@item config_vars(@@names)
+Prints to STDOUT the values of the named configuration variable. Each is
+printed on a separate line in the form:
+
+@example
+name=@'value@';
+@end example
+
+Names which are unknown are output as @code{name=@'UNKNOWN@';}.
+See also @code{-V:name} in @samp{Switches}, @xref{(perl.info)perlrun,Perlrun},.
+
+@end table
+@unnumberedsec EXAMPLE
+
+Here@'s a more sophisticated example of using %Config:
+
+@example
+use Config;
+@end example
+
+@example
+defined $Config@{sig_name@} || die "No sigs?";
+foreach $name (split(@' @', $Config@{sig_name@})) @{
+	$signo@{$name@} = $i;
+	$signame[$i] = $name;
+	$i++;
+@}   
+@end example
+
+@example
+print "signal #17 = $signame[17]\n";
+if ($signo@{ALRM@}) @{ 
+	print "SIGALRM is $signo@{ALRM@}\n";
+@}   
+@end example
+
+@unnumberedsec WARNING
+
+Because this information is not stored within the perl executable
+itself it is possible (but unlikely) that the information does not
+relate to the actual perl binary which is being used to access it.
+
+The Config module is installed into the architecture and version
+specific library directory ($Config@{installarchlib@}) and it checks the
+perl version number when loaded.
+
+@unnumberedsec NOTE
+
+This module contains a good example of how to use tie to implement a
+cache and an example of how to make a tied variable readonly to those
+outside of it.
+

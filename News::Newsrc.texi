@@ -1,0 +1,290 @@
+@node News/Newsrc, ODBM_File, News/NNTPClient, Module List
+@unnumbered manage newsrc files
+
+
+@unnumberedsec NAME
+
+News::Newsrc - manage newsrc files
+
+@unnumberedsec SYNOPSIS
+
+@example
+use News::Newsrc;
+@end example
+
+@example
+$newsrc = new News::Newsrc;
+
+$newsrc->load();
+$newsrc->load($file);
+
+$newsrc->save();
+$newsrc->save_as($file);
+@end example
+
+@example
+$newsrc->add_group($group);
+$newsrc->del_group($group);
+	
+$newsrc->subscribe  ($group);
+$newsrc->unsubscribe($group);
+@end example
+
+@example
+$newsrc->mark        ($group,  $article);
+$newsrc->mark_list   ($group, \@@articles);
+$newsrc->mark_range  ($group, $from, $to);
+
+$newsrc->unmark      ($group,  $article);
+$newsrc->unmark_list ($group, \@@articles);
+$newsrc->unmark_range($group, $from, $to);
+
+... if $newsrc->exists    ($group);
+... if $newsrc->subscribed($group);
+... if $newsrc->marked    ($group, $article);
+
+@@groups   = $newsrc->groups();
+@@groups   = $newsrc->sub_groups();
+@@groups   = $newsrc->unsub_groups();
+@@articles = $newsrc->marked_articles($group);
+@@articles = $newsrc->unmarked_articles($group, $from, $to);
+@end example
+
+@unnumberedsec REQUIRES
+
+Perl 5.002, Exporter, Set::IntSpan 1.01
+
+@unnumberedsec EXPORTS
+
+None
+
+@unnumberedsec DESCRIPTION
+
+News::Newsrc manages newsrc files, of the style
+
+@example
+alt.foo: 1-21,28,31-34
+alt.bar! 3,5,9-2900,2902
+@end example
+
+Methods are provided for
+
+@itemize @bullet
+@item 
+reading and writing newsrc files
+
+@item 
+adding and removing newsgroups
+
+@item 
+subscribing and unsubscribing from newsgroups
+
+@item 
+testing whether groups exist and are subscribed
+
+@item 
+marking and unmarking articles
+
+@item 
+testing whether articles are marked
+
+@item 
+returning lists of newsgroups
+
+@item 
+returning lists of articles
+
+@end itemize
+@unnumberedsec NEWSRC FILES
+
+A newsrc file is an ASCII file that lists newsgroups and article numbers.
+Each line of a newsrc file describes a single newsgroup.
+Each line is divided into three fields: 
+a group, a @emph{subscription mark} and an @emph{article list}.
+
+Lines containing only whitespace are ignored.
+Whitespace within a line is ignored.
+
+@table @asis
+@item Group
+The group is the name of the newsgroup.
+A group name may not contain colons (:) or exclamation points (!).
+Group names must be unique within a newsrc file.
+The group name is required.
+
+@item Subscription mark
+The @emph{subscription mark} is either a colon (:), for subscribed groups,
+or an exclamation point (!), for unsubscribed groups.
+The subscription mark is required.
+
+@item Article list
+The @emph{article list} is a comma-separated list of positive integers.
+The integers must be listed in increasing order.
+Runs of consecutive integers may be abbreviated a-b, 
+where a is the first integer in the run and b is the last.
+The article list may be empty.
+
+@end table
+@unnumberedsec METHODS
+
+@table @asis
+@item new News::Newsrc
+Creates and returns a News::Newsrc object.
+The object contains no newsgroups.
+
+@item load()
+@itemx load($file)
+Loads the newsgroups in $file into a newsrc object.
+If $file is omitted, reads $ENV@{HOME@}/.newsrc.
+Any existing data in the object is discarded.
+Returns non-null on success.
+
+If $file can@'t be opened,
+load() discards existing data from the newsrc object and returns null.
+
+If $file contains invalid lines, load() will die().
+When this happens, the state of the newsrc object is undefined.
+
+@item save()
+Writes the contents of a newsrc object back to the file 
+from which it was load()ed.
+If load() has not been called, writes to $ENV@{HOME@}/.newsrc.
+In either case, if the destination @emph{file} exists, 
+it is renamed to @emph{file}.bak
+
+@item save_as($file)
+Writes the contents of a newsrc object to $file.
+If $file exists, it is renamed to $file.bak.
+Subsequent calls to save() will write to $file.
+
+@item add_group($group)
+Adds $group to the list of newsgroups in a newsrc object.
+$group is initially subscribed.
+The article list for $group is initially empty.
+
+@item del_group($group)
+Removes $group from the list of groups in a newsrc object.
+The article list for $group is lost.
+
+@item subscribe($group)
+Subscribes to $group.  
+$group will be created if it does not exist.
+
+@item unsubscribe($group)
+Unsubscribes from $group.  
+$group will be created if it does not exist.
+
+@item mark($group, $article)
+Adds $article to the article list for $group.
+$group will be created if it does not exist.
+
+@item mark_list($group, \@@articles)
+Adds @@articles to the article list for $group.
+$group will be created if it does not exist.
+
+@item mark_range($group, $from, $to)
+Adds all the articles from $from to $to, inclusive, 
+to the article list for $group.
+$group will be created if it does not exist.
+
+@item unmark($group, $article)
+Removes $article from the article list for $group.
+$group will be created if it does not exist.
+
+@item unmark_list($group, \@@articles)
+Removes @@articles from the article list for $group.
+$group will be created if it does not exist.
+
+@item unmark_range($group, $from, $to)
+Removes all the articles from $from to $to, inclusive, 
+from the article list for $group.
+$group will be created if it does not exist.
+
+@item exists($group)
+Returns true if $group exists in the newsrc object.
+
+@item subscribed($group)
+Returns true if $group exists and is subscribed.
+
+@item marked($group, $article)
+Returns true if $group exists and its article list contains $article.
+
+@item groups()
+Returns the list of groups in a newsrc object.
+In scalar context, returns an array reference.
+
+@item sub_groups()
+Returns the list of subscribed groups in a newsrc object.
+In scalar context, returns an array reference.
+
+@item unsub_groups()
+Returns the list of unsubscribed groups in a newsrc object.
+In scalar context, returns an array reference.
+
+@item marked_articles($group)
+Returns the list of articles in the article list for $group.
+In scalar context, returns an array reference.
+
+@item unmarked_articles($group, $from, $to)
+Returns the list of articles from $from to $to, inclusive,
+that do @emph{not} appear in the article list for $group.
+In scalar context, returns an array reference.
+
+@end table
+@unnumberedsec DIAGNOSTICS
+
+load() returns null if it can@'t open the newsrc file.
+
+load() will die() if the newsrc file contains invalid lines.
+
+save() and save_as() will die() if they can@'t backup or write the
+newsrc file.
+
+@unnumberedsec ERROR HANDLING
+
+"Don@'t test for errors that you can@'t handle."
+
+load() returns null if it can@'t open the newsrc file, 
+and dies if the newsrc file contains invalid data.
+This isn@'t as schizophrenic as it seems.
+
+There are several ways a program could handle an open failure on the newsrc file.
+It could prompt the user to reenter the file name.
+It could assume that the user doesn@'t have a newsrc file yet.
+If it doesn@'t want to handle the error, it could go ahead and die.
+
+On the other hand, 
+it is very difficult for a program to do anything sensible 
+if the newsrc file opens successfully 
+and then turns out to contain invalid data.
+Was there a disk error?  
+Is the file corrupt?
+Did the user accidentally specify his kill file instead of his newsrc file?
+And what are you going to do about it?
+
+Rather than try to handle an error like this,
+it@'s probably better to die and let the user sort things out.
+By the same rational,
+save() and save_as() die on failure.
+
+Programs that must retain control can use eval@{...@} 
+to protect calls that may die.
+For example, Perl/Tk runs all callbacks inside an eval@{...@}.
+If a callback dies,
+Perl/Tk regains control and displays $@@ in a dialog box.
+The user can then decide whether to continue or quit from the program.
+
+@unnumberedsec AUTHOR
+
+Steven McDougall, swm@@cric.com
+
+@unnumberedsec SEE ALSO
+
+perl(1), Set::IntSpan
+
+@unnumberedsec COPYRIGHT
+
+Copyright (c) 1996 Steven McDougall. All rights reserved.
+This module is free software; you can redistribute it and/or
+modify it under the same terms as Perl itself.
+

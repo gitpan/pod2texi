@@ -1,0 +1,251 @@
+@node VRML/VRML1/Standard, WWW/RobotRules, VRML/VRML1, Module List
+@unnumbered implements nodes the VRML 1.x standard
+
+
+@unnumberedsec NAME
+
+VRML::VRML1::Standard.pm - implements nodes the VRML 1.x standard
+
+@unnumberedsec SYNOPSIS
+
+@example
+use VRML::VRML1::Standard;
+@end example
+
+@unnumberedsec DESCRIPTION
+
+Following nodes are currently implemented.
+
+[@code{Group Nodes}] 
+[Geometry Nodes] 
+[Property Nodes]
+
+[Appearance Nodes] 
+[Transform Nodes] 
+[Common Nodes] 
+
+@unnumberedsubsec Group Nodes These nodes NEED End !
+
+@table @asis
+@item Separator
+@code{Separator($comment)}
+
+@item Switch
+@code{Switch($comment)}
+
+@item Group
+@code{Group($comment)}
+
+@item WWWAnchor
+@code{WWWAnchor($url, $description, $target)}
+
+$target works only with @emph{Live3D}
+
+@item LOD
+@code{LOD($range, $center)}
+
+$range is a string with comma separated values
+
+example: @code{LOD(@'1, 2, 5@', @'0 0 0@')}
+
+@item SpinGroup
+@code{SpinGroup($axis, $radians)} is supported only be @emph{Live3D}
+
+@end table
+@unnumberedsubsec Geometry Nodes
+
+@table @asis
+@item AsciiText
+@code{AsciiText($string, $width, $justification, $spacing)}
+
+$justification is a string (@'LEFT@',@'CENTER@',@'RIGHT@')
+
+@item Cone
+@code{Cone($radius, $height, @@parts)}
+
+@@parts is a list of strings (@'SIDES@', @'BOTTOM@', @'ALL@')
+
+@item Cube
+@code{Cube($width, $height, $depth)}
+
+@item Cylinder
+@code{Cylinder($height, $radius, @@parts)}
+
+@@parts is a list of strings (@'SIDES@', @'TOP@', @'BOTTOM@', @'ALL@')
+
+@item IndexedFaceSet
+@code{IndexedFaceSet($coordIndex_ref, $materialIndex_ref, $normalIndex_ref, $textureCoordIndex_ref)}
+
+$coordIndex_ref is a reference of a list of point index strings
+like @code{@'0 1 3 2@', @'2 3 5 4@', ...}
+
+$materialIndex_ref is a reference of a list of materials
+
+$normalIndex_ref is a reference of a list of normals
+
+$textureCoordIndex_ref is a reference of a list of textures
+
+@item IndexedLineSet
+@code{IndexedLineSet($coordIndex_ref, $materialIndex_ref, $normalIndex_ref, $textureCoordIndex_ref)}
+
+$coordIndex_ref is a reference of a list of point index strings
+like @code{@'0 1 3 2@', @'2 3 5 4@', ...}
+
+$materialIndex_ref is a reference of a list of materials
+
+$normalIndex_ref is a reference of a list of normals
+
+$textureCoordIndex_ref is a reference of a list of textures
+
+@item PointSet
+@code{PointSet($numPoints, $startIndex)}
+
+@item Sphere
+@code{Sphere($radius)}
+
+$radius have to be > 0
+
+@end table
+@unnumberedsubsec Property Nodes
+
+@table @asis
+@item Coordinate3
+@code{Coordinate3(@@points)}
+
+@@points is a list of points with strings like @code{@'1.0 0.0 0.0@', @'-1 2 0@'}
+
+@item Fontstyle
+@code{FontStyle($size, $style, $family)}
+defines the current font style for all subsequent AsciiText
+
+$style can be @'NONE@',@'BOLD@',@'ITALIC@'
+
+$familiy can be @'SERIF@',@'SANS@',@'TYPEWRITER@'
+
+@end table
+@unnumberedsubsec Appearance Nodes
+
+@table @asis
+@item Material
+@code{Material(%materials)}
+
+@item MaterialBinding
+@code{MaterialBinding($value)}
+
+$value can be
+
+@example
+DEFAULT	Use default bindng
+OVERALL	Whole object has same material
+PER_PART	One material for each part of object
+PER_PART_INDEXED	One material for each part, indexed
+PER_FACE	One material for each face of object
+PER_FACE_INDEXED	One material for each face, indexed
+PER_VERTEX	One material for each vertex of object
+PER_VERTEX_INDEXED	One material for each vertex, indexed
+@end example
+
+@item Normal
+@code{Normal(@@vector)}
+
+@@vector is a list of vectors with strings like @code{@'1.0 0.0 0.0@', @'-1 2 0@'}
+
+@item NormalBinding
+@code{NormalBinding($value)}
+
+$value is the same as MaterialBinding
+
+@item Texture2
+@code{Texture2($value)}
+
+@end table
+@unnumberedsubsec Transform Nodes
+
+@table @asis
+@item Transform
+@code{Transform($translation, $rotation, $scaleFactor, $scaleOrientation, $center)}
+
+$translation is a string like "0 1 -2"
+
+$rotation is a string like "0 0 1 1.57"
+
+$scaleFactor is a string like "1 1 1"
+
+$scaleOrientation is a string like "0 0 1 0"
+
+$center is a string like "0 0 0"
+
+@item Rotation
+@code{Rotation($rotation)}
+
+$rotation is a string like "0 0 1 1.57"
+
+This node is not supported under VRML 2.0
+
+use Transform
+
+@item Scale
+@code{Scale($scaleFactor)}
+
+$scaleFactor is a string like "1 1 1"
+
+This node is not supported under VRML 2.0
+
+use Transform
+
+@item Translation
+@code{Translation($translation)}
+
+$translation is a string like "0 1 -2"
+
+This node is not supported under VRML 2.0
+
+use Transform
+
+@end table
+@unnumberedsubsec Common Nodes
+
+@table @asis
+@item PerspectiveCamera
+@code{PerspectiveCamera($position, $orientation, $heightAngle, $focalDistance, $nearDistance, $farDistance)}
+
+@item OrthographicCamera
+@code{OrthographicCamera($position, $orientation, $height, $focalDistance, $nearDistance, $farDistance)}
+
+@item DirectionalLight
+@code{DirectionalLight($direction, $intensity, $ambientIntensity, $color, $on)}
+
+@item PointLight
+@code{PointLight($location, $intensity, $color, $on)}
+
+@item SpotLight
+@code{SpotLight($location, $direction, $intensity, $color, $on)}
+
+@end table
+@unnumberedsubsec other
+
+@table @asis
+@item WWWInline
+@code{WWWInline($name, $bboxSize, $bboxCenter)}
+
+@item Info
+@code{Info($string, $comment)}
+
+$comment is optional
+
+@item DEF
+@code{DEF($name)}
+
+@item USE
+@code{USE($name)}
+
+@item End
+@code{End($comment)}
+
+$comment is optional
+
+@end table
+@unnumberedsec AUTHOR
+
+Hartmut Palm @file{<palm@@gfz-potsdam.de>}
+

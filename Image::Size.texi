@@ -1,0 +1,99 @@
+@node Image/Size, IniConf, IPC/Open3, Module List
+@unnumbered read the dimensions of an image in several popular formats
+
+
+@unnumberedsec NAME
+
+Image::Size - read the dimensions of an image in several popular formats
+
+@unnumberedsec SYNOPSIS
+
+@example
+use Image::Size;
+# Get the size of globe.gif
+($globe_x, $globe_y) = &imgsize("globe.gif");
+# Assume X=60 and Y=40 for remaining examples
+@end example
+
+@example
+use Image::Size @'html_imgsize@';
+# Get the size as "HEIGHT=X WIDTH=Y" for HTML generation
+$size = &html_imgsize("globe.gif");
+# $size == "HEIGHT=60 WIDTH=40"
+@end example
+
+@example
+use Image::Size @'attr_imgsize@';
+# Get the size as a list passable to routines in CGI.pm
+@@attrs = &attr_imgsize("globe.gif");
+# @@attrs == (@'-HEIGHT@', 60, @'-WIDTH@', 40)
+@end example
+
+@unnumberedsec DESCRIPTION
+
+The @strong{Image::Size} library is based upon the @code{wwwis} script written by
+Alex Knowles @emph{(alex@@ed.ac.uk)}, a tool to examine HTML and add HEIGHT and
+WIDTH parameters to image tags. The sizes are cached internally based on
+file name, so multiple calls on the same file name (such as images used
+in bulleted lists, for example) does not repeat computation.
+
+@strong{Image::Size} provides three interfaces for possible import:
+
+@table @asis
+@item imgsize(file)
+Returns a two-item list of the X and Y dimensions (height and width, in
+that order) of @emph{file}. Errors are noted by a -1 value for the first element,
+and an error string for the second.
+
+@item html_imgsize(file)
+Returns the height and width (X and Y) of @emph{file} pre-formatted as a single
+string @code{"HEIGHT=X WIDTH=Y"} suitable for addition into generated HTML IMG
+tags.
+
+@item attr_imgsize(file)
+Returns the height and width of @emph{file} as part of a 4-element list useful
+for routines that use hash tables for the manipulation of named parameters,
+such as the Tk or CGI libraries. A typical return value looks like
+@code{("-HEIGHT", X, "-WIDTH", Y)}.
+
+@end table
+By default, only @code{imgsize()} is imported. Any one or
+combination of the three may be imported, or all three may be with the
+tag @strong{:all}.
+
+@unnumberedsec DIAGNOSTICS
+
+The base routine, @code{imgsize}, returns a -1 as the first value in its list
+when an error has occured. The second return element contains a descriptive
+error message.
+
+The second and third forms blindly format the returned data of @code{imgsize},
+and as such may return corrupted data in the event of an error.
+
+@unnumberedsec CAVEATS
+
+Current implementation can operate only on files, and uses the suffix
+of the file name to determine how to examine the file. Thus, files with
+no suffix or an incorrect suffix will not be sized correctly. Suffixes
+are treated in a case-independant manner. Currently recognized suffixes
+are: JPEG, JPG, GIF, PNG, XBM and XPM.
+
+I have no PNG-format files on which to test the PNG sizing. I can only
+trust that it works.
+
+This will reliably work on perl 5.002 or newer. Perl versions prior to
+5.003 do not have the @strong{IO::File} module by default, which this module
+requires. You will have to retrieve and install it, or upgrade to 5.003,
+in which it is included as part of the core.
+
+@unnumberedsec SEE ALSO
+
+@code{http://www.tardis.ed.ac.uk/~ark/wwwis/} for a description of @code{wwwis}
+and how to obtain it.
+
+@unnumberedsec AUTHORS
+
+Perl module interface by Randy J. Ray @emph{(rjray@@uswest.com)}, original
+image-sizing code by Alex Knowles @emph{(alex@@ed.ac.uk)} and Andrew Tong
+@emph{(werdna@@ugcs.caltech.edu)}, used with their joint permission.
+

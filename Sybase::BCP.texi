@@ -1,0 +1,261 @@
+@node Sybase/BCP, Sybase/Login, Sx, Module List
+@unnumbered Simple front end to the Sybase BCP API
+
+
+@unnumberedsec NAME
+
+Sybase::BCP - Simple front end to the Sybase BCP API
+
+@unnumberedsec SYNOPSIS
+
+@example
+use Sybase::BCP;
+@end example
+
+@example
+$bcp = new Sybase::BCP ...;
+$bcp->config(...);
+$bcp->run;
+@end example
+
+@unnumberedsec DESCRIPTION
+
+The Sybase::BCP module serves as a simplified front end for Sybase@'s Bulk
+Copy library. It is sub-classed from the @samp{Sybase::DBlib} in this node module, so all the
+features of the Sybase::DBlib module are available in addition to the
+specific Sybase::BCP methods.
+
+So how does it work?
+
+Let@'s say we want to copy the contents of a file name @'foo.bcp@' into the
+table @'mydb.dbo.bar@'. The fields in the file are separated by a @'|@'.
+
+@example
+#!/usr/local/bin/perl
+@end example
+
+@example
+use Sybase::BCP;
+@end example
+
+@example
+$bcp = new Sybase::BCP $user, $passwd;
+$bcp->config(INPUT => @'foo.bcp@',
+		 OUTPUT => @'mydb.dbo.bar@',
+		 SEPARATOR => @'|@');
+$bcp->run;
+@end example
+
+That@'s it!
+
+Of course, there are several things you can do to cater for non-standard
+input files (see Configuration Parameters, below).
+
+@unnumberedsubsec Features
+
+@itemize @bullet
+@item Automatic conversions from non-standard date formats.
+@item Automatic retries of failed batches.
+
+If there are errors in the input file, or if there are duplicat rows that are
+rejected, the invalid rows are stored in an error log file, and the batch is
+retried, so that only the failed rows are not uploaded.
+
+@item Handles column reordering and/or skipping of unneeded data.
+@item Row or column based callbacks.
+
+Allows vetoing of rows, or arbitrary processing of data on input.
+
+@end itemize
+@unnumberedsubsec The following methods are available:
+
+@table @asis
+@item $bcp = new Sybase::BCP [$user [, $password [, $server [, $appname]]]]
+Allocate a new @strong{BCP} handle. Opens a new connection to Sybase via the
+@strong{Sybase::DBlib} module, and enables BCP IN on this handle.
+
+@item $bcp->config([parameters])
+Sets up the Bulk Copy operation. See Configuration Parameters below for
+details.
+
+@item $bcp->describe($colid, @{parameters@})
+Adds a specific configuration element for column $colid. Columns are numbered
+starting at 1, as is standard in the Sybase APIs.
+
+@item $bcp->run
+Perform the @strong{BCP} operation, returns the actual number of rows sent to the
+server.
+
+@end table
+@unnumberedsubsec Configuration Parameters
+
+The general form for configuration is to pass (parameter => value) pairs
+via the config() or describe() methods. Some parameters take slightly more
+complex arguments (see REORDER).
+
+@unnumberedsubsec Paramaters for config()
+
+@table @asis
+@item DIRECTION
+The direction in which the bulkcopy operation is done. Can be @'IN@' or @'OUT@'.
+Default: @'IN@' (@emph{Note:} @'OUT@' is not implemented yet.)
+
+@item INPUT
+Where @strong{BCP} should take it@'s input from. It@'s a filename for @strong{bcp IN}, it@'s
+a table name for @strong{bcp OUT}.
+
+For @strong{bcp IN} INPUT can also be a reference to a perl subroutine that
+returns the array to be inserted via bcp_sendrow().
+
+@item OUTPUT
+Where @strong{BCP} should place it@'s output. It@'s a table name for @strong{bcp IN}, a
+filename for @strong{bcp OUT}.
+
+@item ERRORS
+The file where invalid rows should be recorded. Default: bcp.err.
+
+@item SEPARATOR
+The pattern that separates fields in the input file, or that should be used
+to separate fields in the output file. Default: TAB.
+
+@item FIELDS
+Number of fields in the input file for @strong{bcp IN} operations. Default: Number
+of fields found in the first line. This parameter is ignored for @strong{bcp OUT}.
+
+@item BATCH_SIZE
+Number of rows to be batched together before committing to the server for
+@strong{bcp IN} operations. Defaults to 100. If there is a risk that retries could
+be requiered due to failed batches (e.g. duplicat rows/keys errors) then
+you should not use a large batch size: one failed row in a batch requires
+the entire batch to be resent.
+
+@item NULL
+A pattern to be used to detect NULL values in the input file. Defaults to
+a zero length string.
+
+@item DATE
+The default format for DATE fields in the input file. The parameter should
+be a symbolic value representing the format. Currently, the following values
+are recognized: CTIME (the Unix ctime(3) format), or the numbers 0-12,
+100-112, corresponding to the conversion formats defined in table 2-4 of
+the @emph{SQL Server Reference Manual}.
+
+@strong{BCP} detects @emph{datetime} targets by looking up the target table
+structure in the Sybase system tables.
+
+@item REORDER
+The ordering of the fields in the input file does not correspond to the
+order of columns in the table, or there are columns that you wish to
+skip. The REORDER parameter takes a hash that describes the reordering
+operation:
+
+@example
+$bcp->config(...
+		 REORDER => @{ 1 => 2,
+			      3 => 1,
+			      2 => @'foobar@',
+			      12 => 4@},
+		 ...);
+@end example
+
+In this example, field 1 of the input file goes in column 2 of the table,
+field 3 goes in column 1, field 2 goes in the column named foobar, and
+field 12 goes in column 4. Fields 4-11, and anything beyond 12 is skipped.
+As you can see you can use the column @emph{name} instead of its position.
+The default is to not do any reordering.
+
+@item CALLBACK
+The callback subroutine is called for each row (after any reordering), and
+allows the user to do global processing on the row, or vetoing it@'s
+processing. Example:
+
+@example
+$bcp->config(...
+             CALLBACK => \&row_cb,
+             ...);
+@end example
+
+@example
+sub row_cb @{
+	my $row_ref = shift;
+@end example
+
+@example
+# Skip rows where the first field starts with FOO:
+return undef if $$row_ref[0] =~ /^FOO/;
+@end example
+
+@example
+1;
+    @}
+@end example
+
+@item CONDITION
+A @emph{where} clause to be used in @strong{bcp OUT} operations. Not implemented.
+
+@end table
+@unnumberedsubsec Parameters for describe()
+
+@table @asis
+@item CALLBACK
+Specify a callback for this column. The field value is passed as the first
+parameter, and the callback should return the value that it wants @strong{BCP}
+to use. Example:
+
+@example
+$dbh->describe(2, @{CALLBACK, \&col_cb@});
+@end example
+
+@example
+sub col_cb @{
+	my $data = shift;
+@end example
+
+@example
+# Convert to lower case...
+$data =~ tr/A-Z/a-z/;
+    @}
+@end example
+
+@item SKIP
+If this is defined then this field is skipped. This is useful if only one or
+two fields need to be skipped and you don@'t want to define a big REORDER hash
+to handle the skipping.
+
+@end table
+@unnumberedsec EXAMPLES
+
+@example
+#!/usr/local/bin/perl
+
+use Sybase::BCP;
+require @'sybutil.pl@';
+@end example
+
+@example
+$bcp = new Sybase::BCP sa, undef, TROLL;
+@end example
+
+@example
+$bcp->config(INPUT => @'../../Sybperl/xab@',
+	         OUTPUT => @'excalibur.dbo.t3@',
+   	         BATCH_SIZE => 200,
+	         FIELDS => 4,
+	         REORDER => @{1 => @'account@',
+			     3 => @'date@',
+			     2 => @'seq_no@',
+			     11 => @'broker@'@},
+	         SEPARATOR => @'|@');
+$bcp->run;
+@end example
+
+@unnumberedsec BUGS
+
+The current implementation seems to run about 2.5 to 3 times slower than
+plain bcp.
+
+@unnumberedsec AUTHOR
+
+Michael Peppler @file{<mpeppler@@itf.ch>}. Contact the sybperl mailing
+list @code{mailto:sybperl-l@@trln.lib.unc.edu} if you have any questions.
+

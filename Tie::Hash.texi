@@ -1,0 +1,93 @@
+@node Tie/Hash, Tie/Scalar, Tie/Dir, Module List
+@unnumbered base class definitions for tied hashes
+
+
+@unnumberedsec NAME
+
+Tie::Hash, Tie::StdHash - base class definitions for tied hashes
+
+@unnumberedsec SYNOPSIS
+
+@example
+package NewHash;
+require Tie::Hash;
+
+@@ISA = (Tie::Hash);
+
+sub DELETE @{ ... @}		# Provides needed method
+sub CLEAR @{ ... @}		# Overrides inherited method
+
+
+package NewStdHash;
+require Tie::Hash;
+
+@@ISA = (Tie::StdHash);
+
+# All methods provided by default, define only those needing overrides
+sub DELETE @{ ... @}
+
+
+package main;
+
+tie %new_hash, @'NewHash@';
+tie %new_std_hash, @'NewStdHash@';
+@end example
+
+@unnumberedsec DESCRIPTION
+
+This module provides some skeletal methods for hash-tying classes. See
+@xref{(perl.info)perltie,Perltie}, for a list of the functions required in order to tie a hash
+to a package. The basic @strong{Tie::Hash} package provides a new method, as well
+as methods TIEHASH, EXISTS and CLEAR. The @strong{Tie::StdHash} package
+provides most methods required for hashes in @xref{(perl.info)perltie,Perltie},. It inherits from
+@strong{Tie::Hash}, and causes tied hashes to behave exactly like standard hashes,
+allowing for selective overloading of methods. The new method is provided
+as grandfathering in the case a class forgets to include a TIEHASH method.
+
+For developers wishing to write their own tied hashes, the required methods
+are briefly defined below. See the @xref{(perl.info)perltie,Perltie}, section for more detailed
+descriptive, as well as example code:
+
+@table @asis
+@item TIEHASH classname, LIST
+The method invoked by the command @code{tie %hash, classname}. Associates a new
+hash instance with the specified class. LIST would represent additional
+arguments (along the lines of @xref{AnyDBM_File,AnyDBM_File}, and compatriots) needed to
+complete the association.
+
+@item STORE this, key, value
+Store datum value into @emph{key} for the tied hash @emph{this}.
+
+@item FETCH this, key
+Retrieve the datum in @emph{key} for the tied hash @emph{this}.
+
+@item FIRSTKEY this
+Return the (key, value) pair for the first key in the hash.
+
+@item NEXTKEY this, lastkey
+Return the next (key, value) pair for the hash.
+
+@item EXISTS this, key
+Verify that @emph{key} exists with the tied hash @emph{this}.
+
+@item DELETE this, key
+Delete the key @emph{key} from the tied hash @emph{this}.
+
+@item CLEAR this
+Clear all values from the tied hash @emph{this}.
+
+@end table
+@unnumberedsec CAVEATS
+
+The @xref{(perl.info)perltie,Perltie}, documentation includes a method called DESTROY as
+a necessary method for tied hashes. Neither @strong{Tie::Hash} nor @strong{Tie::StdHash}
+define a default for this method. This is a standard for class packages,
+but may be omitted in favor of a simple default.
+
+@unnumberedsec MORE INFORMATION
+
+The packages relating to various DBM-related implemetations (DB_File,
+@file{NDBM_File}, etc.) show examples of general tied hashes, as does the
+@xref{Config,Config}, module. While these do not utilize @strong{Tie::Hash}, they serve as
+good working examples.
+

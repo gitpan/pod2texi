@@ -1,0 +1,88 @@
+@node Msql/RDBMS, NDBM_File, Mmap, Module List
+@unnumbered Relational Database Management System for Msql
+
+
+@unnumberedsec NAME
+
+@strong{Msql::RDBMS} - Relational Database Management System for Msql
+
+@unnumberedsec SYNOPSIS
+
+@example
+use Msql::RDBMS;
+@end example
+
+@example
+$rdbms = new Msql::RDBMS;
+$rdbms->show;
+@end example
+
+@unnumberedsec DESCRIPTION
+
+This is a fully catalog driven database management system for Perl 5
+and mini-SQL. You should use it in conjunction with the sqldef.pl
+script, found in the utility/ subdirectory of the installation; this
+script will generate data definition language for your tables.
+
+@unnumberedsec GENERATING DATA DEFINITION LANGUAGE
+
+You must pass the name of a schema definition file to sqldef.pl (an
+example, @strong{schema.def}, is included in the examples/ subdirectory of
+the distribution).  Example usage:
+
+@example
+sqldef.pl schema.def
+@end example
+
+The above example will send the data definition language to STDOUT. To
+send it to mini-SQL (this will wipe out all of the data in the
+specified database):
+
+@example
+sqldef.pl schema.def | msql database-name
+@end example
+
+The @strong{schema.def} file contains a little bit of documentation on
+how the data is organized within the file, and how you can set 
+up your own tables.
+
+@unnumberedsec USAGE
+
+You can call up the entire Relational Database Management System from
+your browser with a URL like this:
+
+@example
+http://bozos.on.the.bus/sample.cgi?db=demo
+@end example
+
+Where @strong{sample.cgi} is a Perl script containing the three lines of
+code shown in SYNOPSIS.
+
+@unnumberedsec DEBUGGING
+
+You can get some debugging information, which consists of a CGI::dump,
+and an SQL statement, if relevant, by including debug=1 in the URL.
+
+@unnumberedsec TODO
+
+@example
+Generate forms for interactive data definition.
+Enforce referential integrity (cascade/block deletes).
+* Add support for many-to-many relationships.
+* Enforce uniqueness for label columns.
+* Add fancy display options that support automagic hyperlinking of
+   URLs and email addresses.
+@end example
+
+* denotes feature present in the original PHP/FI version.
+
+@unnumberedsec AUTHOR
+
+Brian Jepson <bjepson@@conan.ids.net>
+
+You may distribute this under the same terms as Perl itself.
+
+@unnumberedsec SEE ALSO
+
+CGI::CGI, CGI::Carp, Msql, File::Counterfile
+

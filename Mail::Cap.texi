@@ -1,0 +1,92 @@
+@node Mail/Cap, Mail/Field, Mail/Address, Module List
+@unnumbered Parse mailcap files
+
+
+@unnumberedsec NAME
+
+Mail::Cap - Parse mailcap files
+
+@unnumberedsec DESCRIPTION
+
+Parse mailcap files as specified in RFC 1524 - @emph{A User Agent
+Configuration Mechanism For Multimedia Mail Format Information}.  In
+the description below @code{$type} refers to the MIME type as specified in
+the @emph{Content-Type} header of mail or HTTP messages.  Examples of
+types are:
+
+@example
+image/gif
+text/html
+text/plain; charset=iso-8859-1
+@end example
+
+@unnumberedsec METHODS
+
+@unnumberedsubsec new()
+
+@example
+$mcap = new Mail::Cap;
+$mcap = new Mail::Cap "/mydir/mailcap";
+@end example
+
+Create and initialize a new Mail::Cap object.  If you give it an
+argument it will try to parse the specified file.  Without any
+arguments it will search for the mailcap file using the standard
+mailcap path, or the MAILCAPS environment variable if it is defined.
+
+@unnumberedsubsec view($type, $file)
+
+@unnumberedsubsec compose($type, $file)
+
+@unnumberedsubsec edit($type, $file)
+
+@unnumberedsubsec print($type, $file)
+
+These methods invoke a suitable progam presenting or manipulating the
+media object in the specified file.  They all return 1 if a command
+was found, and @code{0} otherwise.  You might test C<$?" for the outcome
+of the command.
+
+@unnumberedsubsec viewCmd($type, $file)
+
+@unnumberedsubsec composeCmd($type, $file)
+
+@unnumberedsubsec editCmd($type, $file)
+
+@unnumberedsubsec printCmd($type, $file)
+
+These methods return a string that is suitable for feeding to system()
+in order to invoke a suitable progam presenting or manipulating the
+media object in the specified file.  It will return undef if no
+suitable specification exists.
+
+@unnumberedsubsec field($type, $field)
+
+Returns the specified field for the type.  Returns undef if no
+specification exsists.
+
+@unnumberedsubsec description($type)
+
+@unnumberedsubsec textualnewlines($type)
+
+@unnumberedsubsec x11_bitmap($type)
+
+@unnumberedsubsec nametemplate($type)
+
+These methods return the corresponding mailcap field for the type.
+These methods should be more convenient to use than the field() method
+for the same fields.
+
+@unnumberedsec COPYRIGHT
+
+Copyright (c) 1995 Gisle Aas. All rights reserved.
+
+This library is free software; you can redistribute it and/or
+modify it under the same terms as Perl itself.
+
+@unnumberedsec AUTHOR
+
+Gisle Aas <aas@@oslonett.no> 
+
+Maintained by Graham Barr <bodg@@tiuk.ti.com>
+

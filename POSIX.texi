@@ -1,0 +1,1490 @@
+@node POSIX, Parext, PGP, Module List
+@unnumbered Perl interface to IEEE Std 1003.1
+
+
+@unnumberedsec NAME
+
+POSIX - Perl interface to IEEE Std 1003.1
+
+@unnumberedsec SYNOPSIS
+
+@example
+use POSIX;
+use POSIX qw(setsid);
+use POSIX qw(:errno_h :fcntl_h);
+@end example
+
+@example
+printf "EINTR is %d\n", EINTR;
+@end example
+
+@example
+$sess_id = POSIX::setsid();
+@end example
+
+@example
+$fd = POSIX::open($path, O_CREAT|O_EXCL|O_WRONLY, 0644);
+	# note: that@'s a filedescriptor, *NOT* a filehandle
+@end example
+
+@unnumberedsec DESCRIPTION
+
+The POSIX module permits you to access all (or nearly all) the standard
+POSIX 1003.1 identifiers.  Many of these identifiers have been given Perl-ish
+interfaces.  Things which are @code{#defines} in C, like EINTR or O_NDELAY, are
+automatically exported into your namespace.  All functions are only exported
+if you ask for them explicitly.  Most likely people will prefer to use the
+fully-qualified function names.
+
+This document gives a condensed list of the features available in the POSIX
+module.  Consult your operating system@'s manpages for general information on
+most features.  Consult @xref{(perl.info)perlfunc,Perlfunc}, for functions which are noted as being
+identical to Perl@'s builtin functions.
+
+The first section describes POSIX functions from the 1003.1 specification.
+The second section describes some classes for signal objects, TTY objects,
+and other miscellaneous objects.  The remaining sections list various
+constants and macros in an organization which roughly follows IEEE Std
+1003.1b-1993.
+
+@unnumberedsec NOTE
+
+The POSIX module is probably the most complex Perl module supplied with
+the standard distribution.  It incorporates autoloading, namespace games,
+and dynamic loading of code that@'s in Perl, C, or both.  It@'s a great
+source of wisdom.
+
+@unnumberedsec CAVEATS 
+
+A few functions are not implemented because they are C specific.  If you
+attempt to call these, they will print a message telling you that they
+aren@'t implemented, and suggest using the Perl equivalent should one
+exist.  For example, trying to access the setjmp() call will elicit the
+message "setjmp() is C-specific: use eval @{@} instead".
+
+Furthermore, some evil vendors will claim 1003.1 compliance, but in fact
+are not so: they will not pass the PCTS (POSIX Compliance Test Suites).
+For example, one vendor may not define EDEADLK, or the semantics of the
+errno values set by open(2) might not be quite right.  Perl does not
+attempt to verify POSIX compliance.  That means you can currently
+successfully say "use POSIX",  and then later in your program you find
+that your vendor has been lax and there@'s no usable ICANON macro after
+all.  This could be construed to be a bug.
+
+@unnumberedsec FUNCTIONS
+
+@table @asis
+@item _exit
+This is identical to the C function @code{_exit()}.
+
+@item abort
+This is identical to the C function @code{abort()}.
+
+@item abs
+This is identical to Perl@'s builtin @code{abs()} function.
+
+@item access
+Determines the accessibility of a file.
+
+@example
+if( POSIX::access( "/", &POSIX::R_OK ) )@{
+	print "have read permission\n";
+@}
+@end example
+
+Returns undef on failure.
+
+@item acos
+This is identical to the C function @code{acos()}.
+
+@item alarm
+This is identical to Perl@'s builtin @code{alarm()} function.
+
+@item asctime
+This is identical to the C function @code{asctime()}.
+
+@item asin
+This is identical to the C function @code{asin()}.
+
+@item assert
+Unimplemented.
+
+@item atan
+This is identical to the C function @code{atan()}.
+
+@item atan2
+This is identical to Perl@'s builtin @code{atan2()} function.
+
+@item atexit
+atexit() is C-specific: use END @{@} instead.
+
+@item atof
+atof() is C-specific.
+
+@item atoi
+atoi() is C-specific.
+
+@item atol
+atol() is C-specific.
+
+@item bsearch
+bsearch() not supplied.
+
+@item calloc
+calloc() is C-specific.
+
+@item ceil
+This is identical to the C function @code{ceil()}.
+
+@item chdir
+This is identical to Perl@'s builtin @code{chdir()} function.
+
+@item chmod
+This is identical to Perl@'s builtin @code{chmod()} function.
+
+@item chown
+This is identical to Perl@'s builtin @code{chown()} function.
+
+@item clearerr
+Use method @code{FileHandle::clearerr()} instead.
+
+@item clock
+This is identical to the C function @code{clock()}.
+
+@item close
+Close the file.  This uses file descriptors such as those obtained by calling
+@code{POSIX::open}.
+
+@example
+$fd = POSIX::open( "foo", &POSIX::O_RDONLY );
+POSIX::close( $fd );
+@end example
+
+Returns undef on failure.
+
+@item closedir
+This is identical to Perl@'s builtin @code{closedir()} function.
+
+@item cos
+This is identical to Perl@'s builtin @code{cos()} function.
+
+@item cosh
+This is identical to the C function @code{cosh()}.
+
+@item creat
+Create a new file.  This returns a file descriptor like the ones returned by
+@code{POSIX::open}.  Use @code{POSIX::close} to close the file.
+
+@example
+$fd = POSIX::creat( "foo", 0611 );
+POSIX::close( $fd );
+@end example
+
+@item ctermid
+Generates the path name for the controlling terminal.
+
+@example
+$path = POSIX::ctermid();
+@end example
+
+@item ctime
+This is identical to the C function @code{ctime()}.
+
+@item cuserid
+Get the character login name of the user.
+
+@example
+$name = POSIX::cuserid();
+@end example
+
+@item difftime
+This is identical to the C function @code{difftime()}.
+
+@item div
+div() is C-specific.
+
+@item dup
+This is similar to the C function @code{dup()}.
+
+This uses file descriptors such as those obtained by calling
+@code{POSIX::open}.
+
+Returns undef on failure.
+
+@item dup2
+This is similar to the C function @code{dup2()}.
+
+This uses file descriptors such as those obtained by calling
+@code{POSIX::open}.
+
+Returns undef on failure.
+
+@item errno
+Returns the value of errno.
+
+@example
+$errno = POSIX::errno();
+@end example
+
+@item execl
+execl() is C-specific.
+
+@item execle
+execle() is C-specific.
+
+@item execlp
+execlp() is C-specific.
+
+@item execv
+execv() is C-specific.
+
+@item execve
+execve() is C-specific.
+
+@item execvp
+execvp() is C-specific.
+
+@item exit
+This is identical to Perl@'s builtin @code{exit()} function.
+
+@item exp
+This is identical to Perl@'s builtin @code{exp()} function.
+
+@item fabs
+This is identical to Perl@'s builtin @code{abs()} function.
+
+@item fclose
+Use method @code{FileHandle::close()} instead.
+
+@item fcntl
+This is identical to Perl@'s builtin @code{fcntl()} function.
+
+@item fdopen
+Use method @code{FileHandle::new_from_fd()} instead.
+
+@item feof
+Use method @code{FileHandle::eof()} instead.
+
+@item ferror
+Use method @code{FileHandle::error()} instead.
+
+@item fflush
+Use method @code{FileHandle::flush()} instead.
+
+@item fgetc
+Use method @code{FileHandle::getc()} instead.
+
+@item fgetpos
+Use method @code{FileHandle::getpos()} instead.
+
+@item fgets
+Use method @code{FileHandle::gets()} instead.
+
+@item fileno
+Use method @code{FileHandle::fileno()} instead.
+
+@item floor
+This is identical to the C function @code{floor()}.
+
+@item fmod
+This is identical to the C function @code{fmod()}.
+
+@item fopen
+Use method @code{FileHandle::open()} instead.
+
+@item fork
+This is identical to Perl@'s builtin @code{fork()} function.
+
+@item fpathconf
+Retrieves the value of a configurable limit on a file or directory.  This
+uses file descriptors such as those obtained by calling @code{POSIX::open}.
+
+The following will determine the maximum length of the longest allowable
+pathname on the filesystem which holds @code{/tmp/foo}.
+
+@example
+$fd = POSIX::open( "/tmp/foo", &POSIX::O_RDONLY );
+$path_max = POSIX::fpathconf( $fd, &POSIX::_PC_PATH_MAX );
+@end example
+
+Returns undef on failure.
+
+@item fprintf
+fprintf() is C-specific--use printf instead.
+
+@item fputc
+fputc() is C-specific--use print instead.
+
+@item fputs
+fputs() is C-specific--use print instead.
+
+@item fread
+fread() is C-specific--use read instead.
+
+@item free
+free() is C-specific.
+
+@item freopen
+freopen() is C-specific--use open instead.
+
+@item frexp
+Return the mantissa and exponent of a floating-point number.
+
+@example
+($mantissa, $exponent) = POSIX::frexp( 3.14 );
+@end example
+
+@item fscanf
+fscanf() is C-specific--use <> and regular expressions instead.
+
+@item fseek
+Use method @code{FileHandle::seek()} instead.
+
+@item fsetpos
+Use method @code{FileHandle::setpos()} instead.
+
+@item fstat
+Get file status.  This uses file descriptors such as those obtained by
+calling @code{POSIX::open}.  The data returned is identical to the data from
+Perl@'s builtin stat function.
+
+@example
+$fd = POSIX::open( "foo", &POSIX::O_RDONLY );
+@@stats = POSIX::fstat( $fd );
+@end example
+
+@item ftell
+Use method @code{FileHandle::tell()} instead.
+
+@item fwrite
+fwrite() is C-specific--use print instead.
+
+@item getc
+This is identical to Perl@'s builtin @code{getc()} function.
+
+@item getchar
+Returns one character from STDIN.
+
+@item getcwd
+Returns the name of the current working directory.
+
+@item getegid
+Returns the effective group id.
+
+@item getenv
+Returns the value of the specified enironment variable.
+
+@item geteuid
+Returns the effective user id.
+
+@item getgid
+Returns the user@'s real group id.
+
+@item getgrgid
+This is identical to Perl@'s builtin @code{getgrgid()} function.
+
+@item getgrnam
+This is identical to Perl@'s builtin @code{getgrnam()} function.
+
+@item getgroups
+Returns the ids of the user@'s supplementary groups.
+
+@item getlogin
+This is identical to Perl@'s builtin @code{getlogin()} function.
+
+@item getpgrp
+This is identical to Perl@'s builtin @code{getpgrp()} function.
+
+@item getpid
+Returns the process@'s id.
+
+@item getppid
+This is identical to Perl@'s builtin @code{getppid()} function.
+
+@item getpwnam
+This is identical to Perl@'s builtin @code{getpwnam()} function.
+
+@item getpwuid
+This is identical to Perl@'s builtin @code{getpwuid()} function.
+
+@item gets
+Returns one line from STDIN.
+
+@item getuid
+Returns the user@'s id.
+
+@item gmtime
+This is identical to Perl@'s builtin @code{gmtime()} function.
+
+@item isalnum
+This is identical to the C function, except that it can apply to a single
+character or to a whole string.
+
+@item isalpha
+This is identical to the C function, except that it can apply to a single
+character or to a whole string.
+
+@item isatty
+Returns a boolean indicating whether the specified filehandle is connected
+to a tty.
+
+@item iscntrl
+This is identical to the C function, except that it can apply to a single
+character or to a whole string.
+
+@item isdigit
+This is identical to the C function, except that it can apply to a single
+character or to a whole string.
+
+@item isgraph
+This is identical to the C function, except that it can apply to a single
+character or to a whole string.
+
+@item islower
+This is identical to the C function, except that it can apply to a single
+character or to a whole string.
+
+@item isprint
+This is identical to the C function, except that it can apply to a single
+character or to a whole string.
+
+@item ispunct
+This is identical to the C function, except that it can apply to a single
+character or to a whole string.
+
+@item isspace
+This is identical to the C function, except that it can apply to a single
+character or to a whole string.
+
+@item isupper
+This is identical to the C function, except that it can apply to a single
+character or to a whole string.
+
+@item isxdigit
+This is identical to the C function, except that it can apply to a single
+character or to a whole string.
+
+@item kill
+This is identical to Perl@'s builtin @code{kill()} function.
+
+@item labs
+labs() is C-specific, use abs instead.
+
+@item ldexp
+This is identical to the C function @code{ldexp()}.
+
+@item ldiv
+ldiv() is C-specific, use / and int instead.
+
+@item link
+This is identical to Perl@'s builtin @code{link()} function.
+
+@item localeconv
+Get numeric formatting information.  Returns a reference to a hash
+containing the current locale formatting values.
+
+The database for the @strong{de} (Deutsch or German) locale.
+
+@example
+$loc = POSIX::setlocale( &POSIX::LC_ALL, "de" );
+print "Locale = $loc\n";
+$lconv = POSIX::localeconv();
+print "decimal_point	= ", $lconv->@{decimal_point@},	"\n";
+print "thousands_sep	= ", $lconv->@{thousands_sep@},	"\n";
+print "grouping	= ", $lconv->@{grouping@},	"\n";
+print "int_curr_symbol	= ", $lconv->@{int_curr_symbol@},	"\n";
+print "currency_symbol	= ", $lconv->@{currency_symbol@},	"\n";
+print "mon_decimal_point = ", $lconv->@{mon_decimal_point@}, "\n";
+print "mon_thousands_sep = ", $lconv->@{mon_thousands_sep@}, "\n";
+print "mon_grouping	= ", $lconv->@{mon_grouping@},	"\n";
+print "positive_sign	= ", $lconv->@{positive_sign@},	"\n";
+print "negative_sign	= ", $lconv->@{negative_sign@},	"\n";
+print "int_frac_digits	= ", $lconv->@{int_frac_digits@},	"\n";
+print "frac_digits	= ", $lconv->@{frac_digits@},	"\n";
+print "p_cs_precedes	= ", $lconv->@{p_cs_precedes@},	"\n";
+print "p_sep_by_space	= ", $lconv->@{p_sep_by_space@},	"\n";
+print "n_cs_precedes	= ", $lconv->@{n_cs_precedes@},	"\n";
+print "n_sep_by_space	= ", $lconv->@{n_sep_by_space@},	"\n";
+print "p_sign_posn	= ", $lconv->@{p_sign_posn@},	"\n";
+print "n_sign_posn	= ", $lconv->@{n_sign_posn@},	"\n";
+@end example
+
+@item localtime
+This is identical to Perl@'s builtin @code{localtime()} function.
+
+@item log
+This is identical to Perl@'s builtin @code{log()} function.
+
+@item log10
+This is identical to the C function @code{log10()}.
+
+@item longjmp
+longjmp() is C-specific: use die instead.
+
+@item lseek
+Move the read/write file pointer.  This uses file descriptors such as
+those obtained by calling @code{POSIX::open}.
+
+@example
+$fd = POSIX::open( "foo", &POSIX::O_RDONLY );
+$off_t = POSIX::lseek( $fd, 0, &POSIX::SEEK_SET );
+@end example
+
+Returns undef on failure.
+
+@item malloc
+malloc() is C-specific.
+
+@item mblen
+This is identical to the C function @code{mblen()}.
+
+@item mbstowcs
+This is identical to the C function @code{mbstowcs()}.
+
+@item mbtowc
+This is identical to the C function @code{mbtowc()}.
+
+@item memchr
+memchr() is C-specific, use index() instead.
+
+@item memcmp
+memcmp() is C-specific, use eq instead.
+
+@item memcpy
+memcpy() is C-specific, use = instead.
+
+@item memmove
+memmove() is C-specific, use = instead.
+
+@item memset
+memset() is C-specific, use x instead.
+
+@item mkdir
+This is identical to Perl@'s builtin @code{mkdir()} function.
+
+@item mkfifo
+This is similar to the C function @code{mkfifo()}.
+
+Returns undef on failure.
+
+@item mktime
+Convert date/time info to a calendar time.
+
+Synopsis:
+
+@example
+mktime(sec, min, hour, mday, mon, year, wday = 0, yday = 0, isdst = 0)
+@end example
+
+The month (@code{mon}), weekday (@code{wday}), and yearday (@code{yday}) begin at zero.
+I.e. January is 0, not 1; Sunday is 0, not 1; January 1st is 0, not 1.  The
+year (@code{year}) is given in years since 1900.  I.e. The year 1995 is 95; the
+year 2001 is 101.  Consult your system@'s @code{mktime()} manpage for details
+about these and the other arguments.
+
+Calendar time for December 12, 1995, at 10:30 am.
+
+@example
+$time_t = POSIX::mktime( 0, 30, 10, 12, 11, 95 );
+print "Date = ", POSIX::ctime($time_t);
+@end example
+
+Returns undef on failure.
+
+@item modf
+Return the integral and fractional parts of a floating-point number.
+
+@example
+($fractional, $integral) = POSIX::modf( 3.14 );
+@end example
+
+@item nice
+This is similar to the C function @code{nice()}.
+
+Returns undef on failure.
+
+@item offsetof
+offsetof() is C-specific.
+
+@item open
+Open a file for reading for writing.  This returns file descriptors, not
+Perl filehandles.  Use @code{POSIX::close} to close the file.
+
+Open a file read-only with mode 0666.
+
+@example
+$fd = POSIX::open( "foo" );
+@end example
+
+Open a file for read and write.
+
+@example
+$fd = POSIX::open( "foo", &POSIX::O_RDWR );
+@end example
+
+Open a file for write, with truncation.
+
+@example
+$fd = POSIX::open( "foo", &POSIX::O_WRONLY | &POSIX::O_TRUNC );
+@end example
+
+Create a new file with mode 0640.  Set up the file for writing.
+
+@example
+$fd = POSIX::open( "foo", &POSIX::O_CREAT | &POSIX::O_WRONLY, 0640 );
+@end example
+
+Returns undef on failure.
+
+@item opendir
+Open a directory for reading.
+
+@example
+$dir = POSIX::opendir( "/tmp" );
+@@files = POSIX::readdir( $dir );
+POSIX::closedir( $dir );
+@end example
+
+Returns undef on failure.
+
+@item pathconf
+Retrieves the value of a configurable limit on a file or directory.
+
+The following will determine the maximum length of the longest allowable
+pathname on the filesystem which holds @code{/tmp}.
+
+@example
+$path_max = POSIX::pathconf( "/tmp", &POSIX::_PC_PATH_MAX );
+@end example
+
+Returns undef on failure.
+
+@item pause
+This is similar to the C function @code{pause()}.
+
+Returns undef on failure.
+
+@item perror
+This is identical to the C function @code{perror()}.
+
+@item pipe
+Create an interprocess channel.  This returns file descriptors like those
+returned by @code{POSIX::open}.
+
+@example
+($fd0, $fd1) = POSIX::pipe();
+POSIX::write( $fd0, "hello", 5 );
+POSIX::read( $fd1, $buf, 5 );
+@end example
+
+@item pow
+Computes $x raised to the power $exponent.
+
+@example
+$ret = POSIX::pow( $x, $exponent );
+@end example
+
+@item printf
+Prints the specified arguments to STDOUT.
+
+@item putc
+putc() is C-specific--use print instead.
+
+@item putchar
+putchar() is C-specific--use print instead.
+
+@item puts
+puts() is C-specific--use print instead.
+
+@item qsort
+qsort() is C-specific, use sort instead.
+
+@item raise
+Sends the specified signal to the current process.
+
+@item rand
+rand() is non-portable, use Perl@'s rand instead.
+
+@item read
+Read from a file.  This uses file descriptors such as those obtained by
+calling @code{POSIX::open}.  If the buffer @code{$buf} is not large enough for the
+read then Perl will extend it to make room for the request.
+
+@example
+$fd = POSIX::open( "foo", &POSIX::O_RDONLY );
+$bytes = POSIX::read( $fd, $buf, 3 );
+@end example
+
+Returns undef on failure.
+
+@item readdir
+This is identical to Perl@'s builtin @code{readdir()} function.
+
+@item realloc
+realloc() is C-specific.
+
+@item remove
+This is identical to Perl@'s builtin @code{unlink()} function.
+
+@item rename
+This is identical to Perl@'s builtin @code{rename()} function.
+
+@item rewind
+Seeks to the beginning of the file.
+
+@item rewinddir
+This is identical to Perl@'s builtin @code{rewinddir()} function.
+
+@item rmdir
+This is identical to Perl@'s builtin @code{rmdir()} function.
+
+@item scanf
+scanf() is C-specific--use <> and regular expressions instead.
+
+@item setgid
+Sets the real group id for this process.
+
+@item setjmp
+setjmp() is C-specific: use eval @{@} instead.
+
+@item setlocale
+Modifies and queries program@'s locale.
+
+The following will set the traditional UNIX system locale behavior
+(the second argument @code{"C"}).
+
+@example
+$loc = POSIX::setlocale( &POSIX::LC_ALL, "C" );
+@end example
+
+The following will query (the missing second argument) the current
+LC_CTYPE category.
+
+@example
+$loc = POSIX::setlocale( &POSIX::LC_CTYPE);
+@end example
+
+The following will set the LC_CTYPE behaviour according to the locale
+environment variables (the second argument @code{""}).
+Please see your systems @samp{setlocale(3)} in this node documentation for the locale
+environment variables@' meaning or consult @xref{(perl.info)perli18n,Perli18n},.
+
+@example
+$loc = POSIX::setlocale( &POSIX::LC_CTYPE, "");
+@end example
+
+The following will set the LC_COLLATE behaviour to Argentinian
+Spanish. NOTE: The naming and availability of locales depends on
+your operating system. Please consult @xref{(perl.info)perli18n,Perli18n}, for how to find
+out which locales are available in your system.
+
+@example
+$loc = POSIX::setlocale( &POSIX::LC_ALL, "es_AR.ISO8859-1" );
+@end example
+
+@item setpgid
+This is similar to the C function @code{setpgid()}.
+
+Returns undef on failure.
+
+@item setsid
+This is identical to the C function @code{setsid()}.
+
+@item setuid
+Sets the real user id for this process.
+
+@item sigaction
+Detailed signal management.  This uses POSIX::SigAction objects for the
+@code{action} and @code{oldaction} arguments.  Consult your system@'s sigaction
+manpage for details.
+
+Synopsis:
+
+@example
+sigaction(sig, action, oldaction = 0)
+@end example
+
+Returns undef on failure.
+
+@item siglongjmp
+siglongjmp() is C-specific: use die instead.
+
+@item sigpending
+Examine signals that are blocked and pending.  This uses POSIX::SigSet
+objects for the @code{sigset} argument.  Consult your system@'s sigpending
+manpage for details.
+
+Synopsis:
+
+@example
+sigpending(sigset)
+@end example
+
+Returns undef on failure.
+
+@item sigprocmask
+Change and/or examine calling process@'s signal mask.  This uses
+POSIX::SigSet objects for the @code{sigset} and @code{oldsigset} arguments.
+Consult your system@'s sigprocmask manpage for details.
+
+Synopsis:
+
+@example
+sigprocmask(how, sigset, oldsigset = 0)
+@end example
+
+Returns undef on failure.
+
+@item sigsetjmp
+sigsetjmp() is C-specific: use eval @{@} instead.
+
+@item sigsuspend
+Install a signal mask and suspend process until signal arrives.  This uses
+POSIX::SigSet objects for the @code{signal_mask} argument.  Consult your
+system@'s sigsuspend manpage for details.
+
+Synopsis:
+
+@example
+sigsuspend(signal_mask)
+@end example
+
+Returns undef on failure.
+
+@item sin
+This is identical to Perl@'s builtin @code{sin()} function.
+
+@item sinh
+This is identical to the C function @code{sinh()}.
+
+@item sleep
+This is identical to Perl@'s builtin @code{sleep()} function.
+
+@item sprintf
+This is identical to Perl@'s builtin @code{sprintf()} function.
+
+@item sqrt
+This is identical to Perl@'s builtin @code{sqrt()} function.
+
+@item srand
+srand().
+
+@item sscanf
+sscanf() is C-specific--use regular expressions instead.
+
+@item stat
+This is identical to Perl@'s builtin @code{stat()} function.
+
+@item strcat
+strcat() is C-specific, use .= instead.
+
+@item strchr
+strchr() is C-specific, use index() instead.
+
+@item strcmp
+strcmp() is C-specific, use eq instead.
+
+@item strcoll
+This is identical to the C function @code{strcoll()}.
+
+@item strcpy
+strcpy() is C-specific, use = instead.
+
+@item strcspn
+strcspn() is C-specific, use regular expressions instead.
+
+@item strerror
+Returns the error string for the specified errno.
+
+@item strftime
+Convert date and time information to string.  Returns the string.
+
+Synopsis:
+
+@example
+strftime(fmt, sec, min, hour, mday, mon, year, wday = 0, yday = 0, isdst = 0)
+@end example
+
+The month (@code{mon}), weekday (@code{wday}), and yearday (@code{yday}) begin at zero.
+I.e. January is 0, not 1; Sunday is 0, not 1; January 1st is 0, not 1.  The
+year (@code{year}) is given in years since 1900.  I.e. The year 1995 is 95; the
+year 2001 is 101.  Consult your system@'s @code{strftime()} manpage for details
+about these and the other arguments.
+
+The string for Tuesday, December 12, 1995.
+
+@example
+$str = POSIX::strftime( "%A, %B %d, %Y", 0, 0, 0, 12, 11, 95, 2 );
+print "$str\n";
+@end example
+
+@item strlen
+strlen() is C-specific, use length instead.
+
+@item strncat
+strncat() is C-specific, use .= instead.
+
+@item strncmp
+strncmp() is C-specific, use eq instead.
+
+@item strncpy
+strncpy() is C-specific, use = instead.
+
+@item stroul
+stroul() is C-specific.
+
+@item strpbrk
+strpbrk() is C-specific.
+
+@item strrchr
+strrchr() is C-specific, use rindex() instead.
+
+@item strspn
+strspn() is C-specific.
+
+@item strstr
+This is identical to Perl@'s builtin @code{index()} function.
+
+@item strtod
+strtod() is C-specific.
+
+@item strtok
+strtok() is C-specific.
+
+@item strtol
+strtol() is C-specific.
+
+@item strxfrm
+String transformation.  Returns the transformed string.
+
+@example
+$dst = POSIX::strxfrm( $src );
+@end example
+
+@item sysconf
+Retrieves values of system configurable variables.
+
+The following will get the machine@'s clock speed.
+
+@example
+$clock_ticks = POSIX::sysconf( &POSIX::_SC_CLK_TCK );
+@end example
+
+Returns undef on failure.
+
+@item system
+This is identical to Perl@'s builtin @code{system()} function.
+
+@item tan
+This is identical to the C function @code{tan()}.
+
+@item tanh
+This is identical to the C function @code{tanh()}.
+
+@item tcdrain
+This is similar to the C function @code{tcdrain()}.
+
+Returns undef on failure.
+
+@item tcflow
+This is similar to the C function @code{tcflow()}.
+
+Returns undef on failure.
+
+@item tcflush
+This is similar to the C function @code{tcflush()}.
+
+Returns undef on failure.
+
+@item tcgetpgrp
+This is identical to the C function @code{tcgetpgrp()}.
+
+@item tcsendbreak
+This is similar to the C function @code{tcsendbreak()}.
+
+Returns undef on failure.
+
+@item tcsetpgrp
+This is similar to the C function @code{tcsetpgrp()}.
+
+Returns undef on failure.
+
+@item time
+This is identical to Perl@'s builtin @code{time()} function.
+
+@item times
+The times() function returns elapsed realtime since some point in the past
+(such as system startup), user and system times for this process, and user
+and system times used by child processes.  All times are returned in clock
+ticks.
+
+@example
+($realtime, $user, $system, $cuser, $csystem) = POSIX::times();
+@end example
+
+Note: Perl@'s builtin @code{times()} function returns four values, measured in
+seconds.
+
+@item tmpfile
+Use method @code{FileHandle::new_tmpfile()} instead.
+
+@item tmpnam
+Returns a name for a temporary file.
+
+@example
+$tmpfile = POSIX::tmpnam();
+@end example
+
+@item tolower
+This is identical to Perl@'s builtin @code{lc()} function.
+
+@item toupper
+This is identical to Perl@'s builtin @code{uc()} function.
+
+@item ttyname
+This is identical to the C function @code{ttyname()}.
+
+@item tzname
+Retrieves the time conversion information from the tzname variable.
+
+@example
+POSIX::tzset();
+($std, $dst) = POSIX::tzname();
+@end example
+
+@item tzset
+This is identical to the C function @code{tzset()}.
+
+@item umask
+This is identical to Perl@'s builtin @code{umask()} function.
+
+@item uname
+Get name of current operating system.
+
+@example
+($sysname, $nodename, $release, $version, $machine ) = POSIX::uname();
+@end example
+
+@item ungetc
+Use method @code{FileHandle::ungetc()} instead.
+
+@item unlink
+This is identical to Perl@'s builtin @code{unlink()} function.
+
+@item utime
+This is identical to Perl@'s builtin @code{utime()} function.
+
+@item vfprintf
+vfprintf() is C-specific.
+
+@item vprintf
+vprintf() is C-specific.
+
+@item vsprintf
+vsprintf() is C-specific.
+
+@item wait
+This is identical to Perl@'s builtin @code{wait()} function.
+
+@item waitpid
+Wait for a child process to change state.  This is identical to Perl@'s
+builtin @code{waitpid()} function.
+
+@example
+$pid = POSIX::waitpid( -1, &POSIX::WNOHANG );
+print "status = ", ($? / 256), "\n";
+@end example
+
+@item wcstombs
+This is identical to the C function @code{wcstombs()}.
+
+@item wctomb
+This is identical to the C function @code{wctomb()}.
+
+@item write
+Write to a file.  This uses file descriptors such as those obtained by
+calling @code{POSIX::open}.
+
+@example
+$fd = POSIX::open( "foo", &POSIX::O_WRONLY );
+$buf = "hello";
+$bytes = POSIX::write( $b, $buf, 5 );
+@end example
+
+Returns undef on failure.
+
+@end table
+@unnumberedsec CLASSES
+
+@unnumberedsubsec POSIX::SigAction
+
+@table @asis
+@item new
+Creates a new POSIX::SigAction object which corresponds to the C
+@code{struct sigaction}.  This object will be destroyed automatically when it is
+no longer needed.  The first parameter is the fully-qualified name of a sub
+which is a signal-handler.  The second parameter is a POSIX::SigSet
+object.  The third parameter contains the @code{sa_flags}.
+
+@example
+$sigset = POSIX::SigSet->new;
+$sigaction = POSIX::SigAction->new( @'main::handler@', $sigset, &POSIX::SA_NOCLDSTOP );
+@end example
+
+This POSIX::SigAction object should be used with the @code{POSIX::sigaction()}
+function.
+
+@end table
+@unnumberedsubsec POSIX::SigSet
+
+@table @asis
+@item new
+Create a new SigSet object.  This object will be destroyed automatically
+when it is no longer needed.  Arguments may be supplied to initialize the
+set.
+
+Create an empty set.
+
+@example
+$sigset = POSIX::SigSet->new;
+@end example
+
+Create a set with SIGUSR1.
+
+@example
+$sigset = POSIX::SigSet->new( &POSIX::SIGUSR1 );
+@end example
+
+@item addset
+Add a signal to a SigSet object.
+
+@example
+$sigset->addset( &POSIX::SIGUSR2 );
+@end example
+
+Returns undef on failure.
+
+@item delset
+Remove a signal from the SigSet object.
+
+@example
+$sigset->delset( &POSIX::SIGUSR2 );
+@end example
+
+Returns undef on failure.
+
+@item emptyset
+Initialize the SigSet object to be empty.
+
+@example
+$sigset->emptyset();
+@end example
+
+Returns undef on failure.
+
+@item fillset
+Initialize the SigSet object to include all signals.
+
+@example
+$sigset->fillset();
+@end example
+
+Returns undef on failure.
+
+@item ismember
+Tests the SigSet object to see if it contains a specific signal.
+
+@example
+if( $sigset->ismember( &POSIX::SIGUSR1 ) )@{
+	print "contains SIGUSR1\n";
+@}
+@end example
+
+@end table
+@unnumberedsubsec POSIX::Termios
+
+@table @asis
+@item new
+Create a new Termios object.  This object will be destroyed automatically
+when it is no longer needed.
+
+@example
+$termios = POSIX::Termios->new;
+@end example
+
+@item getattr
+Get terminal control attributes.
+
+Obtain the attributes for stdin.
+
+@example
+$termios->getattr()
+@end example
+
+Obtain the attributes for stdout.
+
+@example
+$termios->getattr( 1 )
+@end example
+
+Returns undef on failure.
+
+@item getcc
+Retrieve a value from the c_cc field of a termios object.  The c_cc field is
+an array so an index must be specified.
+
+@example
+$c_cc[1] = $termios->getcc(1);
+@end example
+
+@item getcflag
+Retrieve the c_cflag field of a termios object.
+
+@example
+$c_cflag = $termios->getcflag;
+@end example
+
+@item getiflag
+Retrieve the c_iflag field of a termios object.
+
+@example
+$c_iflag = $termios->getiflag;
+@end example
+
+@item getispeed
+Retrieve the input baud rate.
+
+@example
+$ispeed = $termios->getispeed;
+@end example
+
+@item getlflag
+Retrieve the c_lflag field of a termios object.
+
+@example
+$c_lflag = $termios->getlflag;
+@end example
+
+@item getoflag
+Retrieve the c_oflag field of a termios object.
+
+@example
+$c_oflag = $termios->getoflag;
+@end example
+
+@item getospeed
+Retrieve the output baud rate.
+
+@example
+$ospeed = $termios->getospeed;
+@end example
+
+@item setattr
+Set terminal control attributes.
+
+Set attributes immediately for stdout.
+
+@example
+$termios->setattr( 1, &POSIX::TCSANOW );
+@end example
+
+Returns undef on failure.
+
+@item setcc
+Set a value in the c_cc field of a termios object.  The c_cc field is an
+array so an index must be specified.
+
+@example
+$termios->setcc( &POSIX::VEOF, 1 );
+@end example
+
+@item setcflag
+Set the c_cflag field of a termios object.
+
+@example
+$termios->setcflag( &POSIX::CLOCAL );
+@end example
+
+@item setiflag
+Set the c_iflag field of a termios object.
+
+@example
+$termios->setiflag( &POSIX::BRKINT );
+@end example
+
+@item setispeed
+Set the input baud rate.
+
+@example
+$termios->setispeed( &POSIX::B9600 );
+@end example
+
+Returns undef on failure.
+
+@item setlflag
+Set the c_lflag field of a termios object.
+
+@example
+$termios->setlflag( &POSIX::ECHO );
+@end example
+
+@item setoflag
+Set the c_oflag field of a termios object.
+
+@example
+$termios->setoflag( &POSIX::OPOST );
+@end example
+
+@item setospeed
+Set the output baud rate.
+
+@example
+$termios->setospeed( &POSIX::B9600 );
+@end example
+
+Returns undef on failure.
+
+@item Baud rate values
+B38400 B75 B200 B134 B300 B1800 B150 B0 B19200 B1200 B9600 B600 B4800 B50 B2400 B110
+
+@item Terminal interface values
+TCSADRAIN TCSANOW TCOON TCIOFLUSH TCOFLUSH TCION TCIFLUSH TCSAFLUSH TCIOFF TCOOFF
+
+@item c_cc field values
+VEOF VEOL VERASE VINTR VKILL VQUIT VSUSP VSTART VSTOP VMIN VTIME NCCS
+
+@item c_cflag field values
+CLOCAL CREAD CSIZE CS5 CS6 CS7 CS8 CSTOPB HUPCL PARENB PARODD
+
+@item c_iflag field values
+BRKINT ICRNL IGNBRK IGNCR IGNPAR INLCR INPCK ISTRIP IXOFF IXON PARMRK
+
+@item c_lflag field values
+ECHO ECHOE ECHOK ECHONL ICANON IEXTEN ISIG NOFLSH TOSTOP
+
+@item c_oflag field values
+OPOST
+
+@end table
+@unnumberedsec PATHNAME CONSTANTS
+
+@table @asis
+@item Constants
+_PC_CHOWN_RESTRICTED _PC_LINK_MAX _PC_MAX_CANON _PC_MAX_INPUT _PC_NAME_MAX _PC_NO_TRUNC _PC_PATH_MAX _PC_PIPE_BUF _PC_VDISABLE
+
+@end table
+@unnumberedsec POSIX CONSTANTS
+
+@table @asis
+@item Constants
+_POSIX_ARG_MAX _POSIX_CHILD_MAX _POSIX_CHOWN_RESTRICTED _POSIX_JOB_CONTROL _POSIX_LINK_MAX _POSIX_MAX_CANON _POSIX_MAX_INPUT _POSIX_NAME_MAX _POSIX_NGROUPS_MAX _POSIX_NO_TRUNC _POSIX_OPEN_MAX _POSIX_PATH_MAX _POSIX_PIPE_BUF _POSIX_SAVED_IDS _POSIX_SSIZE_MAX _POSIX_STREAM_MAX _POSIX_TZNAME_MAX _POSIX_VDISABLE _POSIX_VERSION
+
+@end table
+@unnumberedsec SYSTEM CONFIGURATION
+
+@table @asis
+@item Constants
+_SC_ARG_MAX _SC_CHILD_MAX _SC_CLK_TCK _SC_JOB_CONTROL _SC_NGROUPS_MAX _SC_OPEN_MAX _SC_SAVED_IDS _SC_STREAM_MAX _SC_TZNAME_MAX _SC_VERSION
+
+@end table
+@unnumberedsec ERRNO
+
+@table @asis
+@item Constants
+E2BIG EACCES EAGAIN EBADF EBUSY ECHILD EDEADLK EDOM EEXIST EFAULT EFBIG EINTR EINVAL EIO EISDIR EMFILE EMLINK ENAMETOOLONG ENFILE ENODEV ENOENT ENOEXEC ENOLCK ENOMEM ENOSPC ENOSYS ENOTDIR ENOTEMPTY ENOTTY ENXIO EPERM EPIPE ERANGE EROFS ESPIPE ESRCH EXDEV
+
+@end table
+@unnumberedsec FCNTL
+
+@table @asis
+@item Constants
+FD_CLOEXEC F_DUPFD F_GETFD F_GETFL F_GETLK F_OK F_RDLCK F_SETFD F_SETFL F_SETLK F_SETLKW F_UNLCK F_WRLCK O_ACCMODE O_APPEND O_CREAT O_EXCL O_NOCTTY O_NONBLOCK O_RDONLY O_RDWR O_TRUNC O_WRONLY
+
+@end table
+@unnumberedsec FLOAT
+
+@table @asis
+@item Constants
+DBL_DIG DBL_EPSILON DBL_MANT_DIG DBL_MAX DBL_MAX_10_EXP DBL_MAX_EXP DBL_MIN DBL_MIN_10_EXP DBL_MIN_EXP FLT_DIG FLT_EPSILON FLT_MANT_DIG FLT_MAX FLT_MAX_10_EXP FLT_MAX_EXP FLT_MIN FLT_MIN_10_EXP FLT_MIN_EXP FLT_RADIX FLT_ROUNDS LDBL_DIG LDBL_EPSILON LDBL_MANT_DIG LDBL_MAX LDBL_MAX_10_EXP LDBL_MAX_EXP LDBL_MIN LDBL_MIN_10_EXP LDBL_MIN_EXP
+
+@end table
+@unnumberedsec LIMITS
+
+@table @asis
+@item Constants
+ARG_MAX CHAR_BIT CHAR_MAX CHAR_MIN CHILD_MAX INT_MAX INT_MIN LINK_MAX LONG_MAX LONG_MIN MAX_CANON MAX_INPUT MB_LEN_MAX NAME_MAX NGROUPS_MAX OPEN_MAX PATH_MAX PIPE_BUF SCHAR_MAX SCHAR_MIN SHRT_MAX SHRT_MIN SSIZE_MAX STREAM_MAX TZNAME_MAX UCHAR_MAX UINT_MAX ULONG_MAX USHRT_MAX
+
+@end table
+@unnumberedsec LOCALE
+
+@table @asis
+@item Constants
+LC_ALL LC_COLLATE LC_CTYPE LC_MONETARY LC_NUMERIC LC_TIME
+
+@end table
+@unnumberedsec MATH
+
+@table @asis
+@item Constants
+HUGE_VAL
+
+@end table
+@unnumberedsec SIGNAL
+
+@table @asis
+@item Constants
+SA_NOCLDSTOP SIGABRT SIGALRM SIGCHLD SIGCONT SIGFPE SIGHUP SIGILL SIGINT SIGKILL SIGPIPE SIGQUIT SIGSEGV SIGSTOP SIGTERM SIGTSTP SIGTTIN SIGTTOU SIGUSR1 SIGUSR2 SIG_BLOCK SIG_DFL SIG_ERR SIG_IGN SIG_SETMASK SIG_UNBLOCK
+
+@end table
+@unnumberedsec STAT
+
+@table @asis
+@item Constants
+S_IRGRP S_IROTH S_IRUSR S_IRWXG S_IRWXO S_IRWXU S_ISGID S_ISUID S_IWGRP S_IWOTH S_IWUSR S_IXGRP S_IXOTH S_IXUSR
+
+@item Macros
+S_ISBLK S_ISCHR S_ISDIR S_ISFIFO S_ISREG
+
+@end table
+@unnumberedsec STDLIB
+
+@table @asis
+@item Constants
+EXIT_FAILURE EXIT_SUCCESS MB_CUR_MAX RAND_MAX
+
+@end table
+@unnumberedsec STDIO
+
+@table @asis
+@item Constants
+BUFSIZ EOF FILENAME_MAX L_ctermid L_cuserid L_tmpname TMP_MAX
+
+@end table
+@unnumberedsec TIME
+
+@table @asis
+@item Constants
+CLK_TCK CLOCKS_PER_SEC
+
+@end table
+@unnumberedsec UNISTD
+
+@table @asis
+@item Constants
+R_OK SEEK_CUR SEEK_END SEEK_SET STDIN_FILENO STDOUT_FILENO STRERR_FILENO W_OK X_OK
+
+@end table
+@unnumberedsec WAIT
+
+@table @asis
+@item Constants
+WNOHANG WUNTRACED
+
+@item Macros
+WIFEXITED WEXITSTATUS WIFSIGNALED WTERMSIG WIFSTOPPED WSTOPSIG
+
+@end table
+@unnumberedsec CREATION
+
+This document generated by ./mkposixman.PL version 19960129.
+

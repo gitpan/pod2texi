@@ -1,0 +1,103 @@
+@node C/Scan, CGI, BitCount, Module List
+@unnumbered scan C language files for easily recognized constructs.
+
+
+@unnumberedsec NAME
+
+C::Scan - scan C language files for easily recognized constructs.
+
+@unnumberedsec SYNOPSIS
+
+@example
+$c = new C::Scan @'filename@' => $filename, @'filename_filter@' => $filter,
+                 @'add_cppflags@' => $addflags;
+$c->set(@'includeDirs@' => [$Config::Config@{shrpdir@}]);
+
+my $fdec = $c->get(@'parsed_fdecls@');
+@end example
+
+@unnumberedsec DESCRIPTION
+
+@strong{This description is @emph{VERY} incomplete.}
+
+This module uses @code{Data::Flow} interface, thus one uses it in the
+following fashion:
+
+@example
+$c = new C::Scan(attr1 => $value1, attr2 => $value2);
+$c->set( attr3 => $value3 );
+@end example
+
+@example
+$value4 = $c->get(@'attr4@');
+@end example
+
+Attributes are depending on some other attributes. The only
+@emph{required} attribute, i.e., the attribute which @emph{should} be set, is
+@code{filename}, which denotes which file to parse.
+
+All other attributes are either optional, or would be calculated basing on values of required and optional attributes.
+
+@unnumberedsubsec Output attributes
+
+@table @asis
+@item @code{includes}
+Value: reference to a list of included files.
+
+@item @code{defines_args}
+Value: reference to hash of macros with arguments. The values are
+references to an array of length 2, the first element is a reference
+to the list of arguments, the second one being the expansion.
+Newlines are not unescaped, thus
+
+@example
+#define C(x,y) E\
+               F
+@end example
+
+will finish with @code{("C" => [ ["x", "y"], "E\nF"])}.
+
+@item @code{defines_no_args}
+Value: reference to hash of macros without arguments.  Newlines are
+not escaped, thus
+
+@example
+#define A B
+@end example
+
+will finish with @code{("A" => "B")}.
+
+@item @code{fdecls}
+Value: reference to list of declarations of functions.
+
+@item @code{inlines}
+Value: reference to list of definitions of functions.
+
+@item @code{parsed_fdecls}
+Value: reference to list of parsed declarations of functions. 
+
+A parsed declaration is a reference to a list of @code{(rt, nm, args, ft,
+mod)}. Here @code{rt} is return type of a function, @code{nm} is the name,
+@code{args} is the list of arguments, @code{ft} is the full text of the
+declaration, and mod is the modifier (which is always undef).
+
+Each entry in the list @code{args} is of the same form @code{(ty, nm, args,
+ft, mod)}, here @code{ty} is the type of an argument, @code{nm} is the name (a
+generated one if missing in the declaration), @code{args} is undef, and
+mod is the string of array modifiers.
+
+@item @code{typedef_hash}
+Value: a reference to a hash which contains known @code{typedef}s as keys.
+
+@item @code{typedef_texts}
+Value: a reference to a list which contains known expansions of
+@code{typedef}s.
+
+@item @code{typedefs_maybe}
+Value: a reference to a list of @code{typedef}ed names. (Syncronized with
+@code{typedef_texts}).
+
+@item @code{vdecls}
+Value: a reference to a list of @code{extern} variable declarations.
+
+@end table

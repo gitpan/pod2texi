@@ -1,0 +1,243 @@
+@node Math/BigInteger, Math/Brent, Math/BigInt, Module List
+@unnumbered Arbitrary length integer extension module for Perl
+
+
+@unnumberedsec NAME
+
+BigInteger - Arbitrary length integer extension module for Perl
+
+@unnumberedsec SYNOPSIS
+
+@example
+use Math::BigInteger;
+@end example
+
+@unnumberedsec DESCRIPTION
+
+The BigInteger extension module gives access to Eric Young@'s bignum library.
+This provides a faster alternative to the Math::BigInt library.
+
+The basic object in this library is a BigInteger.
+It is used to hold a single large integer.
+
+It is not intended that this package be used directly,
+but instead be used by a wrapper package, such as the Math::BigInteger class.
+
+@unnumberedsec FUNCTIONS
+
+Many of the following functions can be used in two styles,
+by calling the function on an object, or by calling
+the function explicitly; for example, here are two ways
+of assigning to $a the sum of $b and $c:
+
+@example
+$a->add($b, $c);
+or
+@end example
+
+@example
+BigInteger::add($a, $b, $c);
+@end example
+
+@unnumberedsubsec Creation/Destruction routines.
+
+@table @asis
+@item new
+@example
+my $bi = new BigInteger;	# Create a new BigInteger object.
+@end example
+
+@itemx clone
+@example
+my $b = $a->clone();
+@end example
+
+Create a new BigInteger object from another BigInteger object.
+
+@item copy
+@example
+copy($a, $b);
+@end example
+
+Copy one BigInteger object to another.
+
+@item save
+@example
+my $data = $bi->save();
+@end example
+
+Save a BigInteger object as a MSB-first string.
+
+@item restore
+@example
+my $bi = restore BigInteger $data;
+@end example
+
+Create a new BigInteger object from a MSB-first string.
+
+@end table
+@unnumberedsubsec Comparison functions
+
+@table @asis
+@item ucmp
+@example
+ucmp($a, $b);
+@end example
+
+Return -1 if $a is less than $b, 0 if $a and $b are the same
+and 1 is $a is greater than $b.  This is an @emph{unsigned} comparison.
+
+@item cmp
+@example
+cmp($a, $b);
+@end example
+
+Return -1 if $a is less than $b, 0 if $a and $b are the same
+and 1 is $a is greater than $b.  This is a @emph{signed} comparison.
+
+@end table
+@unnumberedsubsec Arithmetic Functions
+
+@table @asis
+@item inc 	$bi->inc();
+Increment $bi by one:
+
+@item dec 	$bi->dec();
+Decrement $bi by one:
+
+@item add
+@example
+$r->add($a, $b);
+@end example
+
+Add $a and $b and return the result in $r.
+
+@item mul
+@example
+$r->mul($a, $b);
+@end example
+
+Multiply $a by $b and return the result in $r.
+Note that $r must not be the same object as $a or $b.
+
+@item div
+@example
+div($dv, $rem, $m, $d);
+@end example
+
+Divide $m by $d and return the result in $dv and the remainder
+in $rem.  Either of $dv or $rem can be undef, in which case
+that value is not returned.
+
+@item mod
+@example
+$rem->mod($m, $d);
+@end example
+
+Find the remainder of $m divided by $d and return it in $rem.
+This function is more efficient than div.
+
+@item lshift
+@example
+$r->lshift($a, $n);
+@end example
+
+Shift $a left by $n bits.
+
+@item lshift1
+@example
+$r->lshift1($a);
+@end example
+
+Shift $a left by 1 bit.  This form is more efficient than @code{lshift($r, $a, 1)}.
+
+@item rshift
+@example
+$r->rshift($a, $n);
+@end example
+
+Shift $a right by $n bits.
+
+@item rshift1
+@example
+$r->rshift1($a);
+@end example
+
+Shift $a right by 1 bit.  This form is more efficient than @code{rshift($r, $a, 1)}.
+
+@item mod_exp
+@example
+$r->mod_exp($a, $p, $mod);
+@end example
+
+Raise $a to the $p power and return the remainder into $r when divided by $m.
+
+@item modmul_recip
+@example
+modmul_recip($r, $x, $y, $m, $i, $nb);
+@end example
+
+This function is used to perform an efficient @code{mod_mul} operation.
+If one is going to repeatedly perform @code{mod_mul} with the same modulus
+is worth calculating the reciprocal of the modulus and then using this
+function.  This operation uses the fact that a/b == a*r where r is the
+reciprocal of b.  On modern computers multiplication is very fast and
+big number division is very slow.  $x is multiplied by $y and then
+divided by $m and the remainder is returned in $r.  $i is the reciprocal
+of $m and $nb is the number of bits as returned from @code{reciprocal}.
+This function is used in mod_exp.
+
+@item mul_mod
+@example
+$r->mul_mod($a, $b, $m);
+@end example
+
+Multiply $a by $b and return the remainder into $r when divided by $m.
+
+@item reciprical
+@example
+$r->reciprical($m);
+@end example
+
+Return the reciprocal of $m into $r.
+
+@end table
+@unnumberedsubsec Miscellaneous Routines
+
+@table @asis
+@item num_bits
+@example
+my $size = $bi->numbits();
+@end example
+
+Return the size (in bits) of the BigInteger.
+
+@item gcd
+@example
+$r->gcd($a, $b);
+@end example
+
+$r has the greatest common divisor of $a and $b.
+
+@item inverse_modn
+@example
+$r->inverse_modn($a, $n);
+@end example
+
+This function creates a new BigInteger and returns it in $r.  This number
+is the inverse mod $n of $a.  By this it is meant that the returned value
+$r satisfies (a*r)%n == 1.  This function is used in the generation of RSA keys.
+
+@end table
+@unnumberedsec BUGS
+
+Negative numbers cannot be saved or restored.
+To fix this requires modification of Eric Young@'s library.
+
+The documentation.
+
+@unnumberedsec COPYRIGHT
+
+Systemics Ltd ( http://www.systemics.com/ ).
+
+Portions copyright Eric Young (eay@@mincom.oz.au).

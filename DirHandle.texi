@@ -1,0 +1,29 @@
+@node DirHandle, DynaLoader, Devel/TraceFuncs, Module List
+@unnumbered supply object methods for directory handles
+
+
+@unnumberedsec NAME 
+
+DirHandle - supply object methods for directory handles
+
+@unnumberedsec SYNOPSIS
+
+@example
+use DirHandle;
+$d = new DirHandle ".";
+if (defined $d) @{
+    while (defined($_ = $d->read)) @{ something($_); @}
+    $d->rewind;
+    while (defined($_ = $d->read)) @{ something_else($_); @}
+    undef $d;
+@}
+@end example
+
+@unnumberedsec DESCRIPTION
+
+The @code{DirHandle} method provide an alternative interface to the
+opendir(), closedir(), readdir(), and rewinddir() functions.
+
+The only objective benefit to using @code{DirHandle} is that it avoids
+namespace pollution by creating globs to hold directory handles.
+

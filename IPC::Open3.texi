@@ -1,0 +1,34 @@
+@node IPC/Open3, Image/Size, IPC/Open2, Module List
+@unnumbered open a process for reading, writing, and error handling
+
+
+@unnumberedsec NAME
+
+IPC::Open3, open3 - open a process for reading, writing, and error handling
+
+@unnumberedsec SYNOPSIS
+
+@example
+$pid = open3(\*WTRFH, \*RDRFH, \*ERRFH 
+		    @'some cmd and args@', @'optarg@', ...);
+@end example
+
+@unnumberedsec DESCRIPTION
+
+Extremely similar to open2(), open3() spawns the given $cmd and
+connects RDRFH for reading, WTRFH for writing, and ERRFH for errors.  If
+ERRFH is @'@', or the same as RDRFH, then STDOUT and STDERR of the child are
+on the same file handle.
+
+If WTRFH begins with "<&", then WTRFH will be closed in the parent, and
+the child will read from it directly.  If RDRFH or ERRFH begins with
+">&", then the child will send output directly to that file handle.  In both
+cases, there will be a dup(2) instead of a pipe(2) made.
+
+If you try to read from the child@'s stdout writer and their stderr
+writer, you@'ll have problems with blocking, which means you@'ll
+want to use select(), which means you@'ll have to use sysread() instead
+of normal stuff.
+
+All caveats from open2() continue to apply.  See @samp{open2} in this node for details.
+

@@ -1,0 +1,101 @@
+@node Mail/Mailer, Mail/POP3Client, Mail/MIME, Module List
+@unnumbered Simple interface to electronic mailing mechanisms 
+
+
+@unnumberedsec NAME
+
+Mail::Mailer - Simple interface to electronic mailing mechanisms 
+
+@unnumberedsec SYNOPSIS
+
+@example
+require Mail::Mailer;
+@end example
+
+@example
+$mailer = new Mail::Mailer;
+@end example
+
+@example
+$mailer = new Mail::Mailer $type, @@args;
+@end example
+
+@example
+$mailer->open(\%headers);
+@end example
+
+@example
+print $mailer $body;
+@end example
+
+@example
+$mailer->close;
+@end example
+
+@unnumberedsec DESCRIPTION
+
+Sends mail using any of the built-in methods.  You can alter the
+behaviour of a method by passing @code{$command} to the new method.
+
+@table @asis
+@item @code{sendmail}
+Use the @code{sendmail} program to deliver the mail.  @code{$command} is the
+path to @code{sendmail}.
+
+@item mail
+Use the Unix system mail program to deliver the mail.  @code{$command}
+is the path to mail.
+
+@item @code{telnet}
+Telnet to the SMTP port of the local machine.  @code{$command} is the path
+to the @code{telnet} command.  @code{$Mail::Mailer} calls @code{$command localhost
+smtp}.
+
+@item test
+Used for debugging, this calls @code{/bin/echo} to display the data.  No
+mail is ever sent.  @code{$command} is ignored.
+
+@end table
+@unnumberedsubsec ARGUMENTS
+
+new can optionally be given a @code{$command} and @code{$type}.  @code{$type}
+is one @code{sendmail}, mail, ... given above.  The meaning of
+@code{$command} depends on @code{$type}.
+
+open is given a reference to a hash.  The hash consists of key and
+value pairs, the key being the name of the header field (eg, @code{To}),
+and the value being the corresponding contents of the header field.
+The value can either be a scalar (eg, @code{gnat@@frii.com}) or a reference
+to an array of scalars (@code{eg, [gnat@@frii.com, Tim.Bunce@@ig.co.uk]}).
+
+@unnumberedsec TO DO
+
+Assist formatting of fields in ...::rfc822:send_headers to ensure
+valid in the face of newlines and longlines etc.
+
+Secure all forms of send_headers() against hacker attack and invalid
+contents. Especially "\n~..." in ...::mail::send_headers.
+
+@unnumberedsec SEE ALSO
+
+Mail::Send
+
+@unnumberedsec AUTHORS
+
+Tim Bunce <Tim.Bunce@@ig.co.uk>, with a kick start from Graham Barr
+<bodg@@tiuk.ti.com>. With contributions by Gerard Hickey <hickey@@ctron.com>
+For support please contact comp.lang.perl.misc.
+Small fix and documentation by Nathan Torkington <gnat@@frii.com>.
+
+@unnumberedsec REVISION
+
+$Revision: 1.7 $
+
+The VERSION is derived from the revision turning each number after the
+first dot into a 2 digit number so
+
+@example
+Revision 1.8   => VERSION 1.08
+Revision 1.2.3 => VERSION 1.0203
+@end example
+

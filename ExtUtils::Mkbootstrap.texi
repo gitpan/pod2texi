@@ -1,0 +1,35 @@
+@node ExtUtils/Mkbootstrap, ExtUtils/Mksymlists, ExtUtils/Miniperl, Module List
+@unnumbered make a bootstrap file for use by DynaLoader
+
+
+@unnumberedsec NAME
+
+ExtUtils::Mkbootstrap - make a bootstrap file for use by DynaLoader
+
+@unnumberedsec SYNOPSIS
+
+@code{mkbootstrap}
+
+@unnumberedsec DESCRIPTION
+
+Mkbootstrap typically gets called from an extension Makefile.
+
+There is no @code{*.bs} file supplied with the extension. Instead a
+@code{*_BS} file which has code for the special cases, like posix for
+berkeley db on the NeXT.
+
+This file will get parsed, and produce a maybe empty
+@code{@@DynaLoader::dl_resolve_using} array for the current architecture.
+That will be extended by $BSLOADLIBS, which was computed by
+ExtUtils::Liblist::ext(). If this array still is empty, we do nothing,
+else we write a .bs file with an @code{@@DynaLoader::dl_resolve_using}
+array.
+
+The @code{*_BS} file can put some code into the generated @code{*.bs} file by
+placing it in @code{$bscode}. This is a handy @'escape@' mechanism that may
+prove useful in complex situations.
+
+If @@DynaLoader::dl_resolve_using contains @code{-L*} or @code{-l*} entries then
+Mkbootstrap will automatically add a dl_findfile() call to the
+generated @code{*.bs} file.
+

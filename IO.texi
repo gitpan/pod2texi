@@ -1,0 +1,30 @@
+@node IO, IO/File, I18N/Collate, Module List
+@unnumbered load various IO modules
+
+
+@unnumberedsec NAME
+
+IO - load various IO modules
+
+@unnumberedsec SYNOPSIS
+
+@example
+use IO;
+@end example
+
+@unnumberedsec DESCRIPTION
+
+@code{IO} provides a simple mechanism to load all of the IO modules at one go.
+Currently this includes:
+
+@example
+IO::Handle
+IO::Seekable
+IO::File
+IO::Pipe
+IO::Socket
+@end example
+
+For more information on any of these modules, please see its respective
+documentation.
+

@@ -1,0 +1,52 @@
+@node Term/Complete, Term/ReadKey, Term/Cap, Module List
+@unnumbered Perl word completion module
+
+
+@unnumberedsec NAME
+
+Term::Complete - Perl word completion module
+
+@unnumberedsec SYNOPSIS
+
+@example
+$input = complete(@'prompt_string@', \@@completion_list);
+$input = complete(@'prompt_string@', @@completion_list);
+@end example
+
+@unnumberedsec DESCRIPTION
+
+This routine provides word completion on the list of words in
+the array (or array ref).
+
+The tty driver is put into raw mode using the system command
+@code{stty raw -echo} and restored using @code{stty -raw echo}.
+
+The following command characters are defined:
+
+@table @asis
+@item <tab> Attempts word completion. Cannot be changed.
+@itemx ^D
+Prints completion list.
+Defined by @emph{$Term::Complete::complete}.
+
+@item ^U
+Erases the current input.
+Defined by @emph{$Term::Complete::kill}.
+
+@item <del>, <bs>
+Erases one character.
+Defined by @emph{$Term::Complete::erase1} and @emph{$Term::Complete::erase2}.
+
+@end table
+@unnumberedsec DIAGNOSTICS
+
+Bell sounds when word completion fails.
+
+@unnumberedsec BUGS
+
+The completion charater <tab> cannot be changed.
+
+@unnumberedsec AUTHOR
+
+Wayne Thompson
+

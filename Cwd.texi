@@ -1,0 +1,51 @@
+@node Cwd, DB_File, Crypt/IDEA, Module List
+@unnumbered get pathname of current working directory
+
+
+@unnumberedsec NAME
+
+getcwd - get pathname of current working directory
+
+@unnumberedsec SYNOPSIS
+
+@example
+use Cwd;
+$dir = cwd;
+@end example
+
+@example
+use Cwd;
+$dir = getcwd;
+@end example
+
+@example
+use Cwd;
+$dir = fastgetcwd;
+@end example
+
+@example
+use Cwd @'chdir@';
+chdir "/tmp";
+print $ENV@{@'PWD@'@};
+@end example
+
+@unnumberedsec DESCRIPTION
+
+The getcwd() function re-implements the getcwd(3) (or getwd(3)) functions
+in Perl.
+
+The fastcwd() function looks the same as getcwd(), but runs faster.
+It@'s also more dangerous because you might conceivably chdir() out of a
+directory that you can@'t chdir() back into.
+
+The cwd() function looks the same as getcwd and fastgetcwd but is
+implemented using the most natural and safe form for the current
+architecture. For most systems it is identical to @`pwd@` (but without
+the trailing line terminator). It is recommended that cwd (or another
+*cwd() function) is used in all code to ensure portability.
+
+If you ask to override your chdir() built-in function, then your PWD
+environment variable will be kept up to date.  (See
+@samp{Overriding builtin functions}, @xref{(perl.info)perlsub,Perlsub},.) Note that it will only be
+kept up to date if all packages which use chdir import it from Cwd.
+

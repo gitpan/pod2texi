@@ -1,0 +1,24 @@
+@node Devel/CoreStack, Devel/DProf, Des, Module List
+@unnumbered try to generate a stack dump from a core file
+
+
+@unnumberedsec NAME
+
+Devel::CoreStack - try to generate a stack dump from a core file
+
+@unnumberedsec SYNOPSIS
+
+@example
+perl -MDevel::CoreStack -e @'stack@'
+@end example
+
+@example
+perl -MDevel::CoreStack -e @'stack("../myperl", "./mycore", "debugger")@'
+@end example
+
+@unnumberedsec DESCRIPTION
+
+This module attempts to generate a stack dump from a core file by
+locating the best available debugger (if any) and running it with
+the appropriate arguments and command script.
+

@@ -1,0 +1,457 @@
+@node Filter/Util/Call, Filter/Util/Exec, FileHandle, Module List
+@unnumbered Perl Source Filter Utility Module
+
+
+@unnumberedsec NAME
+
+Filter::Util::Call - Perl Source Filter Utility Module
+
+@unnumberedsec DESCRIPTION
+
+This module provides you with the framework to write @emph{Source Filters}
+in Perl.
+
+A @emph{Perl Source Filter} is implemented as a Perl module. The structure
+of the module can take one of two broadly similar formats. To
+distinguish between them, the first will be referred to as @emph{method
+filter} and the second as @emph{closure filter}.
+
+Here is a skeleton for the @emph{method filter}:
+
+@example
+package MyFilter ;
+
+use Filter::Util::Call ;
+@end example
+
+@example
+sub import
+@{
+    my($type, @@arguments) = @@_ ;
+    filter_add([]) ;
+@}
+
+sub filter
+@{
+    my($self) = @@_ ;
+    my($status) ;
+
+    $status = filter_read() ;
+    $status ;
+@}
+
+1 ;
+@end example
+
+and this is the equivalent skeleton for the @emph{closure filter}:
+
+@example
+package MyFilter ;
+
+use Filter::Util::Call ;
+@end example
+
+@example
+sub import
+@{
+    my($type, @@arguments) = @@_ ;
+
+    filter_add(
+        sub 
+        @{
+            my($status) ;
+            $status = filter_read() ;
+            $status ;
+        @} )
+@}
+
+1 ;
+@end example
+
+To make use of either of the two filter modules above, place the line
+below in a Perl source file.
+
+@example
+use MyFilter; 
+@end example
+
+In fact, the skeleton modules shown above are fully functional @emph{Source
+Filters}, albeit fairly useless ones. All they does is filter the
+source stream without modifying it at all.
+
+As you can see both modules have a broadly similar structure. They both
+make use of the @code{Filter::Util::Call} module and both have an import
+method. The difference between them is that the @emph{method filter}
+requires a @emph{filter} method, whereas the @emph{closure filter} gets the
+equivalent of a @emph{filter} method with the anonymous sub passed to
+@emph{filter_add}.
+
+To make proper use of the @emph{closure filter} shown above you need to
+have a good understanding of the concept of a @emph{closure}. See
+@xref{(perl.info)perlref,Perlref}, for more details on the mechanics of @emph{closures}.
+
+@unnumberedsubsec use Filter::Util::Call
+
+The following functions are exported by @code{Filter::Util::Call}:
+
+@example
+filter_add()
+filter_read()
+filter_read_exact()
+filter_del()
+@end example
+
+@unnumberedsubsec import()
+
+The import method is used to create an instance of the filter. It is
+called indirectly by Perl when it encounters the @code{use MyFilter} line
+in a source file (See @samp{import}, @xref{(perl.info)perlfunc,Perlfunc}, for more details on
+import).
+
+It will always have at least one parameter automatically passed by Perl
+- this corresponds to the name of the package. In the example above it
+will be @code{"MyFilter"}.
+
+Apart from the first parameter, import can accept an optional list of
+parameters. These can be used to pass parameters to the filter. For
+example:
+
+@example
+use MyFilter qw(a b c) ;
+@end example
+
+will result in the @code{@@_} array having the following values:
+
+@example
+@@_ [0] => "MyFilter"
+@@_ [1] => "a"
+@@_ [2] => "b"
+@@_ [3] => "c"
+@end example
+
+Before terminating, the import function must explicitly install the
+filter by calling @code{filter_add}.
+
+@strong{filter_add()}
+
+The function, @code{filter_add}, actually installs the filter. It takes one
+parameter which should be a reference. The kind of reference used will
+dictate which of the two filter types will be used.
+
+If a CODE reference is used then a @emph{closure filter} will be assumed.
+
+If a CODE reference is not used, a @emph{method filter} will be assumed.
+In a @emph{method filter}, the reference can be used to store context
+information. The reference will be @emph{blessed} into the package by
+@code{filter_add}.
+
+See the filters at the end of this documents for examples of using
+context information using both @emph{method filters} and @emph{closure
+filters}.
+
+@unnumberedsubsec filter() and anonymous sub
+
+Both the @code{filter} method used with a @emph{method filter} and the
+anonymous sub used with a @emph{closure filter} is where the main
+processing for the filter is done.
+
+The big difference between the two types of filter is that the @emph{method
+filter} uses the object passed to the method to store any context data,
+whereas the @emph{closure filter} uses the lexical variables that are
+maintained by the closure.
+
+Note that the single parameter passed to the @emph{method filter},
+@code{$self}, is the same reference that was passed to @code{filter_add}
+blessed into the filter@'s package. See the example filters later on for
+details of using @code{$self}.
+
+Here is a list of the common features of the anonymous sub and the
+@code{filter()} method.
+
+@table @asis
+@item $_
+Although $_ doesn@'t actually appear explicitly in the sample filters
+above, it is implicitly used in a number of places.
+
+Firstly, when either @code{filter} or the anonymous sub are called, a local
+copy of $_ will automatically be created. It will always contain the
+empty string at this point.
+
+Next, both filter_read and @code{filter_read_exact} will append any
+source data that is read to the end of $_.
+
+Finally, when @code{filter} or the anonymous sub are finished processing,
+they are expected to return the filtered source using $_.
+
+This implicit use of $_ greatly simplifies the filter.
+
+@item $status
+The status value that is returned by the user@'s @code{filter} method or
+anonymous sub and the filter_read and @code{read_exact} functions take
+the same set of values, namely:
+
+@example
+< 0  Error
+= 0  EOF
+> 0  OK
+@end example
+
+@item filter_read and @strong{filter_read_exact}
+These functions are used by the filter to obtain either a line or block
+from the next filter in the chain or the actual source file if there
+aren@'t any other filters.
+
+The function filter_read takes two forms:
+
+@example
+$status = filter_read() ;
+$status = filter_read($size) ;
+@end example
+
+The first form is used to request a @emph{line}, the second requests a
+@emph{block}.
+
+In line mode, filter_read will append the next source line to the
+end of the $_ scalar.
+
+In block mode, filter_read will append a block of data which is <=
+@code{$size} to the end of the $_ scalar. It is important to emphasise
+the that filter_read will not necessarily read a block which is
+@emph{precisely} @code{$size} bytes.
+
+If you need to be able to read a block which has an exact size, you can
+use the function @code{filter_read_exact}. It works identically to
+filter_read in block mode, except it will try to read a block which
+is exactly @code{$size} bytes in length. The only circumstances when it
+will not return a block which is @code{$size} bytes long is on EOF or
+error.
+
+It is @emph{very} important to check the value of $status after @emph{every}
+call to filter_read or @code{filter_read_exact}.
+
+@item filter_del
+The function, filter_del, is used to disable the current filter. It
+does not affect the running of the filter. All it does is tell Perl not
+to call filter any more.
+
+See @samp{Example 4: Using filter_del} in this node for details.
+
+@end table
+@unnumberedsec EXAMPLES
+
+Here are a few examples which illustrate the key concepts - as such
+most of them are of little practical use.
+
+The @code{examples} sub-directory has copies of all these filters
+implemented both as @emph{method filters} and as @emph{closure filters}.
+
+@unnumberedsubsec Example 1: A simple filter.
+
+Below is a @emph{method filter} which is hard-wired to replace all
+occurrences of the string @code{"Joe"} to @code{"Jim"}. Not particularly
+useful, but it is the first example and I wanted to keep it simple.
+
+@example
+package Joe2Jim ;
+
+use Filter::Util::Call ;
+@end example
+
+@example
+sub import
+@{
+    my($type) = @@_ ;
+
+    filter_add(bless []) ;
+@}
+
+sub filter
+@{
+    my($self) = @@_ ;
+    my($status) ;
+
+    s/Joe/Jim/g
+        if ($status = filter_read()) > 0 ;
+    $status ;
+@}
+
+1 ;
+@end example
+
+Here is an example of using the filter:
+
+@example
+use Joe2Jim ;
+print "Where is Joe?\n" ;
+@end example
+
+And this is what the script above will print:
+
+@example
+Where is Jim?
+@end example
+
+@unnumberedsubsec Example 2: Using the context
+
+The previous example was not particularly useful. To make it more
+general purpose we will make use of the context data and allow any
+arbitrary @emph{from} and to strings to be used. This time we will use a
+@emph{closure filter}. To reflect its enhanced role, the filter is called
+@code{Subst}.
+
+@example
+package Subst ;
+ 
+use Filter::Util::Call ;
+use Carp ;
+ 
+sub import
+@{
+    croak("usage: use Subst qw(from to)")
+        unless @@_ == 3 ;
+    my ($self, $from, $to) = @@_ ;
+    filter_add(
+        sub 
+        @{
+            my ($status) ;
+            s/$from/$to/
+                if ($status = filter_read()) > 0 ;
+            $status ;
+        @})
+@}
+1 ;
+@end example
+
+and is used like this:
+
+@example
+use Subst qw(Joe Jim) ;
+print "Where is Joe?\n" ;
+@end example
+
+@unnumberedsubsec Example 3: Using the context within the filter
+
+Here is a filter which a variation of the @code{Joe2Jim} filter. As well as
+substituting all occurrences of @code{"Joe"} to @code{"Jim"} it keeps a count
+of the number of substitutions made in the context object.
+
+Once EOF is detected ($status is zero) the filter will insert an
+extra line into the source stream. When this extra line is executed it
+will print a count of the number of substitutions actually made.
+Note that $status is set to 1 in this case.
+
+@example
+package Count ;
+ 
+use Filter::Util::Call ;
+ 
+sub filter
+@{
+    my ($self) = @@_ ;
+    my ($status) ;
+ 
+    if (($status = filter_read()) > 0 ) @{
+        s/Joe/Jim/g ;
+	    ++ $$self ;
+    @}
+	elsif ($$self >= 0) @{ # EOF
+        $_ = "print q[Made $@{$self@} substitutions\n]" ;
+        $status = 1 ;
+	    $$self = -1 ;
+    @}
+@end example
+
+@example
+$status ;
+    @}
+ 
+    sub import
+    @{
+my ($self) = @@_ ;
+my ($count) = 0 ;
+filter_add(\$count) ;
+    @}
+ 
+    1 ;
+@end example
+
+Here is a script which uses it:
+
+@example
+use Count ;
+print "Hello Joe\n" ;
+print "Where is Joe\n" ;
+@end example
+
+Outputs:
+
+@example
+Hello Jim
+Where is Jim
+Made 2 substitutions
+@end example
+
+@unnumberedsubsec Example 4: Using filter_del
+
+Another variation on a theme. This time we will modify the @code{Subst}
+filter to allow a starting and stopping pattern to be specified as well
+as the @emph{from} and to patterns. If you know the @emph{vi} editor, it is
+the equivalent of this command:
+
+@example
+:/start/,/stop/s/from/to/
+@end example
+
+When used as a filter we want to invoke it like this:
+
+@example
+use NewSubst qw(start stop from to) ;
+@end example
+
+Here is the module.
+
+@example
+package NewSubst ;
+ 
+use Filter::Util::Call ;
+use Carp ;
+ 
+sub import
+@{
+    my ($self, $start, $stop, $from, $to) = @@_ ;
+    my ($found) = 0 ;
+    croak("usage: use Subst qw(start stop from to)")
+        unless @@_ == 5 ;
+ 
+    filter_add( 
+        sub 
+        @{
+            my ($status) ;
+         
+            if (($status = filter_read()) > 0) @{
+         
+                $found = 1
+                    if $found == 0 and /$start/ ;
+         
+                if ($found) @{
+                    s/$from/$to/ ;
+                    filter_del() if /$stop/ ;
+                @}
+         
+            @}
+            $status ;
+        @} )
+
+@}
+ 
+1 ;
+@end example
+
+@unnumberedsec AUTHOR
+
+Paul Marquess 
+
+@unnumberedsec DATE
+
+26th January 1996
+

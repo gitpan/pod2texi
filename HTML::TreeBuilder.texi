@@ -1,0 +1,69 @@
+@node HTML/TreeBuilder, HTTP/Daemon, HTML/Stream, Module List
+@unnumbered Parser that builds a HTML syntax tree
+
+
+@unnumberedsec NAME
+
+HTML::TreeBuilder - Parser that builds a HTML syntax tree
+
+@unnumberedsec SYNOPSIS
+
+@example
+$h = new HTML::TreeBuilder;
+$h->parse($document);
+#...
+@end example
+
+@example
+print $h->as_HTML;  # or any other HTML::Element method
+@end example
+
+@unnumberedsec DESCRIPTION
+
+This is a parser that builds (and actually itself is) a HTML syntax tree.
+
+Objects of this class inherit the methods of both @code{HTML::Parser} and
+@code{HTML::Element}.  After parsing has taken place it can be regarded as
+the syntax tree itself.
+
+The following method all control how parsing takes place.  You can set
+the attributes by passing a TRUE or FALSE value as argument.
+
+@table @asis
+@item $p->implicit_tags
+Setting this attribute to true will instruct the parser to try to
+deduce implicit elements and implicit end tags.  If it is false you
+get a parse tree that just reflects the text as it stands.  Might be
+useful for quick & dirty parsing.  Default is true.
+
+Implicit elements have the implicit() attribute set.
+
+@item $p->ignore_unknown
+This attribute controls whether unknown tags should be represented as
+elements in the parse tree.  Default is true.
+
+@item $p->ignore_text
+Do not represent the text content of elements.  This saves space if
+all you want is to examine the structure of the document.  Default is
+false.
+
+@item $p->warn
+Call warn() with an appropriate message for syntax errors.  Default is
+false.
+
+@end table
+@unnumberedsec SEE ALSO
+
+@xref{HTML/Parser,HTML/Parser},, @xref{HTML/Element,HTML/Element},
+
+@unnumberedsec COPYRIGHT
+
+Copyright 1995-1996 Gisle Aas. All rights reserved.
+
+This library is free software; you can redistribute it and/or
+modify it under the same terms as Perl itself.
+
+@unnumberedsec AUTHOR
+
+Gisle Aas <aas@@sn.no>
+

@@ -1,0 +1,52 @@
+@node Net/Time, News/NNTPClient, Net/Telnet, Module List
+@unnumbered time and daytime network client interface
+
+
+@unnumberedsec NAME
+
+Net::Time - time and daytime network client interface
+
+@unnumberedsec SYNOPSIS
+
+@example
+use Net::Time qw(inet_time inet_daytime);
+
+print inet_time(@'localhost@');
+print inet_time(@'localhost@', @'tcp@');
+
+print inet_daytime(@'localhost@');
+print inet_daytime(@'localhost@', @'tcp@');
+@end example
+
+@unnumberedsec DESCRIPTION
+
+@code{Net::Time} provides subroutines that obtain the time on a remote machine.
+
+@table @asis
+@item inet_time ( HOST [, PROTOCOL])
+Obtain the time on @code{HOST} using the protocol as defined in RFC868. The
+optional argument @code{PROTOCOL} should define the protocol to use, either
+@code{tcp} or @code{udp}. The result will be a unix-like time value or undef
+upon failure.
+
+@item inet_daytime ( HOST [, PROTOCOL])
+Obtain the time on @code{HOST} using the protocol as defined in RFC867. The
+optional argument @code{PROTOCOL} should define the protocol to use, either
+@code{tcp} or @code{udp}. The result will be an ASCII string or undef
+upon failure.
+
+@end table
+@unnumberedsec AUTHOR
+
+Graham Barr <Graham.Barr@@tiuk.ti.com>
+
+@unnumberedsec REVISION
+
+$Revision: 2.0 $
+
+@unnumberedsec COPYRIGHT
+
+Copyright (c) 1995 Graham Barr. All rights reserved. This program is free
+software; you can redistribute it and/or modify it under the same terms
+as Perl itself.
+

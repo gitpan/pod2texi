@@ -1,0 +1,272 @@
+@node MIME/Parser, MIME/ParserBase, MIME/OLD/ParserUtil, Module List
+@unnumbered split MIME mail into decoded components
+
+
+@unnumberedsec NAME
+
+MIME::Parser - split MIME mail into decoded components
+
+@unnumberedsec SYNOPSIS
+
+@example
+use MIME::Parser;
+
+# Create a new parser object:
+my $parser = new MIME::Parser;
+    
+# Set up output directory for files:
+$parser->output_dir("$ENV@{HOME@}/mimemail");
+
+# Set up the prefix for files with auto-generated names:
+$parser->output_prefix("part");
+
+# If content length is this or below, write to in-core scalar;
+# Else, write to a disk file (the default action):
+$parser->output_to_core(20000);
+     
+# Parse an input stream:
+$entity = $parser->read(\*STDIN) or die "couldn@'t parse MIME stream";
+
+# Congratulations: you now have a (possibly multipart) MIME entity!
+$entity->dump_skeleton;          # for debugging 
+@end example
+
+@unnumberedsec DESCRIPTION
+
+A subclass of MIME::ParserHead, providing one useful way to parse MIME
+streams and obtain MIME::Entity objects.  This particular parser class
+outputs the different parts as files on disk, in the directory of your
+choice.
+
+If you don@'t like the way files are named... it@'s object-oriented 
+and subclassable.  If you want to do something @emph{really} different,
+perhaps you want to subclass MIME::ParserBase instead.
+
+@unnumberedsec WARNINGS
+
+The organization of the @code{output_path()} code changed in version 1.11
+of this module.  If you are upgrading from a previous version, and
+you use inheritance to override the @code{output_path()} method, please
+take a moment to familiarize yourself with the new code.  
+Everything @emph{should} still work, but you never know...
+
+@unnumberedsec PUBLIC INTERFACE
+
+@table @asis
+@item new_body_for HEAD
+Based on the HEAD of a part we are parsing, return a new
+body object (any desirable subclass of MIME::Body) for
+receiving that part@'s data.
+
+The default behavior is to examine the HEAD for a recommended
+filename (generating a random one if none is available), 
+and create a new MIME::Body::File on that filename in 
+the parser@'s current @code{output_dir()}.
+
+If you use the output_to_core method (q.v.) before parsing, 
+you can force this method to output some or all or a message@'s 
+parts to in-core data structures, based on their size.
+
+If you want the parser to do something else entirely, you should 
+override this method in a subclass.
+
+@item output_to_core [CUTOFF]
+Normally, instances of this class output all their decoded body
+data to disk files (via MIME::Body::File).  However, you can change 
+this behaviour by invoking this method before parsing:
+
+@strong{If CUTOFF is an integer,} then we examine the @code{Content-length} of 
+each entity being parsed.  If the content-length is known to be
+CUTOFF or below, the body data will go to an in-core data structure;
+If the content-length is unknown or if it exceeds CUTOFF, then
+the body data will go to a disk file.
+
+@strong{If the CUTOFF is the string "NONE",} then all body data goes to disk 
+files regardless of the content-length.  This is the default behaviour.
+
+@strong{If the CUTOFF is the string "ALL",} then all body data goes to 
+in-core data structures regardless of the content-length.  
+@strong{This is very risky} (what if someone emails you an MPEG or a tar 
+file, hmmm?) but people seem to want this bit of noose-shaped rope,
+so I@'m providing it.
+
+Without argument, returns the current cutoff: "ALL", "NONE" (the default), 
+or a number.
+
+See the @code{new_body_for()} method for more details.
+
+@item output_dir [DIRECTORY]
+Get/set the output directory for the parsing operation.
+This is the directory where the extracted and decoded body parts will go.
+The default is @code{"."}.
+
+If @code{DIRECTORY} @emph{is not} given, the current output directory is returned.
+If @code{DIRECTORY} @emph{is} given, the output directory is set to the new value,
+and the previous value is returned.
+
+@strong{Note:} this is used by the @code{output_path()} method in this class.
+It should also be used by subclasses, but if a subclass decides to 
+output parts in some completely different manner, this method may 
+of course be completely ignored.
+
+@item evil_filename FILENAME
+@emph{Instance method.}
+Is this an evil filename?  It is if it contains path info or
+non-ASCII characters.  Returns true or false.
+
+@strong{Note:} Override this method in a subclass if you just want to change 
+which externally-provided filenames are allowed, and which are not.
+
+@emph{Thanks to Andrew Pimlott for finding a real dumb bug. :-)}
+
+@item output_path HEAD
+@emph{Instance method.}
+Given a MIME head for a file to be extracted, come up with a good
+output pathname for the extracted file.
+
+The "directory" portion of the returned path will be the @code{output_dir()}, 
+and the "filename" portion will be determined as follows:
+
+@itemize @bullet
+@item 
+If the MIME header contains a recommended filename, and it is
+@emph{not} judged to be "evil" (evil filenames are ones which contain
+things like "/" or ".." or non-ASCII characters), then that 
+filename will be used.
+
+@item 
+If the MIME header contains a recommended filename, but it @emph{is}
+judged to be "evil", then a warning is issued and we pretend that
+there was no recommended filename.  In which case...
+
+@item 
+If the MIME header does not specify a recommended filename, then
+a simple temporary file name, starting with the @code{output_prefix()}, 
+will be used.
+
+@end itemize
+@strong{Note:} If you don@'t like the behavior of this function, you 
+can define your own subclass of MIME::Parser and override it there:
+
+@example
+package MIME::MyParser;
+
+require 5.002;                # for SUPER
+use package MIME::Parser;
+
+@@MIME::MyParser::ISA = (@'MIME::Parser@');
+
+sub output_path @{
+    my ($self, $head) = @@_;
+    
+    # Your code here; FOR EXAMPLE...
+    if (i_have_a_preference) @{
+	     return my_custom_path;
+    @}
+	 else @{                      # return the default path:
+        return $self->SUPER::output_path($head);
+    @}
+@}
+1;
+@end example
+
+@emph{Thanks to Laurent Amon for pointing out problems with the original
+implementation, and for making some good suggestions.  Thanks also to
+Achim Bohnet for pointing out that there should be a hookless, OO way of 
+overriding the output_path.}
+
+@item output_path_hook SUBREF
+@emph{Instance method: DEPRECATED.}
+Install a different function to generate the output filename
+for extracted message data.  Declare it like this:
+
+@example
+sub my_output_path_hook @{
+    my $parser = shift;   # this MIME::Parser
+	my $head = shift;     # the MIME::Head for the current message
+@end example
+
+@example
+# Your code here: it must return a path that can be 
+# open()ed for writing.  Remember that you can ask the
+# $parser about the output_dir, and you can ask the
+# $head about the recommended_filename!
+    @}
+@end example
+
+And install it immediately before parsing the input stream, like this:
+
+@example
+# Create a new parser object, and install my own output_path hook:
+my $parser = new MIME::Parser;
+$parser->output_path_hook(\&my_output_path_hook);
+
+# NOW we can parse an input stream:
+$entity = $parser->read(\*STDIN);
+@end example
+
+This method is intended for people who are squeamish about creating 
+subclasses.  See the @code{output_path()} documentation for a cleaner, 
+OOish way to do this.
+
+@item output_prefix [PREFIX]
+Get/set the output prefix for the parsing operation.
+This is a short string that all filenames for extracted and decoded 
+body parts will begin with.  The default is @file{"msg"}.
+
+If PREFIX @emph{is not} given, the current output prefix is returned.
+If PREFIX @emph{is} given, the output directory is set to the new value,
+and the previous value is returned.
+
+@end table
+@unnumberedsec WRITING SUBCLASSES
+
+Authors of subclasses can consider overriding the following methods.
+They are listed in approximate order of most-to-least impact.
+
+@table @asis
+@item new_body_for
+Override this if you want to change the @emph{entire} mechanism for choosing 
+the output destination.  You may want to use information in the MIME
+header to determine how files are named, and whether or not their data
+goes to a disk file or to an in-core scalar.
+(You have the MIME header object at your disposal.)
+
+@item output_path
+Override this if you want to completely change how the output path
+(containing both the directory and filename) is determined for those
+parts being output to disk files.  
+(You have the MIME header object at your disposal.)
+
+@item evil_filename
+Override this if you want to change the test that determines whether
+or not a filename obtained from the header is permissible.
+
+@item output_prefix
+Override this if you want to change the mechanism for getting/setting
+the desired output prefix (used in naming files when no other names
+are suggested).
+
+@item output_dir
+Override this if you want to change the mechanism for getting/setting
+the desired output directory (where extracted and decoded files are placed).
+
+@end table
+@unnumberedsec SEE ALSO
+
+MIME::Decoder,
+MIME::Entity,
+MIME::Head, 
+MIME::Parser.
+
+@unnumberedsec AUTHOR
+
+Copyright (c) 1996 by Eryq / eryq@@rhine.gsfc.nasa.gov
+
+All rights reserved.  This program is free software; you can redistribute 
+it and/or modify it under the same terms as Perl itself.
+
+@unnumberedsec VERSION
+
+$Revision: 2.4 $ $Date: 1996/10/28 18:38:42 $
+

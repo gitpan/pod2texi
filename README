@@ -1,0 +1,7 @@
+Perl 5.003_07 pods and most (sorry) modules in texinfo (*.texi) and info
+(*.info) format.  Look at the Makefile to see which .texi files are the ones
+that include everything else, or just use the .info files until I can clean
+this up further ...
+
+Krishna `Shamu' Sethuraman
+krishpl@shamu.studio.sgi.com

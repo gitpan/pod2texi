@@ -1,0 +1,121 @@
+@node File/Copy, File/CounterFile, File/Cmp, Module List
+@unnumbered Copy files or filehandles
+
+
+@unnumberedsec NAME
+
+File::Copy - Copy files or filehandles
+
+@unnumberedsec SYNOPSIS
+
+@example
+use File::Copy;
+@end example
+
+@example
+copy("file1","file2");
+  	copy("Copy.pm",\*STDOUT);@'
+@end example
+
+@example
+use POSIX;
+	use File::Copy cp;
+@end example
+
+@example
+$n=FileHandle->new("/dev/null","r");
+cp($n,"x");@'
+@end example
+
+@unnumberedsec DESCRIPTION
+
+The File::Copy module provides a basic function copy which takes two
+parameters: a file to copy from and a file to copy to. Either
+argument may be a string, a FileHandle reference or a FileHandle
+glob. Obviously, if the first argument is a filehandle of some
+sort, it will be read from, and if it is a file @emph{name} it will
+be opened for reading. Likewise, the second argument will be
+written to (and created if need be).  Note that passing in
+files as handles instead of names may lead to loss of information
+on some operating systems; it is recommended that you use file
+names whenever possible.
+
+An optional third parameter can be used to specify the buffer
+size used for copying. This is the number of bytes from the
+first file, that wil be held in memory at any given time, before
+being written to the second file. The default buffer size depends
+upon the file, but will generally be the whole file (up to 2Mb), or
+1k for filehandles that do not reference files (eg. sockets).
+
+You may use the syntax @code{use File::Copy "cp"} to get at the
+"cp" alias for this function. The syntax is @emph{exactly} the same.
+
+File::Copy also provides the @code{syscopy} routine, which copies the
+file specified in the first parameter to the file specified in the
+second parameter, preserving OS-specific attributes and file
+structure.  For Unix systems, this is equivalent to the simple
+copy routine.  For VMS systems, this calls the @code{rmscopy}
+routine (see below).  For OS/2 systems, this calls the @code{syscopy}
+XSUB directly.
+
+@unnumberedsubsec Special behavior under VMS
+
+If the second argument to copy is not a file handle for an
+already opened file, then copy will perform an RMS copy of
+the input file to a new output file, in order to preserve file
+attributes, indexed file structure, @emph{etc.}  The buffer size
+parameter is ignored.  If the second argument to copy is a
+Perl handle to an opened file, then data is copied using Perl
+operators, and no effort is made to preserve file attributes
+or record structure.
+
+The RMS copy routine may also be called directly under VMS
+as @code{File::Copy::rmscopy} (or @code{File::Copy::syscopy}, which
+is just an alias for this routine).
+
+@table @asis
+@item rmscopy($from,$to[,$date_flag])
+The first and second arguments may be strings, typeglobs, or
+typeglob references; they are used in all cases to obtain the
+@emph{filespec} of the input and output files, respectively.  The
+name and type of the input file are used as defaults for the
+output file, if necessary.
+
+A new version of the output file is always created, which
+inherits the structure and RMS attributes of the input file,
+except for owner and protections (and possibly timestamps;
+see below).  All data from the input file is copied to the
+output file; if either of the first two parameters to @code{rmscopy}
+is a file handle, its position is unchanged.  (Note that this
+means a file handle pointing to the output file will be
+associated with an old version of that file after @code{rmscopy}
+returns, not the newly created version.)
+
+The third parameter is an integer flag, which tells @code{rmscopy}
+how to handle timestamps.  If it is < 0, none of the input file@'s
+timestamps are propagated to the output file.  If it is > 0, then
+it is interpreted as a bitmask: if bit 0 (the LSB) is set, then
+timestamps other than the revision date are propagated; if bit 1
+is set, the revision date is propagated.  If the third parameter
+to @code{rmscopy} is 0, then it behaves much like the DCL COPY command:
+if the name or type of the output file was explicitly specified,
+then no timestamps are propagated, but if they were taken implicitly
+from the input filespec, then all timestamps other than the
+revision date are propagated.  If this parameter is not supplied,
+it defaults to 0.
+
+Like copy, @code{rmscopy} returns 1 on success.  If an error occurs,
+it sets $!, deletes the output file, and returns 0.
+
+@end table
+@unnumberedsec RETURN
+
+Returns 1 on success, 0 on failure. $! will be set if an error was
+encountered.
+
+@unnumberedsec AUTHOR
+
+File::Copy was written by Aaron Sherman @emph{<ajs@@ajs.com>} in 1995.
+The VMS-specific code was added by Charles Bailey
+@emph{<bailey@@genetics.upenn.edu>} in March 1996.
+

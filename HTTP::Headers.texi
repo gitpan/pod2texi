@@ -1,0 +1,238 @@
+@node HTTP/Headers, HTTP/Message, HTTP/Date, Module List
+@unnumbered Class encapsulating HTTP Message headers
+
+
+@unnumberedsec NAME
+
+HTTP::Headers - Class encapsulating HTTP Message headers
+
+@unnumberedsec SYNOPSIS
+
+@example
+require HTTP::Headers;
+$request = new HTTP::Headers;
+@end example
+
+@unnumberedsec DESCRIPTION
+
+The @code{HTTP::Headers} class encapsulates HTTP-style message headers.
+The headers consist of attribute-value pairs, which may be repeated,
+and which are printed in a particular order.
+
+Instances of this class are usually created as member variables of the
+@code{HTTP::Request} and @code{HTTP::Response} classes, internal to the
+library.
+
+@unnumberedsec METHODS
+
+@unnumberedsubsec $h = new HTTP::Headers
+
+Constructs a new @code{HTTP::Headers} object.  You might pass some initial
+attribute-value pairs as parameters to the constructor.  @emph{E.g.}:
+
+@example
+$h = new HTTP::Headers
+    Date         => @'Thu, 03 Feb 1994 00:00:00 GMT@',
+    Content_Type => @'text/html; version=3.2@',
+    Content_Base => @'http://www.sn.no/@';
+@end example
+
+@unnumberedsubsec $h->header($field [=> $val],...)
+
+Get or set the value of a header.  The header field name is not case
+sensitive.  To make the life easier for perl users who wants to avoid
+quoting before the => operator, you can use @'_@' as a synonym for @'-@'
+in header names.
+
+The value argument may be a scalar or a reference to a list of
+scalars. If the value argument is not defined, then the header is not
+modified.
+
+The header() method accepts multiple ($field => $value) pairs.
+
+The list of previous values for the last $field is returned.  Only the
+first header value is returned in scalar context.
+
+@example
+$header->header(MIME_Version => @'1.0@',
+		 User_Agent   => @'My-Web-Client/0.01@');
+$header->header(Accept => "text/html, text/plain, image/*");
+$header->header(Accept => [qw(text/html text/plain image/*)]);
+@@accepts = $header->header(@'Accept@');
+@end example
+
+@unnumberedsubsec $h->scan(\&doit)
+
+Apply a subroutine to each header in turn.  The callback routine is
+called with two parameters; the name of the field and a single value.
+If the header has more than one value, then the routine is called once
+for each value.  The field name passed to the callback routine has
+case as suggested by HTTP Spec, and the headers will be visited in the
+recommended "Good Practice" order.
+
+@unnumberedsubsec $h->as_string([$endl])
+
+Return the header fields as a formatted MIME header.  Since it
+internally uses the @code{scan()} method to build the string, the result
+will use case as suggested by HTTP Spec, and it will follow
+recommended "Good Practice" of ordering the header fieds.  Long header
+values are not folded. 
+
+The optional parameter specifies the line ending sequence to use.  The
+default is @code{"\n"}.  Embedded "\n" characters in the header will be
+substitued with this line ending sequence.
+
+@unnumberedsubsec $h->push_header($field, $val)
+
+Add a new field value of the specified header.  The header field name
+is not case sensitive.  The field need not already have a
+value. Previous values for the same field are retained.  The argument
+may be a scalar or a reference to a list of scalars.
+
+@example
+$header->push_header(Accept => @'image/jpeg@');
+@end example
+
+@unnumberedsubsec $h->remove_header($field,...)
+
+This function removes the headers with the specified names.
+
+@unnumberedsubsec $h->clone
+
+Returns a copy of this HTTP::Headers object.
+
+@unnumberedsec CONVENIENCE METHODS
+
+The most frequently used headers can also be accessed through the
+following convenience methods.  These methods can both be used to read
+and to set the value of a header.  The header value is set if you pass
+an argument to the method.  The old header value is always returned.
+
+Methods that deal with dates/times always convert their value to system
+time (seconds since Jan 1, 1970) and they also expect this kind of
+value when the header value is set.
+
+@unnumberedsubsec $h->date
+
+This header represents the date and time at which the message was
+originated. @emph{E.g.}:
+
+@example
+$h->date(time);  # set current date
+@end example
+
+@unnumberedsubsec $h->expires
+
+This header gives the date and time after which the entity should be
+considered stale.
+
+@unnumberedsubsec $h->if_modified_since
+
+This header is used to make a request conditional.  If the requested
+resource has not been modified since the time specified in this field,
+then the server will return a @code{"304 Not Modified"} response instead of
+the document itself.
+
+@unnumberedsubsec $h->last_modified
+
+This header indicates the date and time at which the resource was last
+modified. @emph{E.g.}:
+
+@example
+# check if document is more than 1 hour old
+if ($h->last_modified < time - 60*60) @{
+	...
+@}
+@end example
+
+@unnumberedsubsec $h->content_type
+
+The Content-Type header field indicates the media type of the message
+content. @emph{E.g.}:
+
+@example
+$h->content_type(@'text/html@');
+@end example
+
+The value returned will be converted to lower case, and potential
+parameters will be chopped off and returned as a separate value if in
+an array context.  This makes it safe to do the following:
+
+@example
+if ($h->content_type eq @'text/html@') @{
+   # we enter this place even if the real header value happens to
+   # be @'TEXT/HTML; version=3.0@'
+   ...
+@}
+@end example
+
+@unnumberedsubsec $h->content_encoding
+
+The Content-Encoding header field is used as a modifier to the
+media type.  When present, its value indicates what additional
+encoding mechanism has been applied to the resource.
+
+@unnumberedsubsec $h->content_length
+
+A decimal number indicating the size in bytes of the message content.
+
+@unnumberedsubsec $h->title
+
+The title of the document.  In libwww-perl this header will be
+initialized automatically from the <TITLE>...</TITLE> element
+of HTML documents.  @emph{This header is no longer part of the HTTP
+standard.}
+
+@unnumberedsubsec $h->user_agent
+
+This header field is used in request messages and contains information
+about the user agent originating the request.  @emph{E.g.}:
+
+@example
+$h->user_agent(@'Mozilla/1.2@');
+@end example
+
+@unnumberedsubsec $h->server
+
+The server header field contains information about the software being
+used by the originating server program handling the request.
+
+@unnumberedsubsec $h->from
+
+This header should contain an Internet e-mail address for the human
+user who controls the requesting user agent.  The address should be
+machine-usable, as defined by RFC822.  E.g.:
+
+@example
+$h->from(@'Gisle Aas <aas@@sn.no>@');
+@end example
+
+@unnumberedsubsec $h->referer
+
+Used to specify the address (URI) of the document from which the
+requested resouce address was obtained.
+
+@unnumberedsubsec $h->www_authenticate
+
+This header must be included as part of a "401 Unauthorized" response.
+The field value consist of a challenge that indicates the
+authentication scheme and parameters applicable to the requested URI.
+
+@unnumberedsubsec $h->authorization
+
+A user agent that wishes to authenticate itself with a server, may do
+so by including this header.
+
+@unnumberedsubsec $h->authorization_basic
+
+This method is used to get or set an authorization header that use the
+"Basic Authentication Scheme".  In array context it will return two
+values; the user name and the password.  In scalar context it will
+return @emph{"uname:password"} as a single string value.
+
+When used to set the header value, it expects two arguments.  @emph{E.g.}:
+
+@example
+$h->authorization_basic($uname, $password);
+@end example
+

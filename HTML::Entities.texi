@@ -1,0 +1,59 @@
+@node HTML/Entities, HTML/FormatPS, HTML/Element, Module List
+@unnumbered Expand HTML entities in a string
+
+
+@unnumberedsec NAME
+
+decode - Expand HTML entities in a string
+
+encode - Encode chars in a string using HTML entities
+
+@unnumberedsec SYNOPSIS
+
+@example
+use HTML::Entities;
+@end example
+
+@example
+$a = "V&aring;re norske tegn b&oslash;r &#230res";
+decode_entities($a);
+encode_entities($a, "\200-\377");
+@end example
+
+@unnumberedsec DESCRIPTION
+
+The decode_entities() routine replaces valid HTML entities found
+in the string with the corresponding ISO-8859/1 character.
+
+The encode_entities() routine replaces the characters specified by the
+second argument with their entity representation.  The default set of
+characters to expand are control chars, high-bit chars and the @'<@',
+@'&@', @'>@' and @'"@' character.
+
+Both routines modify the string passed in as the first argument and
+return it.
+
+If you prefer not to import these routines into your namespace you can
+call them as:
+
+@example
+use HTML::Entities ();
+$encoded = HTML::Entities::encode($a);
+$decoded = HTML::Entities::decode($a);
+@end example
+
+The module can also export the %char2entity and the %entity2char
+hashes which contains the mapping from all characters to the
+corresponding entities.
+
+@unnumberedsec COPYRIGHT
+
+Copyright 1995, 1996 Gisle Aas. All rights reserved.
+
+This library is free software; you can redistribute it and/or
+modify it under the same terms as Perl itself.
+
+@unnumberedsec AUTHOR
+
+Gisle Aas <aas@@sn.no>
+

@@ -1,0 +1,141 @@
+@node Mail/Folder/Emaul, Mail/Folder/Mbox, Mail/Folder, Module List
+@unnumbered An Emaul folder interface for Mail::Folder.
+
+
+@unnumberedsec NAME
+
+Mail::Folder::Emaul - An Emaul folder interface for Mail::Folder.
+
+@strong{WARNING: This code is in alpha release. Expect the interface to
+change.}
+
+@unnumberedsec SYNOPSYS
+
+@code{use Mail::Folder::Emaul;}
+
+@unnumberedsec DESCRIPTION
+
+This module provides an interface to the @strong{emaul} folder mechanism.
+It is currently intended to be used as an example of hooking a folder
+interface into Mail::Folder.
+
+@strong{Emaul}@'s folder structure is styled after @strong{mh}.  It uses
+directories for folders and numerically-named files for the individual
+mail messages.  The current message for a particular folder is stored
+in a file @code{.current_msg} in the folder directory.
+
+@unnumberedsec METHODS
+
+@unnumberedsubsec open($folder_name)
+
+Populates the @code{Mail::Folder} object with information about the
+folder.
+
+@itemize @bullet
+@item Call the superclass open method
+@item For every message file in the @code{$folder_name} directory, add the message_number to the object@'s list of messages.
+@item Load the contents of @code{$folder_dir/.current_msg} into @code{$self->@{Current@}}.
+@end itemize
+@unnumberedsubsec close
+
+
+Does nothing except call the close method of the superclass.
+
+@unnumberedsubsec sync
+
+Flushes any pending changes out to the original folder.
+
+@itemize @bullet
+@item Call the superclass sync method
+@item For every pending delete, unlink that file in the folder directory
+@item Clear out the @'pending delete@' list.
+@item Scan the folder directory for message files that weren@'t present the last time the folder was either opened or synced.
+@item Add each new file found to the list of messages being slung around in the Mail::Folder object.
+@item Update the contents of the folder@'s @code{.current_msg} file.
+@item Return the number of new messages found.
+@end itemize
+@unnumberedsubsec pack
+
+
+Calls the superclass pack method.
+
+Renames the message files in the folder so that there are no
+gaps in the numbering sequence.
+
+Old deleted message files (ones that start with @code{,}) are also renamed
+as necessary.
+
+It also tweaks current_message accordingly.
+
+It will abandon the operation and return @code{0} if a rename fails,
+otherwise it returns 1.
+
+Please note that pack acts on the real folder.
+
+@unnumberedsubsec get_message($msg_number)
+
+Calls the superclass get_message method.
+
+Retrieves the given mail message file into a @strong{Mail::Internet} object
+reference and returns the reference.
+
+@unnumberedsubsec get_header($msg_number)
+
+If the particular header has never been retrieved then get_header
+loads the header of the given mail message into a member of
+@code{$self->@{Messages@}@{$msg_number@}} and returns the object reference
+
+If the header for the given mail message has already been retrieved in
+a prior call to get_header, then the cached entry is returned.
+
+It also calls the superclass get_header method.
+
+@unnumberedsubsec append_message($message_ref)
+
+Appends the contents of the mail message contained @code{$message_ref} to
+the the folder.
+
+@itemize @bullet
+@item Call the superclass @code{append_message} method.
+@item Retrieve the highest message number in the folder
+@item increment it
+@item Create a new mail message file in the folder with the contents of @code{$message_ref}.
+@end itemize
+
+Please note that, contrary to other documentation for @strong{Mail::Folder},
+the Emaul @code{append_message} method actually updates the real folder,
+rather than queueing it up for a subsequent sync.  The dup and
+@code{refile} methods are also affected. This will be fixed soon.
+
+@unnumberedsubsec update_message($msg_number, $message_ref)
+
+Replaces the message pointed to by @code{$msg_number} with the contents of
+the @code{Mail::Internet} object reference @code{$message_ref}.
+
+@itemize @bullet
+@item Call the superclass update_message method.
+@item Replaces the contents of the given mail file with the contents of @code{$message_ref}.
+@end itemize
+
+Please note that, contrary to other documentation for @strong{Mail::Folder},
+the Emaul update_message method actually updates the real folder,
+rather than queueing it up for a subsequent sync.  This will be fixed
+soon.
+
+@unnumberedsubsec create($foldername)
+
+Creates a new folder named @code{$foldername}.  Returns @code{0} if the folder
+already exists, otherwise returns of the folder creation was
+successful.
+
+@unnumberedsec AUTHOR
+
+Kevin Johnson <@file{kjj@@primenet.com}>
+
+@unnumberedsec COPYRIGHT
+
+Copyright (c) 1996 Kevin Johnson <kjj@@primenet.com>.
+
+All rights reserved. This program is free software; you can
+redistribute it and/or modify it under the same terms as Perl itself.
+

@@ -1,0 +1,102 @@
+@node LWP/Protocol, LWP/RobotUA, LWP/MemberMixin, Module List
+@unnumbered Base class for LWP protocols
+
+
+@unnumberedsec NAME
+
+LWP::Protocol - Base class for LWP protocols
+
+@unnumberedsec DESCRIPTION
+
+This class is used a the base class for all protocol implementations
+supported by the LWP library.
+
+When creating an instance of this class using
+@code{LWP::Protocol::create($url)}, and you get an initialised subclass
+appropriate for that access method. In other words, the
+LWP::Protocol::create() function calls the constructor for one of its
+subclasses.
+
+All derived LWP::Protocol classes need to override the request()
+method which is used to service a request. The overridden method can
+make use of the collect() function to collect together chunks of data
+as it is received.
+
+@unnumberedsec SEE ALSO
+
+Inspect the @file{LWP/Protocol/file.pm} and @file{LWP/Protocol/http.pm} files
+for examples of usage.
+
+@unnumberedsec METHODS AND FUNCTIONS
+
+@unnumberedsubsec $prot = new HTTP::Protocol;
+
+The LWP::Protocol constructor is inherited by subclasses. As this is a
+virtual base class this method should @strong{not} be called directly.
+
+@unnumberedsubsec $prot = LWP::Protocol::create($url)
+
+Create an object of the class implementing the protocol to handle the
+given scheme. This is a function, not a method. It is more an object
+factory than a constructor. This is the function user agents should
+use to access protocols.
+
+@unnumberedsubsec $class = LWP::Protocol::implementor($scheme, [$class])
+
+Get and/or set implementor class for a scheme.  Returns @'@' if the
+specified scheme is not supported.
+
+@unnumberedsubsec $prot->request(...)
+
+@example
+$response = $protocol->request($request, $proxy, undef);
+$response = $protocol->request($request, $proxy, @'/tmp/sss@');
+$response = $protocol->request($request, $proxy, \&callback, 1024);
+@end example
+
+Dispactches a request over the protocol, and returns a response
+object. This method needs to be overridden in subclasses.  Referer to
+@xref{LWP/UserAgent,LWP/UserAgent}, for description of the arguments.
+
+@unnumberedsubsec $prot->timeout($seconds)
+
+Get and set the timeout value in seconds
+
+@unnumberedsubsec $prot->use_alarm($yesno)
+
+Indicates if the library is allowed to use the core alarm()
+function to implement timeouts.
+
+@unnumberedsubsec $prot->parse_head($yesno)
+
+Should we initialize response headers from the <head> section of HTML
+documents.
+
+@unnumberedsubsec $prot->collect($arg, $response, $collector)
+
+Called to collect the content of a request, and process it
+appropriately into a scalar, file, or by calling a callback.  If $arg
+is undefined, then the content is stored within the $response.  If
+$arg is a simple scalar, then $arg is interpreted as a file name and
+the content is written to this file.  If $arg is a reference to a
+routine, then content is passed to this routine.
+
+The $collector is a routine that will be called and which is
+reponsible for returning pieces (as ref to scalar) of the content to
+process.  The $collector signals EOF by returning a reference to an
+empty sting.
+
+The return value from collect() is the $response object reference.
+
+@strong{Note:} We will only use the callback or file argument if
+$response->is_success().  This avoids sendig content data for
+redirects and authentization responses to the callback which would be
+confusing.
+
+@unnumberedsubsec $prot->collect_once($arg, $response, $content)
+
+Can be called when the whole response content is available as
+$content.  This will invoke collect() with a collector callback that
+returns a reference to $content the first time and an empty string the
+next.
+

@@ -1,0 +1,72 @@
+@node Net/NISPlus/Table, Net/NISTable, Net/NIS, Module List
+@unnumberedsubsec colnames
+
+colnames returns the column headings for the NIS+ table.  If called in
+an array context, it returns an array containing the column names in
+the order in which they appear in the table.  If called in a scalar
+context, it returns a reference to a hash with keys being column names,
+and values being an integer representing the column@'s position.
+
+e.g.
+
+$table = Net::NISPLus::Table(@'hosts.org_dir@');
+$cols = $table->colnames;
+
+will end up with $cols being:
+
+$cols->@{@'cname@'@} = 0;
+$cols->@{@'name@'@} = 1;
+$cols->@{@'addr@'@} = 2;
+$cols->@{@'comment@'@} = 3;
+
+and
+
+$table = Net::NISPLus::Table(@'hosts.org_dir@');
+ @@cols = $table->colnames;
+
+will end up with @@cols being:
+
+@@cols = (@'cname@', @'name@', @'addr@', @'comment@')
+
+NOTE: as the colnames method behaves differently depending on what
+context it is called in, it may not always behave as you expect.  For
+example, the following two code fragments are not equivalent:
+
+my($colnames) = $table->colnames;
+
+and
+
+my($colnames);
+$colnames = $table->colnames;
+
+The first calls colnames in an array context, and the second in a
+scalar context.
+
+@unnumberedsubsec add
+
+Add an entry to the table.  Any columns not specified will be set to
+null strings.
+
+$table->add(@'key1@' => @'value1@', @'key2@' => @'value2@');
+
+@unnumberedsubsec remove
+
+Remove a single entry from the table.  If the key/value pairs match
+more that one entry, an error occurs, and no entries are removed.  Use
+removem to remove multiple entries with a single command.
+
+$table->remove(@'key1@' => @'value1@', @'key2@' => @'value2@');
+
+@unnumberedsubsec removem
+
+Remove one or more entries from the table. All entries which match the
+key/value pairs will be removed. Use removem to remove a single entry.
+
+$table->removem(@'key1@' => @'value1@', @'key2@' => @'value2@');
+
+@unnumberedsubsec clear
+
+Remove all entries from the table
+
+$table->clear();
+

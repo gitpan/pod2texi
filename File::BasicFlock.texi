@@ -1,0 +1,45 @@
+@node File/BasicFlock, File/CheckTree, File/Basename, Module List
+@unnumbered file locking with flock
+
+
+@unnumberedsec NAME
+
+@example
+File::BasicFlock - file locking with flock
+@end example
+
+@unnumberedsec SYNOPSIS
+
+@example
+use File::BasicFlock;
+@end example
+
+@example
+lock($filename);
+@end example
+
+@example
+lock($filename, @'shared@');
+@end example
+
+@example
+lock($filename, undef, @'nonblocking@');
+@end example
+
+@example
+lock($filename, @'shared@', @'nonblocking@');
+@end example
+
+@example
+unlock($filename);
+@end example
+
+@unnumberedsec DESCRIPTION
+
+Lock files using the flock() call.  The file to be locked must 
+already exist.
+
+@unnumberedsec AUTHOR
+
+David Muir Sharnoff, <muir@@idiom.com>
+

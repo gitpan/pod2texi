@@ -1,0 +1,38 @@
+@node HTML/FormatText, HTML/Formatter, HTML/FormatPS, Module List
+@unnumbered Format HTML as text
+
+
+@unnumberedsec NAME
+
+HTML::FormatText - Format HTML as text
+
+@unnumberedsec SYNOPSIS
+
+@example
+require HTML::FormatText;
+$html = parse_htmlfile("test.html");
+$formatter = new HTML::FormatText;
+print $formatter->format($html);
+@end example
+
+@unnumberedsec DESCRIPTION
+
+The HTML::FormatText is a formatter that outputs plain latin1 text.
+All character attributes (bold/italic/underline) are ignored.
+Formatting of HTML tables and forms is not implemented.
+
+@unnumberedsec SEE ALSO
+
+@xref{HTML/Formatter,HTML/Formatter},
+
+@unnumberedsec COPYRIGHT
+
+Copyright (c) 1995 Gisle Aas. All rights reserved.
+
+This library is free software; you can redistribute it and/or
+modify it under the same terms as Perl itself.
+
+@unnumberedsec AUTHOR
+
+Gisle Aas <aas@@oslonett.no>
+

@@ -1,0 +1,27 @@
+@node Fcntl, File/Basename, Fatal, Module List
+@unnumbered load the C Fcntl.h defines
+
+
+@unnumberedsec NAME
+
+Fcntl - load the C Fcntl.h defines
+
+@unnumberedsec SYNOPSIS
+
+@example
+use Fcntl;
+@end example
+
+@unnumberedsec DESCRIPTION
+
+This module is just a translation of the C @file{fnctl.h} file.
+Unlike the old mechanism of requiring a translated @file{fnctl.ph}
+file, this uses the h2xs program (see the Perl source distribution)
+and your native C compiler.  This means that it has a 
+far more likely chance of getting the numbers right.
+
+@unnumberedsec NOTE
+
+Only @code{#define} symbols get translated; you must still correctly
+pack up your own arguments to pass as args for locking functions, etc.
+

@@ -1,0 +1,160 @@
+@node SHA, Safe, SDBM_File, Module List
+@unnumbered Perl interface to the NIST Secure Hash Algorithm
+
+
+@unnumberedsec NAME
+
+SHA - Perl interface to the NIST Secure Hash Algorithm
+
+@unnumberedsec SYNOPSIS
+
+@example
+use SHA;
+
+$context = new SHA;
+$context->reset();
+
+$context->add(LIST);
+$context->addfile(HANDLE);
+
+$digest = $context->digest();
+$string = $context->hexdigest();
+@end example
+
+@example
+$digest = $context->hash($string);
+$string = $context->hexhash($string);
+@end example
+
+@unnumberedsec DESCRIPTION
+
+The @strong{SHA} module allows you to use the NIST SHA message digest algorithm
+from within Perl programs.
+
+A new SHA context object is created with the new operation.
+Multiple simultaneous digest contexts can be maintained, if desired.
+The context is updated with the add operation which adds the
+strings contained in the LIST parameter. Adding two strings
+separately is equivalent to adding their concatenation:
+@code{add(@'foo@', @'bar@')} produces the same effect as @code{add(@'foo@')},
+@code{add(@'bar@')}, which in turn produces the same effect as @code{add(@'foobar@')}.
+
+The final message digest value is returned by the @strong{digest} operation
+as a 16-byte binary string. This operation delivers the result of
+operations since the last new or reset operation. Once the
+operation has been performed, the context must be reset before
+being used to calculate another digest value.
+
+Several convenience functions are also provided. The @strong{addfile}
+operation takes an open file-handle and reads it until end-of file in
+8192-byte blocks adding the contents to the context. The @strong{hexdigest}
+operation calls @strong{digest} and returns the result as a printable string
+of hexdecimal digits in eight-digit groups. The @strong{hash} operation
+performs the complete series of steps: reset, add, @strong{digest} on
+the supplied scalar value, and returns the result as a 16-byte binary
+string. The @strong{hexhash} operation does the same thing, but returns the
+result in the format of the @strong{hexdigest} operation.
+
+@unnumberedsec EXAMPLE AND VALIDATION
+
+@example
+use SHA 1.1;
+@end example
+
+@example
+$sha = new SHA;
+@end example
+
+@example
+print "EXPECT:   0164b8a9 14cd2a5e 74c4f7ff 082c4d97 f1edf880\n";
+@end example
+
+@example
+$sha->reset();
+$sha->add("abc");
+print "RESULT 1: " . $sha->hexdigest() . "\n";
+@end example
+
+@example
+$sha->reset();
+$sha->add("a", "bc");
+print "RESULT 2: " . $sha->hexdigest() . "\n";
+@end example
+
+@example
+$sha->reset();
+$sha->add("ab", "c");
+print "RESULT 3: " . $sha->hexdigest() . "\n";
+@end example
+
+@example
+$sha->reset();
+$sha->add("a", "b", "c");
+print "RESULT 4: " . $sha->hexdigest() . "\n";
+@end example
+
+@example
+$sha->reset();
+$sha->add("ab");
+$sha->add("c");
+print "RESULT 5: " . $sha->hexdigest() . "\n";
+@end example
+
+@example
+$sha->reset();
+$sha->add("a");
+$sha->add("bc");
+print "RESULT 6: " . $sha->hexdigest() . "\n";
+@end example
+
+@example
+$sha->reset();
+$sha->add("a");
+$sha->add("b");
+$sha->add("c");
+print "RESULT 7: " . $sha->hexdigest() . "\n";
+@end example
+
+@example
+print "RESULT 8: " . $sha->hexhash("abc") . "\n";
+@end example
+
+@example
+$sha->reset();
+$sha->add("ab", "c");
+print "result a: " . unpack("H*", ($sha->digest())) . "\n";
+@end example
+
+@example
+print "result b: " . unpack("H*", ($sha->hash("abc"))) . "\n";
+@end example
+
+The above example will produce the output
+
+@example
+EXPECT:   0164b8a9 14cd2a5e 74c4f7ff 082c4d97 f1edf880
+RESULT 1: 0164b8a9 14cd2a5e 74c4f7ff 082c4d97 f1edf880
+RESULT 2: 0164b8a9 14cd2a5e 74c4f7ff 082c4d97 f1edf880
+RESULT 3: 0164b8a9 14cd2a5e 74c4f7ff 082c4d97 f1edf880
+RESULT 4: 0164b8a9 14cd2a5e 74c4f7ff 082c4d97 f1edf880
+RESULT 5: 0164b8a9 14cd2a5e 74c4f7ff 082c4d97 f1edf880
+RESULT 6: 0164b8a9 14cd2a5e 74c4f7ff 082c4d97 f1edf880
+RESULT 7: 0164b8a9 14cd2a5e 74c4f7ff 082c4d97 f1edf880
+RESULT 8: 0164b8a9 14cd2a5e 74c4f7ff 082c4d97 f1edf880
+result a: 0164b8a914cd2a5e74c4f7ff082c4d97f1edf880
+result b: 0164b8a914cd2a5e74c4f7ff082c4d97f1edf880
+@end example
+
+provided that the implementation is working correctly.
+
+@unnumberedsec NOTE
+
+The SHA extension may be redistributed under the same terms as Perl.
+The SHA code is in the public domain. It was heavily modified by
+Uwe Hollerbach following the implementation by Peter Gutmann.
+
+@unnumberedsec AUTHOR
+
+The SHA interface was written by Uwe Hollerbach @code{uh@@alumni.caltech.edu},
+shamelessly stealing from the MD5 interface written by Neil Winton
+(@code{N.Winton@@axion.bt.co.uk}).

@@ -1,0 +1,157 @@
+@node Data/Flow, Date/DateCalc, Data/Dumper, Module List
+@unnumbered Perl extension for simple-minded recipe-controlled build of data.
+
+
+@unnumberedsec NAME
+
+Data::Flow - Perl extension for simple-minded recipe-controlled build of data.
+
+@unnumberedsec SYNOPSIS
+
+@example
+use Data::Flow;
+$recipes = @{ path  => @{ default => @'./MANIFEST@'@},
+	       contents => @{ prerequisites => [@'path@', @'x@'] ,
+			     process => 
+			     sub @{
+			       my $data = shift; 
+			       $data->@{ shift() @} = @`cat $data->get(@'path@')@`
+				 x $data->get(@'x@');
+			     @}
+			   @},
+	     @};
+@end example
+
+@example
+$request = new Data::Flow $recipes;
+$request->set( x => 1);
+print $request->get(@'contents@');
+@end example
+
+@example
+tie %request, Data::Flow, $recipes;
+$request@{x@} = 1;
+print $request@{contents@};
+@end example
+
+@unnumberedsec DESCRIPTION
+
+The module Data::Flow provides its services via objects. The objects may
+be obtained by the usual
+
+@example
+$request = new Data::Flow $recipes;
+@end example
+
+paradigm. The argument $recipes is a hash reference, which provides
+the rules for request processing. The objects support two methods,
+set() and get(). The first one is used to provide input data for
+processing, the second one to obtain the output.
+
+The unit of requested information is a @emph{field}. The method set()
+takes a pair @code{field => value}, the method get() takes one
+argument: the @code{field}.
+
+Every object is created without any fields filled, but it knows how to
+@emph{construct} fields basing on other fields or some global into. This
+knowledge is provided in the argument $recipe of the new()
+function. This is a reference to a hash, keyed by fields. The
+values of this hash are hash references themselves, which describe how
+to acquire the @emph{field} which is the corresponding key of the initial
+hash.
+
+The internal hashes may have the following keys:
+
+@table @asis
+@item default
+describes the default value for the key, if none is provided by
+set(). The value becomes the value of the field of the object. No
+additional processing is performed. Example:
+
+@example
+default => $Config@{installdir@}
+@end example
+
+@item @code{prerequisites}
+gives the fields which are needed for the construction of the given
+field. The corresponding value is an array references. The array
+contains the @emph{required} fields.
+
+If @code{defaults} did not satisfy the request for a field, but
+@code{$recipe->@{field@}@{prerequisites@}} exists, the @emph{required}
+fields are build before any further processing is done. Example:
+
+@example
+prerequisites => [ qw(prefix arch) ]
+@end example
+
+@item @code{process}
+contains the rule to build the field. The value is a reference to a
+subroutine taking 2 arguments: the object $request, and the name of
+the required field. It is up to the subroutine to actually fill the
+corresponding field of $data, an error condition is raised if it did
+not. Example:
+
+@example
+process => sub @{ my $data = shift;
+		   $data->set( time => localtime(time) ) @}
+@end example
+
+@item @code{output}
+the corresponing value has the same meaning as for @code{process}, but the
+return value of the subroutine is used as the value of the
+@emph{field}. Example:
+
+@example
+output => sub @{ localtime(time) @}
+@end example
+
+@item @code{filter}
+contains the rule to build the field basing on other fields. The value
+is a reference to an array. The first element of the array is a
+reference to a subroutine, the rest contains names of the fields. When
+the subroutine is called, the arguments are the values of fields of
+the object $request which appear in the array (in the same order). The
+return value of the subroutine is used as the value of the
+@emph{field}. Example:
+
+@example
+filter => [ sub @{ shift + shift @}, 
+	      @'first_half@', @'second_half@' ]
+@end example
+
+Note that the mentioned field will be automatically marked as
+prerequisites.
+
+@item @code{class_filter}
+is similar to @code{filter}, but the first argument is the name of the
+method to call, second one is the name of the package to use for the
+method invocation. The rest contains names of field to provide as
+method arguments. Example:
+
+@example
+class_filter => [ @'new@', @'FileHandle@', @'filename@' ]
+@end example
+
+@item @code{method_filter}
+is similar to @code{class_filter}, but the second argument is the name of the
+field which is used to call the method upon. Example:
+
+@example
+method_filter => [ @'show@', @'widget_name@', @'current_display@' ]
+@end example
+
+@end table
+@unnumberedsubsec Tied interface
+
+The access to the same functionality is available via tied hash
+interface.
+
+@unnumberedsec AUTHOR
+
+Ilya Zakharevich, ilya@@math.ohio-state.edu
+
+@unnumberedsec SEE ALSO
+
+perl(1), make(1).
+

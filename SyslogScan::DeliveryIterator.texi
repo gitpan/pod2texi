@@ -1,0 +1,144 @@
+@node SyslogScan/DeliveryIterator, SyslogScan/SendmailLine, SyslogScan/Delivery, Module List
+@unnumbered scans a syslog file for "deliveries", successful transfers of mail to mailboxes or to other machines.
+
+
+@unnumberedsec NAME
+
+SyslogScan::DeliveryIterator -- scans a syslog file for "deliveries",
+successful transfers of mail to mailboxes or to other machines.
+
+@unnumberedsec SYNOPSIS
+
+@example
+use SyslogScan::Delivery;
+use SyslogScan::DeliveryIterator;
+
+my $iter = new SyslogScan::DeliveryIterator(syslogList =>
+						["/var/log/syslog"]);
+
+my $delivery;
+while ($delivery = $iter -> next())
+@{
+    print $delivery -> summary();
+@}
+@end example
+
+@unnumberedsec DESCRIPTION
+
+A DeliveryIterator goes through your sendmail logging file (which may
+be /var/log/syslog, /var/adm/messages, or something completely
+different) looking for successful deliveries of mail to local
+user-accounts or successful transfers of mail to remote machines.
+
+Here is an excerpt from a sample syslog:
+
+Jun 13 01:50:16 satellife sendmail[29556]: DAA29556: from=<shookway@@fs1.ho.man.ac.uk>, size=954, class=0, pri=30954, nrcpts=1, msgid=<5B013544E0D@@fs1.ho.man.ac.uk>, proto=ESMTP, relay=curlew.cs.man.ac.uk [130.88.13.7]
+
+Jun 13 01:50:17 satellife sendmail[29558]: DAA29556: to=<shoko@@time.healthnet.org>, delay=00:00:05, mailer=fidogate, stat=Deferred (Remote host is busy)
+
+...
+
+Jun 13 14:55:50 satellife sendmail[29558]: DAA29556: to=<shoko@@time.healthnet.org>, delay=13:00:05, mailer=fidogate, stat=Sent
+
+The delivery is not registered until 14:55:50.  In order to figure out
+the size and sender, the iterator needs to have gone over the @'from@'
+entry associated with message DAA29566, otherwise it will return a
+delivery with @'Sender@' and @'Size@' set to an undefined value (unless
+you specified defaults when constructing your DeliveryIterator.)
+
+@unnumberedsubsec METHOD @'NEW@'
+
+@'new@' creates a new iterator.
+
+@example
+my $iter =
+    new SyslogScan::DeliveryIterator(startDate => "06.01.96 18:00:00",
+					 endDate => "06.02.96 06:00:00",
+					 syslogList =>
+					 [/var/log/syslog.090696,
+					  /var/log/syslog.090796],
+					 unknownSender => @'antiquity@',
+					 unknownSize => 0,
+					 defaultYear => 1996);
+@end example
+
+All of the above parameters are optional.
+
+@emph{startDate} and @emph{endDate} define a span of time; we ignore
+deliveries that fall before @emph{startDate} or after @emph{endDate}.  This
+allows you to generate statistical reports about mail delivered over a
+given span of time.
+
+@emph{syslogList} is a list of files to search through for deliveries.
+The alternative to specifying syslogList is to supply a file-handle to
+a syslog file on each call to the next() method.
+
+@emph{unknownSender} and @emph{unknownSize} are what to specify as the sender
+and the size if we cannot determine from the logs who sent the message
+and how large the message is.
+
+@emph{defaultYear} is the year in which the deliveries are assumed to have
+taken place (this is not specified in the syslog file.)  Default is to
+guess the year that makes the delivery take place close to now.  (For
+example, if @'now@' is February 3rd 1996, then by default a delivery
+made on December 14th is assumed to be in 1995, and a delivery made on
+February 4th is assumed to be in 1996.
+
+@unnumberedsubsec METHOD @'NEXT@'
+
+Once an iterator is defined, the next() method will search for the
+next delivery, skipping any deliveries which don@'t match the time
+constraints of @emph{startDate} and @emph{endDate}.  There are two ways to
+call next():
+
+@example
+# poll syslogList members
+$delivery = $iter -> next;
+@end example
+
+@example
+# poll filehandle
+open(LOG,"/var/log/syslog");
+$delivery = $iter -> next(\*LOG);
+@end example
+
+@unnumberedsubsec OTHER OPERATIONS
+
+The @'appendSyslog@' method can add a syslog filename to the list
+of syslog filenames which were specified at construction time
+as @'syslogList@'.
+
+Setting the global variable @emph{$::gbQuiet} to 1 will suppress some
+of the error messages to STDERR.
+
+@unnumberedsec BUGS
+
+If two messages have the same message ID through a bad coincidence, a
+message is produced with sender of @'duplicate@' and size of @'0@' rather
+than using the unknownSender and unknownSize parameters.
+
+Sender and receiver address are downcased automatically.  It would
+probably be better if this module downcased only the host-name part of
+the address and not the user-name.
+
+Some mailings have a @'ctladdr@' field; DeliveryIterator should probably
+try to parse this as a backup clue for figuring out the sender.
+
+@unnumberedsec AUTHOR and COPYRIGHT
+
+The author (Rolf Harold Nelson) can currently be e-mailed as
+rolf@@usa.healthnet.org.
+
+This code is Copyright (C) SatelLife, Inc. 1996.  All rights reserved.
+This code is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself.
+
+In no event shall SatelLife be liable to any party for direct,
+indirect, special, incidental, or consequential damages arising out of
+the use of this software and its documentation (including, but not
+limited to, lost profits) even if the authors have been advised of the
+possibility of such damage.
+
+@unnumberedsec SEE ALSO
+
+@xref{SyslogScan/Delivery,SyslogScan/Delivery},, @xref{SyslogScan/Summary,SyslogScan/Summary},

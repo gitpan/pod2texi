@@ -1,0 +1,729 @@
+\input texinfo.tex
+@comment %**start of header
+@setfilename pm.info
+@settitle Big Module file
+@c footnotestyle separate
+@c paragraphindent 2
+@smallbook
+@comment %**end of header
+
+@comment Giant module file.
+
+@include modlist.texi
+
+@include Agent.texi
+
+@include Alias.texi
+
+@include AnyDBM_File.texi
+
+@include Apache.texi
+
+@include Apache::AccessLimitNum.texi
+
+@include Apache::Authen.texi
+
+@include Apache::AuthzAge.texi
+
+@include Apache::CGI.texi
+
+@include Apache::Debug.texi
+
+@include Apache::MsqlProxy.texi
+
+@include Apache::Options.texi
+
+@include Apache::Registry.texi
+
+@include Apache::SSI.texi
+
+@include Apache::TieHandle.texi
+
+@include Archie.texi
+
+@include AtExit.texi
+
+@include AutoLoader.texi
+
+@include AutoSplit.texi
+
+@include B::Xref.texi
+
+@include BSD::Resource.texi
+
+@include Benchmark.texi
+
+@include BitCount.texi
+
+@include C::Scan.texi
+
+@include CGI.texi
+
+@include CGI::Base.texi
+
+@include CGI::BasePlus.texi
+
+@include CGI::Carp.texi
+
+@include CGI::Fast.texi
+
+@include CGI::Form.texi
+
+@include CGI::Imagemap.texi
+
+@include CGI::MiniSvr.texi
+
+@include CGI::Out.texi
+
+@include CGI::Request.texi
+
+@include CGI::Response.texi
+
+@include CGI::Switch.texi
+
+@include CGI::Wrap.texi
+
+@include CGI::XA.texi
+
+@include CPAN.texi
+
+@include Carp.texi
+
+@include Color.texi
+
+@include Compress::Zlib.texi
+
+@include Config.texi
+
+@include ConfigFile.texi
+
+@include Convert::UU.texi
+
+@include Crypt::DES.texi
+
+@include Crypt::IDEA.texi
+
+@include Cwd.texi
+
+@include DB_File.texi
+
+@include DCE::Login.texi
+
+@include DCE::Registry.texi
+
+@include DCE::Status.texi
+
+@include DCE::UUID.texi
+
+@include DCE::login_base.texi
+
+@include DCE::rgybase.texi
+
+@include Data::Dumper.texi
+
+@include Data::Flow.texi
+
+@include Date::DateCalc.texi
+
+@include Date::Format.texi
+
+@include Date::Manip.texi
+
+@include Date::Parse.texi
+
+@include Des.texi
+
+@include Devel::CoreStack.texi
+
+@include Devel::DProf.texi
+
+@include Devel::Peek.texi
+
+@include Devel::SelfStubber.texi
+
+@include Devel::Symdump.texi
+
+@include Devel::TraceFuncs.texi
+
+@include DirHandle.texi
+
+@include DynaLoader.texi
+
+@include English.texi
+
+@include Env.texi
+
+@include EventServer.texi
+
+@include Exporter.texi
+
+@include ExtUtils::Embed.texi
+
+@include ExtUtils::Install.texi
+
+@include ExtUtils::Liblist.texi
+
+@include ExtUtils::MM_OS2.texi
+
+@include ExtUtils::MM_Unix.texi
+
+@include ExtUtils::MM_VMS.texi
+
+@include ExtUtils::MakeMaker.texi
+
+@include ExtUtils::Manifest.texi
+
+@include ExtUtils::Miniperl.texi
+
+@include ExtUtils::Mkbootstrap.texi
+
+@include ExtUtils::Mksymlists.texi
+
+@include ExtUtils::testlib.texi
+
+@include Fatal.texi
+
+@include Fcntl.texi
+
+@include File::Basename.texi
+
+@include File::BasicFlock.texi
+
+@include File::CheckTree.texi
+
+@include File::Cmp.texi
+
+@include File::Copy.texi
+
+@include File::CounterFile.texi
+
+@include File::Find.texi
+
+@include File::Flock.texi
+
+@include File::Listing.texi
+
+@include File::Path.texi
+
+@include File::PathConvert.texi
+
+@include File::Recurse.texi
+
+@include File::Slurp.texi
+
+@include File::Tools.texi
+
+@include FileCache.texi
+
+@include FileHandle.texi
+
+@include Filter::Util::Call.texi
+
+@include Filter::Util::Exec.texi
+
+@include Filter::cpp.texi
+
+@include Filter::decrypt.texi
+
+@include Filter::exec.texi
+
+@include Filter::sh.texi
+
+@include Filter::tee.texi
+
+@include FindBin.texi
+
+@include Font::AFM.texi
+
+@include GD.texi
+
+@include GDBM_File.texi
+
+@include Getopt::Long.texi
+
+@include Getopt::Mixed.texi
+
+@include Getopt::Regex.texi
+
+@include Getopt::Std.texi
+
+@include HTML::AsSubs.texi
+
+@include HTML::Element.texi
+
+@include HTML::Entities.texi
+
+@include HTML::FormatPS.texi
+
+@include HTML::FormatText.texi
+
+@include HTML::Formatter.texi
+
+@include HTML::HeadParser.texi
+
+@include HTML::LinkExtor.texi
+
+@include HTML::Parse.texi
+
+@include HTML::Parser.texi
+
+@include HTML::QuickCheck.texi
+
+@include HTML::Stream.texi
+
+@include HTML::TreeBuilder.texi
+
+@include HTTP::Daemon.texi
+
+@include HTTP::Date.texi
+
+@include HTTP::Headers.texi
+
+@include HTTP::Message.texi
+
+@include HTTP::Negotiate.texi
+
+@include HTTP::Request.texi
+
+@include HTTP::Response.texi
+
+@include HTTP::Status.texi
+
+@include HTTPD::Authen.texi
+
+@include HTTPD::GroupAdmin.texi
+
+@include HTTPD::UserAdmin.texi
+
+@include I18N::Collate.texi
+
+@include IO.texi
+
+@include IO::File.texi
+
+@include IO::Handle.texi
+
+@include IO::Pipe.texi
+
+@include IO::Seekable.texi
+
+@include IO::Select.texi
+
+@include IO::Socket.texi
+
+@include IPC::Open2.texi
+
+@include IPC::Open3.texi
+
+@include Image::Size.texi
+
+@include IniConf.texi
+
+@include LWP.texi
+
+@include LWP::Debug.texi
+
+@include LWP::IO.texi
+
+@include LWP::MediaTypes.texi
+
+@include LWP::MemberMixin.texi
+
+@include LWP::Protocol.texi
+
+@include LWP::RobotUA.texi
+
+@include LWP::Simple.texi
+
+@include LWP::Socket.texi
+
+@include LWP::TkIO.texi
+
+@include LWP::UserAgent.texi
+
+@include Log::Topics.texi
+
+@include Logfile.texi
+
+@include MD5.texi
+
+@include MIME::Base64.texi
+
+@include MIME::Body.texi
+
+@include MIME::Decoder.texi
+
+@include MIME::Entity.texi
+
+@include MIME::Field::ConTraEnc.texi
+
+@include MIME::Field::ContDisp.texi
+
+@include MIME::Field::ContType.texi
+
+@include MIME::Field::ParamVal.texi
+
+@include MIME::Head.texi
+
+@include MIME::IO.texi
+
+@include MIME::Latin1.texi
+
+@include MIME::OLD::ParserUtil.texi
+
+@include MIME::Parser.texi
+
+@include MIME::ParserBase.texi
+
+@include MIME::QuotedPrint.texi
+
+@include MIME::ToolUtils.texi
+
+@include MLDBM.texi
+
+@include Mail::Address.texi
+
+@include Mail::Cap.texi
+
+@include Mail::Field.texi
+
+@include Mail::Folder.texi
+
+@include Mail::Folder::Emaul.texi
+
+@include Mail::Folder::Mbox.texi
+
+@include Mail::Header.texi
+
+@include Mail::Internet.texi
+
+@include Mail::MIME.texi
+
+@include Mail::Mailer.texi
+
+@include Mail::POP3Client.texi
+
+@include Mail::Send.texi
+
+@include Mail::Util.texi
+
+@include Make.texi
+
+@include Math::Amoeba.texi
+
+@include Math::Approx.texi
+
+@include Math::BigFloat.texi
+
+@include Math::BigInt.texi
+
+@include Math::BigInteger.texi
+
+@include Math::Brent.texi
+
+@include Math::Complex.texi
+
+@include Math::DVector.texi
+
+@include Math::Derivative.texi
+
+@include Math::Fortran.texi
+
+@include Math::Matrix.texi
+
+@include Math::PRSG.texi
+
+@include Math::Spline.texi
+
+@include Math::Trig.texi
+
+@include Math::TrulyRandom.texi
+
+@include Math::VecStat.texi
+
+@include Mmap.texi
+
+@include Msql::RDBMS.texi
+
+@include NDBM_File.texi
+
+@include NNML::Server.texi
+
+@include Net::Cmd.texi
+
+@include Net::Domain.texi
+
+@include Net::DummyInetd.texi
+
+@include Net::FTP.texi
+
+@include Net::NIS.texi
+
+@include Net::NISPlus::Table.texi
+
+@include Net::NISTable.texi
+
+@include Net::NNTP.texi
+
+@include Net::Netrc.texi
+
+@include Net::POP3.texi
+
+@include Net::Ping.texi
+
+@include Net::SMTP.texi
+
+@include Net::SNPP.texi
+
+@include Net::SSLeay.texi
+
+@include Net::Socket.texi
+
+@include Net::Telnet.texi
+
+@include Net::Time.texi
+
+@include News::NNTPClient.texi
+
+@include News::Newsrc.texi
+
+@include ODBM_File.texi
+
+@include OS2::Attrib.texi
+
+@include OS2::SoftInstaller.texi
+
+@include Opcode.texi
+
+@include PDL.texi
+
+@include PGP.texi
+
+@include POSIX.texi
+
+@include Parext.texi
+
+@include Pari.texi
+
+@include Parity.texi
+
+@include Penguin::Easy.texi
+
+@include Pg.texi
+
+@include Pod::Parse.texi
+
+@include Pod::Parser.texi
+
+@include Pod::Select.texi
+
+@include Pod::Text.texi
+
+@include Pod::Usage.texi
+
+@include Pod::foo.texi
+
+@include Pod::newrun.texi
+
+@include Pod::newvar.texi
+
+@include Pod::newvar2.texi
+
+@include Pod::test.texi
+
+@include Proc::Forkfunc.texi
+
+@include Proc::Simple.texi
+
+@include Religion.texi
+
+@include Remedy::Ar.texi
+
+@include Resources.texi
+
+@include SDBM_File.texi
+
+@include SHA.texi
+
+@include Safe.texi
+
+@include Search::Base.texi
+
+@include Search::Dict.texi
+
+@include SelectSaver.texi
+
+@include SelfLoader.texi
+
+@include Set::IntSpan.texi
+
+@include Shell.texi
+
+@include Socket.texi
+
+@include Sort::Versions.texi
+
+@include Sprite.texi
+
+@include Statistics::ChiSquare.texi
+
+@include Statistics::LTU.texi
+
+@include Storable.texi
+
+@include String::Scanf.texi
+
+@include Sx.texi
+
+@include Sybase::BCP.texi
+
+@include Sybase::Login.texi
+
+@include Symbol.texi
+
+@include Sys::Hostname.texi
+
+@include Sys::Syslog.texi
+
+@include SysV.texi
+
+@include SyslogScan::ByGroup.texi
+
+@include SyslogScan::Delivery.texi
+
+@include SyslogScan::DeliveryIterator.texi
+
+@include SyslogScan::SendmailLine.texi
+
+@include SyslogScan::SendmailLineFrom.texi
+
+@include SyslogScan::SendmailLineTo.texi
+
+@include SyslogScan::SendmailUtil.texi
+
+@include SyslogScan::Summary.texi
+
+@include SyslogScan::SyslogEntry.texi
+
+@include SyslogScan::Usage.texi
+
+@include SyslogScan::WhereIs.texi
+
+@include Tcl.texi
+
+@include Tcl::Tk.texi
+
+@include Term::Cap.texi
+
+@include Term::Complete.texi
+
+@include Term::ReadKey.texi
+
+@include Term::ReadLine.texi
+
+@include Test::Harness.texi
+
+@include Text::Abbrev.texi
+
+@include Text::English.texi
+
+@include Text::German.texi
+
+@include Text::ParseWords.texi
+
+@include Text::Soundex.texi
+
+@include Text::Tabs.texi
+
+@include Text::Template.texi
+
+@include Text::Wrap.texi
+
+@include Tie::Dir.texi
+
+@include Tie::Hash.texi
+
+@include Tie::Scalar.texi
+
+@include Tie::SubstrHash.texi
+
+@include Tie::Watch.texi
+
+@include Time::CTime.texi
+
+@include Time::DaysInMonth.texi
+
+@include Time::HiRes.texi
+
+@include Time::JulianDay.texi
+
+@include Time::Local.texi
+
+@include Time::ParseDate.texi
+
+@include Time::Timezone.texi
+
+@include Time::Zone.texi
+
+@include Tk::FileDialog.texi
+
+@include Tk::SelFile.texi
+
+@include Tk::WaitBox.texi
+
+@include UNIVERSAL.texi
+
+@include URI::Escape.texi
+
+@include URI::URL.texi
+
+@include VRML.texi
+
+@include VRML::VRML1.texi
+
+@include VRML::VRML1::Standard.texi
+
+@include WWW::RobotRules.texi
+
+@include WWW::RobotRules::AnyDBM_File.texi
+
+@include WWW::Search.texi
+
+@include WWW::Search::AltaVista.texi
+
+@include WWW::SearchResult.texi
+
+@include Xbase.texi
+
+@include diagnostics.texi
+
+@include gettext.texi
+
+@include integer.texi
+
+@include iodbc.texi
+
+@include less.texi
+
+@include lib.texi
+
+@include lwpcook.texi
+
+@include ops.texi
+
+@include overload.texi
+
+@include ptkFAQ.texi
+
+@include sigtrap.texi
+
+@include strict.texi
+
+@include subs.texi
+
+@include vars.texi
+
+@summarycontents
+@contents
+
+@bye

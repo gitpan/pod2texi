@@ -1,0 +1,30 @@
+@node Pod/test, Proc/Forkfunc, Pod/newvar2, Module List
+@itemize @bullet
+@item 
+@item 
+@itemx foo
+@strong{bold}@emph{italic}@strong{@emph{bold-italic}}
+
+X<abc/def>
+
+X<foo;abc/def;xyz/qed>
+
+@samp{a\bc} in this node
+
+@samp{$;} in this node
+
+Y<a\bc/def>
+
+X<@strong{abc};abc/def>
+
+Back in pod.
+
+@example
+This is a verbatim paragraph
+@end example
+
+@item foo bar bletch This is an item.
+Back to paragraphs.
+
+@item foobar bletch.
+@end itemize

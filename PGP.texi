@@ -1,0 +1,323 @@
+@node PGP, POSIX, PDL, Module List
+@unnumbered perl module to work with PGP messages
+
+
+@unnumberedsec NAME
+
+PGP - perl module to work with PGP messages
+
+@unnumberedsec SYNOPSIS
+
+use PGP;
+
+$message = new PGP $pgppath;
+
+@unnumberedsec DESCRIPTION
+
+The PGP module allow a perl script to work with PGP related files.
+
+@itemize @bullet
+@item PGP::new
+@example
+$pgp = new PGP [$pgppath], [$pgpexec];
+@end example
+
+
+Create the PGP encapsulation object. The standard location for the 
+PGP executable is /usr/local/bin/pgp.
+
+@item PGP::Exec
+@example
+$pid = Exec $pgp $args, $in, $out, $err;
+@end example
+
+
+Execute the PGP command and attach the @code{$in}, @code{$out}, @code{$err} file handles. 
+This should be fine for the moment, but need to look into making
+sure that data is not written to a temporary file anywhere.
+
+The $args variable can have several substituted strings:
+
+@example
+%p	PGP path variable
+%r	Path to PGP keyring
+%k	Specified user
+@end example
+
+The file handle variables--@code{$in}, @code{$out} and @code{$err}--are send as
+normal filehandle names, but they reside in the PGP package. For
+example, the following procedure call is made:
+
+@example
+PGP->Exec ($args, FIN, FOUT, FERR);
+@end example
+
+Even though the file handles were specified as @code{FIN}, @code{FOUT} and
+@code{FERR}; they must be referred to as @code{PGP::FIN}, @code{PGP::FOUT} and
+@code{PGP::FERR} in the orignal procedure that made the call.
+
+@item PGP::Sign
+@example
+$signed_document = Sign $pgp %args;
+@end example
+
+
+The @code{Sign} procedure will take a file or data and sign with a PGP
+secret key. The default behavior is to sign the data with the last
+secret key added to the keyring, but that can be overridden with the
+@emph{Key} argument. This method always returns the signed document.
+
+The @code{%args} consist of a series of keys and values. Since there are
+several variations in the way data can be signed, not all the
+following options must be specified. This approach also makes it much
+easier to scale to new versions of PGP with more options.
+
+@example
+Armor		The output should be ASCII armored
+Clear		Produce a "clear" signature
+Encrypt		Encrypt the resulting signed document with
+		the given keyobj
+Detach		Create a detached signature
+File		Sign the specified file
+Key		Sign with the specified key object
+Nosave		Do not allow user to save message
+Password	The password to use for signing
+Signfile	The filename of the signed document
+Text		Data to be signed.
+Wipe		Remove the orignal file
+@end example
+
+The only absolute argument that is always required is the @code{Password}. 
+
+Examples
+
+@example
+Sign $pgp Password => @'xyz@', File => @'/etc/motd@', Clear => 1, Armor => 1;
+@end example
+
+This would return a signed copy of the @file{/etc/motd} file. In this
+case, we use a file as the input, but the output is returned at the
+method@'s termination. The orignal file remains in the clear, and the
+signature is ASCII armored (Base64). 
+
+@example
+Sign $pgp Password => @'abc@', Text => @'Important info@', Armor => 1,
+          Signfile => @'signed.asc@', Key => $keyobj;
+@end example
+
+This is sort of the reverse of the first example. It takes what is in
+the @code{Text} field and signs it. It then puts the result in the file
+@file{signed.asc} and returns it to the caller. In this case, the entire
+message is ASCII armored including the orignal text (i.e. @code{Text}).
+We also specify another secret key to produce the signature. For more
+information on the the key objects, please see @samp{"PGP::Key"} in this node section.
+
+@item PGP::Encrypt
+@example
+$encrypted_document = Encrypt $pgp %args;
+@end example
+
+
+The @code{Encrypt} method produces an encrypted document with the given
+public keys specified by @code{Key}. The @code{Encrypt} method follow the
+same conventions as the @code{Sign} method. The data to be encrypted can
+be sent to the method or can reside in a file. The resulting
+encrypted data can also reside in a file or be sent back to the caller. 
+
+In addition to encrypting a document, the document can also be signed
+by using the @code{Sign} key in the @code{%args} array. If the document is to
+be signed by the default secret key (last key added to the secret
+keyring), then @code{Sign} can be left undefined or contain something
+other than a reference to a key object. Otherwise the @code{Sign} key
+should contain a reference to a specific key object (see
+@samp{"PGP::Key"} in this node).
+
+@example
+Armor		The output should be ASCII armored
+Encryptfile	The filename of the encrypted document
+File		Encrypt the specified file
+Key		Encrypt with the specified key object
+Nosave		Do not allow user to save message
+Password	The password to use for signing
+Sign		In addition to encrypting, sign the document
+Text		Data to be encrypted
+Wipe		Remove orignal file
+@end example
+
+@item PGP::Document_Info
+@example
+\%doc = Document_Info $pgp %args;
+@end example
+
+
+@code{Document_Info} returns an associative array or a reference to an
+associative array to the caller. This returned structure contains
+information about the document that is sent to the @code{Document_Info}
+method. The returned structure is fairly straight forward:
+
+@example
+Text		The decrypted document
+Signature	PGP::Key object of the signer (if any)
+Time		Time document was signed (if any)
+Key		PGP::Key object used to decrypt document
+@end example
+
+The @code{Document_Info} method currently accepts the following arguments:
+
+@example
+File		File to decrypt
+Text		Document to decrypt
+
+At this point, we cheat with the C<Document_Info> method. Basically
+we send the document through the C<Decrypt> method and grab the
+results. 
+@end example
+
+@end itemize
+@unnumberedsubsec PGP::Keyring
+
+The PGP::Keyring object is used to perform key management functions. 
+
+@itemize @bullet
+@item PGP::Keyring::new
+@example
+$Keyring = new PGP::Keyring $pgpkeyring;
+@end example
+
+@item PGP::Keyring::Add_Key
+@example
+$signature = Add_Key $Keyring $signature;
+@end example
+
+
+Add a signature to the keyring. At this point, there is no error 
+checking or verification that the key has been added.
+
+@item PGP::Remove_Key
+@example
+Remove_Key $Keyring $key;
+@end example
+
+
+Remove a signature from a keyring.   
+
+@item PGP::Extract_Key
+@example
+$key = Extract_Key $Keyring $keyobj;
+@end example
+
+
+Extract a key from the specified keyring. A real simple dirty way of 
+extracting the key.
+
+@item PGP::Generate_Key
+@example
+Generate_Key $Keyring;
+@end example
+
+
+Generate a new secret and public key set. This routine will not be
+present in the first rev of code. It is also subject to change.
+
+@item PGP::Revoke_Key
+@example
+$certificate = Revoke_Key $Keyring $Keyobj;
+@end example
+
+
+Produce a revocation certificate for the given key. Revocation is
+actually a two step process. We must first mark the key as revoked.
+This is the same as the @code{Remove_Key} method. After flaging the key,
+the key must be extracted to produce a revocation certificate.
+
+@item PGP::Keyring::Find
+@example
+@@keys = Find $keyring %criteria;
+\@@keys = Find $keyring %criteria;
+$key = Find $keyring %criteria; (Single match)
+@end example
+
+
+Function to locate a single key.
+
+@end itemize
+@unnumberedsubsec PGP::Key
+
+The PGP::Key object is used to store the individual key
+information. It is primarily used by the PGP::Keyring object and
+for passing to the various methods that accept key parameters to
+encrypt and sign documents. 
+
+Future revisions will provide actual methods to do key comparison for
+the trust and validity factors. These methods will provide a
+standardized way to determine which keys can be trusted and which
+keys should not be used at all.
+
+@itemize @bullet
+@item PGP::Key::new
+@example
+$key = new PGP::Key $keyline;
+@end example
+
+
+This is the constructor for the PGP::Key object. This is primarily
+used by the PGP::Keyring methods. The PGP::Keyring methods keep
+track of the keys and maintain the Trust and Validity components.
+About the only useful method is the @code{PGP::Key::Fingerprint}, which
+will return a string that is the finger print of the given key.
+
+@item + PGP::Key::Add_ID
+@example
+Add_ID $key $desc;
+@end example
+
+The @code{Add_ID} method will add identification information to the owner 
+and email portions of the given PGP::Key object. This is to support 
+keys that multiple identification packets associated with them.
+
+@item PGP::Key::Trust
+
+This will set and/or retrieve the trust factor. Currently, this routine
+will just store what is sent to it. Need to define some "trust" 
+variables and provide useful routines to use them.
+
+@item PGP::Key::Validity
+
+This function will set and/or return the validity factor. This 
+subroutine is very much like PGP::Key::Trust. It also needs to be 
+worked on quite a bit.
+
+@item PGP::Key::Fingerprint
+@example
+$fingerprint = Fingerprint $key;
+@end example
+
+@end itemize
+@unnumberedsubsec Known Bugs and Limitations
+
+@table @asis
+@itemx + Hopefully none, proabably many!
+@end table
+@unnumberedsubsec Author
+
+@example
+Gerard Hickey
+RR 2  Box 409
+Lower Main St.
+North Berwick, ME   03906
+hickey@@ctron.com
+@end example
+
+@unnumberedsubsec Copyrights
+
+@example
+Copyleft (l) 1996, by Gerard Hickey
+@end example
+
+
+What this means is that this program may be copied freely given that
+there is no payment in exchange for this program, and that all the
+source is left intact with all comments and documentation. If you
+wish to modify this program to correct bugs or to extend it@'s
+usefullness, please coordinate such actions with the author.
+

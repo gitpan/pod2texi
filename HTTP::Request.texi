@@ -1,0 +1,70 @@
+@node HTTP/Request, HTTP/Response, HTTP/Negotiate, Module List
+@unnumbered Class encapsulating HTTP Requests
+
+
+@unnumberedsec NAME
+
+HTTP::Request - Class encapsulating HTTP Requests
+
+@unnumberedsec SYNOPSIS
+
+@example
+require HTTP::Request;
+$request = new HTTP::Request @'GET@', @'http://www.oslonett.no/@';
+@end example
+
+@unnumberedsec DESCRIPTION
+
+@code{HTTP::Request} is a class encapsulating HTTP style requests,
+consisting of a request line, a MIME header, and optional
+content. Note that the LWP library also uses this HTTP style requests
+for non-HTTP protocols.
+
+Instances of this class are usually passed to the @code{request()} method
+of an @code{LWP::UserAgent} object:
+
+@example
+$ua = new LWP::UserAgent;
+$request = new HTTP::Request @'http://www.oslonett.no/@';
+$response = $ua->request($request);
+@end example
+
+@unnumberedsec METHODS
+
+@code{HTTP::Request} is a subclass of @code{HTTP::Message} and therefore
+inherits its methods.  The inherited methods are header(),
+push_header(), remove_header(), headers_as_string() and content().
+See @xref{HTTP/Message,HTTP/Message}, for details.
+
+@unnumberedsubsec $r = new HTTP::Request $method, $url, [$header, [$content]]
+
+Constructs a new @code{HTTP::Request} object describing a request on the
+object @code{$url} using method @code{$method}.  The @code{$url} argument can be
+either a string, or a reference to a @code{URI::URL} object.  The $header
+argument should be a reference to a HTTP::Headers object.
+
+@example
+$request = new HTTP::Request @'GET@', @'http://www.oslonett.no/@';
+@end example
+
+@unnumberedsubsec $r->method([$val])
+
+@unnumberedsubsec $r->url([$val])
+
+These methods provide public access to the member variables containing
+respectively the method of the request and the URL object of the
+request.
+
+If an argument is given the member variable is given that as its new
+value. If no argument is given the value is not touched. In either
+case the previous value is returned.
+
+The url() method accept both a reference to a URI::URL object and a
+string as its argument.  If a string is given, then it should be
+parseable as an absolute URL.
+
+@unnumberedsubsec $r->as_string()
+
+Method returning a textual representation of the request.
+Mainly useful for debugging purposes. It takes no arguments.
+

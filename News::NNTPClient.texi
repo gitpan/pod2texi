@@ -1,0 +1,774 @@
+@node News/NNTPClient, News/Newsrc, Net/Time, Module List
+@unnumbered Perl 5 module to talk to NNTP (RFC977) server
+
+
+@unnumberedsec NAME
+
+News::NNTPClient - Perl 5 module to talk to NNTP (RFC977) server
+
+@unnumberedsec DESCRIPTION
+
+This module implements a client interface to NNTP, enabling a Perl 5
+application to talk to NNTP servers.  It uses the OOP (Object Oriented
+Programming) interface introduced with Perl 5.
+
+@unnumberedsec USAGE
+
+To use it in your programs, you can use either:
+
+@example
+use News::NNTPClient;
+@end example
+
+or
+
+@example
+require News::NNTPClient;
+@end example
+
+NNTPClient exports nothing.
+
+A new NNTPClient object must be created with the new method.  Once
+this has been done, all NNTP commands are accessed through this object.
+
+Here are a couple of short examples.  The first prints all articles in
+the "test" newsgroup:
+
+@example
+#!/usr/local/bin/perl -w
+ 
+use News::NNTPClient;
+ 
+$c = new News::NNTPClient;
+ 
+($first, $last) = ($c->group("test"));
+ 
+for (; $first <= $last; $first++) @{
+    print $c->article($first);
+@}
+ 
+__END__
+@end example
+
+This example prints the body of all articles in the "test" newsgroup
+newer than one hour:
+
+@example
+#!/usr/local/bin/perl -w
+ 
+require News::NNTPClient;
+ 
+$c = new News::NNTPClient;
+ 
+foreach ($c->newnews("test", time - 3600)) @{
+    print $c->body($_);
+@}
+ 
+__END__
+@end example
+
+@unnumberedsubsec NNTPClient Commands
+
+These commands are used to manipulate the NNTPClient object, and
+aren@'t directly related to commands available on any NNTP server.
+
+@table @asis
+@item new
+Use this to create a new NNTP connection. It takes three arguments, a
+hostname, a port and a debug flag.  It calls initialize.  Use an
+empty argument to specify defaults.
+
+If port is omitted or blank (""), looks for environment variable
+NNTPPORT, service "nntp", or uses 119.
+
+If host is omitted or empty (""), looks for environment variable
+NNTPSERVER or uses "news".
+
+Examples:
+
+@example
+$c = new News::NNTPClient;
+or
+$c = new News::NNTPClient("newsserver.some.where");
+or
+$c = new News::NNTPClient("experimental", 9999);
+or
+# Specify debug but use defaults.
+$c = new News::NNTPClient("", "", 2);
+@end example
+
+Returns a blessed reference, representing a new NNTP connection.
+
+@item initialize
+Calls port, host, connect, and @emph{response}, in that order.
+If any of these fail, initialization is aborted.
+
+@item connect
+Connects to current host/port.
+Not normally needed, as the new method does this for you.
+Closes any existing connection.
+Sets the posting status.  See the postok method.
+
+@item host
+Sets the host that will be used on the next connect.
+Not normally needed, as the new method does this for you.
+
+Without an argument, returns current host.
+
+Argument can be hostname or dotted quad, for example, "15.2.174.218".
+
+Returns fully qualified host name.
+
+@item port
+Sets the port that will be used on the next connect.
+Not normally needed, as the new method does this for you.
+
+Without an argument, returns current port.
+
+Argument can be port number or name.  If it is a name, it must be a
+valid service.
+
+Returns port number.
+
+@item debug
+Sets the debug level.
+
+Without an argument, returns current debug level.
+
+There are currently three debug levels.  Level 0, level 1, and level
+2.
+
+At level 0 the messages described for level 1 are not produced.  Debug
+level 0 is a way of turning off messages produced by the default debug
+level 1.  Serious error messages, such as EOF (End Of File) on the
+file handle, are still produced.
+
+At level 1, any NNTP command that results in a result code of 400 or
+greater prints a warning message.  This is the default.
+
+At level 2, in addition to level 1 messages, status messages are
+printed to indicate actions taking place.
+
+Returns old debug value.
+
+@item ok
+Returns boolean status of most recent command.  NNTP return codes less
+than 400 are considered OK.  Not often needed as most commands return
+false upon failure anyway.
+
+@item okprint
+Returns boolean status of most recent command.  NNTP return codes less
+than 400 are considered OK.  Prints an error message for return codes
+of 400 or greater unless debug level is set to zero (0).
+
+This method is used internally by most commands, and could be
+considered to be "for internal use only".  You should use the return
+status of commands directly to determine pass-fail, or if needed the
+ok method can be used to check status later.
+
+@item message
+Returns the NNTP response message of the most recent command.
+
+Example, as returned by NNTP server version 1.5.11t:
+
+@example
+$c->slave;
+print $c->message;
+@end example
+
+@example
+Kinky, kinky.  I don@'t support such perversions.
+@end example
+
+@item code
+Returns the NNTP response code of the most recent command.
+
+Example:
+
+@example
+$c->article(1);
+print $c->code, "\n";
+@end example
+
+@example
+412
+@end example
+
+@item postok
+Returns the post-ability status that was reported upon connection or
+after the mode_reader command.
+
+@item eol
+Sets the End-Of-Line termination for text returned from the server.
+
+Returns the old EOL setting.
+
+Default is \n.
+
+To set EOL to nothing, pass it the empty string.
+
+To query current EOL without setting it, call with no arguments.
+
+Returns the old EOL termination.
+
+Example:
+
+@example
+$old_eol = $c->eol();     # Get original.
+$c->eol("");              # Set EOL to nothing.
+@@article = $c->article(); # Fetch an article.
+$c->eol($old_eol);        # Restore value.
+@end example
+
+@item version
+Returns version number.
+
+This document represents @@(#) $Revision: 0.26 $.
+
+@end table
+@unnumberedsubsec NNTP Commands
+
+These commands directly correlate to NNTP server commands.  They
+return a false value upon failure, true upon success.  The truth value
+is usually some bit of useful information.  For example, the stat
+command returns Message-ID if it is successful.
+
+Some commands return multiple lines.  These lines are returned as an
+array in array context, and as a reference to an array in scalar
+context.  For example, if you do this:
+
+@example
+@@lines = $c->article(14);
+@end example
+
+then @@lines will contain the article, one line per array element.
+However, if you do this:
+
+@example
+$lines = $c->article(14);
+@end example
+
+then $lines will contain a @emph{reference} to an array.  This feature is
+for those that don@'t like passing arrays from routine to routine.
+
+@table @asis
+@item mode_reader
+Some servers require this command to process NNTP client commands.
+Sets postok status.  See postok.
+
+Returns OK status.
+
+@item article
+Retrieves an article from the server.  This is the main command for
+fetching articles.  Expects a single argument, an article number or
+Message-ID.  If you use an article number, you must be in a news
+group.  See group.
+
+Returns the header, a separating blank line, and the body of the
+article as an array of lines terminated by the current EOL.
+
+In scalar context a reference to the array is returned instead of the
+array itself.
+
+Examples:
+
+@example
+print $c->article(@'<art1234@@soom.oom>@');
+@end example
+
+@example
+$c->group("test");
+@end example
+
+@example
+print $c->article(99);
+@end example
+
+@item body
+Expects a single argument, an article number or Message-ID.
+
+Returns the body of an article as an array of lines terminated by the
+current EOL.
+
+In scalar context a reference to the array is returned instead of the
+array itself.
+
+See article.
+
+@item head
+Expects a single argument, an article number or Message-ID.
+
+Returns the head of the article as an array of lines terminated by the
+current EOL.
+
+In scalar context a reference to the array is returned instead of the
+array itself.
+
+See article.
+
+@item stat
+Expects a single argument, an article number or Message-ID.
+
+The STAT command is like the ARTICLE command except that it does not
+return any text.  It can be used to set the "current article pointer"
+if passed an article number, or to validate a Message-ID if passed a
+Message-ID.
+
+Returns Message-ID if successful, otherwise returns false.
+
+@item last
+The "current article pointer" maintained by the server is moved to the
+previous article in the current news group.
+
+Returns Message-ID if successful, otherwise returns false.
+
+@item next
+The "current article pointer" maintained by the server is moved to the
+next article in the current news group.
+
+Returns Message-ID if successful, otherwise returns false.
+
+@item group
+Expects a single argument, the name of a valid news group. 
+
+This command sets the current news group as maintained by the server.
+It also sets the server maintained "current article pointer" to the
+first article in the group.  This enables the use of certain other
+server commands, such as article, head, body, stat,
+last, and next.  Also sets the current group in the NNTPClient
+object, which is used by the newnews and xindex commands.
+
+Returns (first, last) in list context, or "first-last" in scalar
+context, where first and last are the first and last article numbers
+as reported by the group command.  Returns false if there is an error.
+
+It is an error to attempt to select a non-existent news group.
+
+If the estimated article count is needed, it can be extracted from the
+message.  See message.
+
+@item list
+Accepts one optional argument that can be used indicate the type of
+list desired.  List type depends on server.
+
+With an argument of "active" or with no arguments, this command
+returns a list of valid newsgroups and associated information.  The
+format is:
+
+@example
+group last first p
+@end example
+
+where group is the news group name, last is the article number of the
+last article, first is the article number of the first article, and p
+is flag indicating if posting is allowed.  A @'y@' flag is an indication
+that posting is allowed.
+
+Other possible arguments are: newsgroups, distributions, subscriptions
+for B-News, and active.times, distributions, distrib.pats, newsgroups,
+overview.fmt for INN.
+
+Returns an array of lines terminated by the current EOL.
+
+In scalar context a reference to the array is returned instead of the
+array itself.
+
+@item newgroups
+Expects at least one argument representing the date/time in seconds,
+or in @w{"YYMMDD HHMMSS"} format.  Remaining arguments are used as
+distributions.
+
+Example, print all new groups in the "comp" and/or "news" hierarchy as
+of one hour ago:
+
+@example
+print $c->newgroups(time() - 3600, "comp", "news");
+@end example
+
+Returns list of new news group names as an array of lines terminated
+by the current EOL.
+
+In scalar context a reference to the array is returned instead of the
+array itself.
+
+@item newnews
+Expects one, two, or more arguments.
+
+If the first argument is a group name, it looks for new news in that
+group, and the date/time is the second argument.  If the first
+argument represents the date/time in seconds or in "YYMMDD HHMMSS"
+format, then the group is is last group set via the group
+command. If no group command has been issued then the group is "*",
+representing all groups.  Remaining arguments are use to restrict
+search to certain distribution(s).
+
+Returns a list of Message-IDs of articles that have been posted or
+received since the specified time.
+
+Examples:
+
+@example
+# Hour old news in news group "test".
+$c->newnews("test", time() - 3600);
+or
+# Hour old in all groups.
+$c->newnews(time() - 3600);
+or
+$c->newnews("*", time() - 3600);
+or
+# Hour old news in news group "test".
+$c->group("test");
+$c->newnews(time() - 3600);
+@end example
+
+The group argument can include an asterisk "*" to specify a range news
+groups.  It can also include multiple news groups, separated by a
+comma ",".
+
+Example:
+
+@example
+$c->newnews("comp.*.sources,alt.sources", time() - 3600);
+@end example
+
+An exclamation point "!" may be used to negate the selection of
+certain groups.
+
+Example:
+
+@example
+$c->newnews("*sources*,!*.d,!*.wanted", time() - 3600);
+@end example
+
+Any additional distribution arguments will be concatenated together
+and send as a distribution list.  The distribution list will limit
+articles to those that have a Distribution: header containing one of
+the distributions passed.
+
+Example:
+
+@example
+$c->newnews("*", time() - 3600, "local", "na");
+@end example
+
+Returns Message-IDs of new articles as an array of lines terminated by
+the current EOL.
+
+In scalar context a reference to the array is returned instead of the
+array itself.
+
+@item help
+Returns any server help information.  The format of the information is
+highly dependent on the server, but usually contains a list of NNTP
+commands recognized by the server.
+
+Returns an array of lines terminated by the current EOL.
+
+In scalar context a reference to the array is returned instead of the
+array itself.
+
+@item post
+Post an article.  Expects data to be posted as an array of lines.  Most
+servers expect, at a minimum, Newsgroups and Subject headers.  Be sure
+to separate the header from the body with a neck, er blank line.
+
+Example:
+
+@example
+@@header = ("Newsgroups: test", "Subject: test");
+@@body   = ("This is the body of the article");
+@end example
+
+@example
+$c->post(@@header, "", @@body);
+@end example
+
+Any "\n" characters at the end of a line will be trimmed.
+
+@item ihave
+Transfer an article.  Expects an article Message-ID and the article to
+be sent as an array of lines.
+
+Example:
+
+@example
+# Fetch article from server on $c
+@@article = $c->article($artid);
+
+# Send to server on $d
+if ($d->ihave($artid, @@article)) @{
+    print "Article transfered\n";
+@} else @{
+    print "Article rejected: ", $d->message, "\n";
+@}
+@end example
+
+@item slave
+Doesn@'t do anything on most servers.  Included for completeness.
+
+@item DESTROY
+This method is called whenever the the object created by
+News::NNTPClient::new is destroyed.  It calls quit to close the
+connection.
+
+@item quit
+Send the NNTP quit command and close the connection.  The connection
+can be then be re-opened with the connect method.  Quit will
+automatically be called when the object is destroyed, so there is no
+need to explicitly call quit before exiting your program.
+
+@end table
+@unnumberedsubsec Extended NNTP Commands
+
+These commands also directly correlate NNTP server commands, but are
+not mentioned in RFC977, and are not part of the standard.  However,
+many servers implement them, so they are included as part of this
+package for your convenience.  If a command is not recognized by a
+server, the server usually returns code 500, command unrecognized.
+
+@table @asis
+@item authinfo
+Expects two arguments, user and password.
+
+@item date
+Returns server date in "YYYYMMDDhhmmss" format.
+
+@item listgroup
+Expects one argument, a group name.  Default is current group.
+
+Returns article numbers as an array of lines terminated by the current
+EOL.
+
+In scalar context a reference to the array is returned instead of the
+array itself.
+
+@item xmotd
+Expects one argument of unix time in seconds or as a string in the
+form "YYMMDD HHMMSS".
+
+Returns the news servers "Message Of The Day" as an array of lines
+terminated by the current EOL.
+
+In scalar context a reference to the array is returned instead of the
+array itself.
+
+For example, the following will always print the message of the day,
+if there is any:
+
+@example
+print $c->xmotd(1);
+NNTP Server News2
+@end example
+
+@example
+News administrator is Joseph Blough <joeblo@@news.foo.com>
+@end example
+
+@item xgtitle
+Expects one argument of a group pattern.  Default is current group.
+
+Returns group titles an array of lines terminated by the current EOL.
+
+In scalar context a reference to the array is returned instead of the
+array itself.
+
+Example:
+
+@example
+print $c->xgtitle("bit.listserv.v*");
+@end example
+
+@example
+bit.listserv.valert-l   Virus Alert List. (Moderated)
+bit.listserv.vfort-l    VS-Fortran Discussion List.
+bit.listserv.vm-util    VM Utilities Discussion List.
+bit.listserv.vmesa-l    VM/ESA Mailing List.
+bit.listserv.vmslsv-l   VAX/VMS LISTSERV Discussion List.
+bit.listserv.vmxa-l     VM/XA Discussion List.
+bit.listserv.vnews-l    VNEWS Discussion List.
+bit.listserv.vpiej-l    Electronic Publishing Discussion
+@end example
+
+@item xpath
+Expects one argument of an article Message-ID.  Returns the path name
+of the file on the server.
+
+Example:
+
+@example
+print print $c->xpath(q(<43bq5l$7b5@@news.dtc.hp.com>))@'
+hp/test/4469
+@end example
+
+@item xhdr
+Fetch header for a range of articles.  First argument is name of
+header to fetch.  If omitted or blank, default to Message-ID.  Second
+argument is start of article range.  If omitted, defaults to 1.  Next
+argument is end of range.
+
+Returns headers as an array of lines terminated by the current EOL.
+
+In scalar context a reference to the array is returned instead of the
+array itself.
+
+Examples:
+
+@example
+# Fetch Message-ID of article 1.
+$c->xhdr();
+@end example
+
+@example
+# Fetch Subject of article 1.
+$c->xhdr("Subject");
+@end example
+
+@example
+# Fetch Subject of article 3345.
+$c->xhdr("Subject", 3345);
+@end example
+
+@example
+# Fetch Subjects of articles 3345-9873
+$c->xhdr("Subject", 3345, 9873);
+@end example
+
+@example
+# Fetch Message-ID of articles 3345-9873
+$c->xhdr("", 3345,9873);
+@end example
+
+@item xpat
+Fetch header for a range of articles matching one or more patterns.
+First argument is name of header to fetch.  If omitted or blank,
+default to Subject.  Second argument is start of article range.  If
+omitted, defaults to 1.  Next argument is end of range.  Remaining
+arguments are patterns to match.  Some servers use "*" for wildcard.
+
+Returns headers as an array of lines terminated by the current EOL.
+
+In scalar context a reference to the array is returned instead of the
+array itself.
+
+Examples:
+
+@example
+# Fetch Subject header of article 1.
+$c->xpat();
+@end example
+
+@example
+# Fetch "From" header of article 1.
+$c->xpat("From");
+@end example
+
+@example
+# Fetch "From" of article 3345.
+$c->xpat("From", 3345);
+@end example
+
+@example
+# Fetch "From" of articles 3345-9873 matching *foo*
+$c->xpat("From", 3345, 9873, "*foo*");
+@end example
+
+@example
+# Fetch "Subject" of articles 3345-9873 matching
+# *foo*, *bar*, *and*, *stuff*
+$c->xpat("", 3345,9873, qw(*foo* *bar* *and* *stuff*));
+@end example
+
+@item xover
+Expects an article number or a starting and ending article number
+representing a range of articles.
+
+Returns overview information for each article as an array of lines
+terminated by the current EOL.
+
+In scalar context a reference to the array is returned instead of the
+array itself.
+
+Xover generally returns items separated by tabs.  Here is an example
+that prints out the xover fields from all messages in the "test" news
+group.
+
+@example
+#!/usr/local/bin/perl
+@end example
+
+@example
+require News::NNTPClient;
+@end example
+
+@example
+$c = new News::NNTPClient;
+@end example
+
+@example
+@@fields = qw(numb subj from date mesg refr char line xref);
+@end example
+
+@example
+foreach $xover ($c->xover($c->group("test"))) @{
+    %fields = ();
+    @@fields@{@@fields@} = split /\t/, $xover;
+    print map @{ "$_: $fields@{$_@}\n" @} @@fields;
+    print "\n";
+@}
+@end example
+
+@example
+__END__
+@end example
+
+@item xthread
+Expects zero or one argument.  Value of argument doesn@'t matter.  If
+present, @emph{dbinit} command is sent.  If absent, @emph{thread} command is
+sent.
+
+Returns binary data as a scalar value.
+
+Format of data returned is unknown at this time.
+
+@item xindex
+Expects one argument, a group name.  If omitted, defaults to the group
+set by last group command.  If there hasn@'t been a group command,
+it returns an error;
+
+Returns index information for group as an array of lines terminated by
+the current EOL.
+
+In scalar context a reference to the array is returned instead of the
+array itself.
+
+@item xsearch
+Expects a query as an array of lines which are sent to the server,
+much like post.  Returns the result of the search as an array of lines
+or a reference to same.
+
+Format of query is unknown at this time.
+
+@end table
+@unnumberedsec AUTHOR
+
+Rodger Anderson  <rodger@@boi.hp.com>
+
+@unnumberedsec SOURCE
+
+The latest version may be retrieved by sending mail to:
+
+@example
+<rodger@@boi.hp.com>
+@end example
+
+with the body of the message starting with:
+
+@example
+send nntpclient
+@end example
+
+@unnumberedsec COPYRIGHT
+
+Copyright (c) 1995 Rodger Anderson. All rights reserved.
+This module is free software; you can redistribute it and/or
+modify it under the same terms as Perl itself.

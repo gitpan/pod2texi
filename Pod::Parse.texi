@@ -1,0 +1,171 @@
+@node Pod/Parse, Pod/Parser, Pg, Module List
+@unnumbered Parse the pod (Plain Old Documentation) portion of a file
+
+
+@unnumberedsec NAME
+
+Pod::Parse - Parse the pod (Plain Old Documentation) portion of a file
+
+@unnumberedsec SYNOPSIS
+
+@example
+use Parse;
+$p = new Parse;
+$p->parse_from_file_by_name(FILENAME, CALLBACK);
+@end example
+
+@unnumberedsec DESCRIPTION
+
+@unnumberedsubsec MARKUP
+
+These are markups that are accepted. Several are introduced
+as internal markup, but their use in regular pod is encouraged
+to help the cross-referencing process.
+
+@example
+C<> = Code
+B<> = Bold
+I<> = Italics
+V<> = Variable
+P<> = Function/Procedure
+S<> = Switch
+F<> = Filename
+M<> = Manpage
+X<> = Index mark
+R<> = Hyperreference to anything
+L<> = Link to anything (old-style reference)
+W<> = Single word (non-breaking spaces)
+Z<> = No-space
+E<> = HTML Escape
+U<> = Unchanged/verbatim
+
+=without auto-indexing
+=with full-item-indexing
+=without man-warnings
+@end example
+
+The with/without commands are really generalized variable set/unset commands. @code{=with
+X of Y} and @code{=without X} are the general forms. @code{Y} defaults to 1.
+
+@example
+=head?
+@end example
+
+The new =head is generalized to any heading level. Alternate forms are
+@code{=head}, @code{=heading}, @code{=subheading}, @code{=subsubheading}, etc.
+
+@example
+=begin
+=end
+=over
+=back
+=item
+=cut
+=pod
+=comment
+@end example
+
+Each comment is presented to the formatter so that, if possible, it can be
+included in the final file as an invisible comment.
+	
+	=index
+	
+Which should have a syntax similar to X<>, if it were done.
+	
+	=resume
+	
+Opposite of =cut.
+
+@table @asis
+@item dumpout
+Q&D array dumper
+
+@item wrap TEXT, WIDTH
+Wrap incoming text by turning spaces into newlines.
+
+DO NOT FEED TABS!
+
+@item chopup TEXT
+Given text with a possible reference in it, using a reference form of
+
+@example
+Something(s)      for some manual section s (Fails for section 3g)
+Something;SomethingElse
+Something/SomethingElse
+@end example
+
+return a complex set of nested arrays.
+
+Return TEXT if no references are found in it.
+
+@item new
+Constructor for Parse objects
+
+@item parse_from_file_by_name FILENAME, CALLBACK
+Method to parse a pod file, and either return the results
+as one big array, or invoke a callback every interval
+
+@item deformat ARRAY
+Given flowed text, return an ASCII equivalent missing formatting.
+
+@item escape STRING
+Given STRING, break it into possibly multiple elements, escaping
+HTML special characters.
+
+@item flowed2 TEXT
+Sheer magic. (Undocumented technology, that is...)
+
+@item flowed TEXT
+Preparation and entry function for flowed2().
+
+Return the result of flowed2() in an array.
+
+@item start_file FILENAME
+Set up the object before parsing the file.
+
+@item flow_heuristics TEXT
+Convert a block of text to the new style of markup.
+The heuristics are specific to Perl and the existing Perl documentation.
+
+(This code probably isn@'t reliable yet. The idea is to convert old style
+implicit references into new sytle explicit references using R<>. Then the
+formatter simply has to look do references based on R<> fields.)
+
+@item head_heuristics ARGUMENT, LEVEL
+Perform specific heuristics on the =head portion. The NAME first level
+header causes an index to this manpage entry. Other headers generate local
+indices.
+
+@item parse_paragraph PARAGRAPH, DUMP-SUB
+The interesting bits. If DUMP-SUB is defined, it@'ll be invoked with each
+parsed record. If not, the parsed records will be returned when all records
+derived from this paragraph are complete.
+
+(This is the code that takes a paragraphs worth of data and parses it into
+an internal representation, possible invoking the above heuristic code to
+add formatting.
+
+The list/listbegun/listpending stuff is, while functional, quite badly done,
+and needs a complete rewrite from a more stable perspective. There are
+actually two goals that are currently wrapped up in one implementation.
+First, we need to be able to keep track of block (=begin/=end) environments,
+and secondly we need to be able to keep a pending queue (FIFO) of parsed
+paragraphs if we are in a situation where we don@'t have enough information
+to finish parsing a current paragraph. This happens with lists, for example,
+because we can@'t deduce the type of the list (which is returned in both the
+begin and end records) until we see the first paragraph of text for that
+list.)
+
+@item flush DUMP-SUB
+Post-file method to finish off anything that got started
+but didn@'t get closed down.
+
+Returns the resulting material.
+
+@end table
+@unnumberedsec BUGS/LIMITATIONS
+
+@unnumberedsec FILES
+
+@unnumberedsec AUTHOR(S)
+

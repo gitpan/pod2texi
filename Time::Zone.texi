@@ -1,0 +1,46 @@
+@node Time/Zone, Tk/FileDialog, Time/Timezone, Module List
+@unnumbered miscellaneous timezone manipulations routines
+
+
+@unnumberedsec NAME
+
+Time::Zone -- miscellaneous timezone manipulations routines
+
+@unnumberedsec SYNOPSIS
+
+@example
+use Time::Zone;
+print tz2zone();
+print tz2zone($ENV@{@'TZ@'@});
+print tz2zone($ENV@{@'TZ@'@}, time());
+print tz2zone($ENV@{@'TZ@'@}, undef, $isdst);
+$offset = tz_local_offset();
+$offset = tz_offset($TZ);
+@end example
+
+@unnumberedsec DESCRIPTION
+
+This is a collection of miscellaneous timezone manipulation routines.
+
+@code{tz2zone()} parses the TZ environment variable and returns a timezone
+string suitable for inclusion in @samp{date} in this node-like output.  It opionally takes
+a timezone string, a time, and a is-dst flag.
+
+@code{tz_local_offset()} determins the offset from GMT time in seconds.  It
+only does the calculation once.
+
+@code{tz_offset()} determines the offset from GMT in seconds of a specified
+timezone.  
+
+@code{tz_name()} determines the name of the timezone based on its offset
+
+@unnumberedsec AUTHORS
+
+Graham Barr <bodg@@tiuk.ti.com>
+David Muir Sharnoff <muir@@idiom.com>
+Paul Foley <paul@@ascent.com>
+
+@unnumberedsec REVISION
+
+$Revision: 2.2 $
+

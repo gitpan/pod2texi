@@ -1,0 +1,391 @@
+@node lwpcook, ops, lib, Module List
+@unnumbered libwww-perl cookbook
+
+
+@unnumberedsec NAME
+
+lwpcook - libwww-perl cookbook
+
+@unnumberedsec DESCRIPTION
+
+This document contain some examples that show typical usage of the
+libwww-perl library.  You should consult the documentation for the
+individual modules for more detail.
+
+All examples should be runnable programs. You can, in most cases, test
+the code sections by piping the program text directly to perl.
+
+@unnumberedsec GET
+
+It is very easy to use this library to just fetch documents from the
+net.  The LWP::Simple module provides the get() function that return
+the document specified by its URL argument:
+
+@example
+use LWP::Simple;
+$doc = get @'http://www.sn.no/libwww-perl/@';
+@end example
+
+or, as a perl one-liner using the getprint() function:
+
+@example
+perl -MLWP::Simple -e @'getprint "http://www.sn.no/libwww-perl/"@'
+@end example
+
+or, how about fetching the latest perl by running this:
+
+@example
+perl -MLWP::Simple -e @'
+  getstore "ftp://ftp.sunet.se/pub/lang/perl/CPAN/src/latest.tar.gz",
+           "perl.tar.gz"@'
+@end example
+
+You will probably first want to find a CPAN site closer to you by
+running something like the following command:
+
+@example
+perl -MLWP::Simple -e @'getprint "http://www.perl.com/perl/CPAN/CPAN.html"@'
+@end example
+
+Enough of this simple stuff!  The LWP object oriented interface gives
+you more control over the request sent to the server.  Using this
+interface you have full control over headers sent and how you want to
+handle the response returned.
+
+@example
+use LWP::UserAgent;
+$ua = new LWP::UserAgent;
+$ua->agent("$0/0.1 " . $ua->agent);
+# $ua->agent("Mozilla/5.0") # pretend you are some very new Netscape browser
+@end example
+
+@example
+$req = new HTTP::Request @'GET@' => @'http://www.sn.no/libwww-perl@';
+$req->header(@'Accept@' => @'text/html@');
+@end example
+
+@example
+# send request
+$res = $ua->request($req);
+@end example
+
+@example
+# check the outcome
+if ($res->is_success) @{
+   print $res->content;
+@} else @{
+   print "Error: " . $res->code . " " . $res->message;
+@}
+@end example
+
+The lwp-request program (alias GET) that is distributed with the
+library can also be used to fetch documents from WWW servers.
+  
+
+@unnumberedsec HEAD
+
+If you just want to check if a document is present (i.e. the URL is
+valid) try to run code that looks like this:
+
+@example
+use LWP::Simple;
+@end example
+
+@example
+if (head($url)) @{
+   # ok document exists
+@}
+@end example
+
+The head() function really returns a list of meta-information about
+the document.  The first three values of the list returned are the
+document type, the size of the document, and the age of the document.
+
+More control over the request or access to all header values returned
+require that you use the object oriented interface described for GET
+above.  Just s/GET/HEAD/g.
+
+@unnumberedsec POST
+
+There is no simple interface for posting data to a WWW server.  You
+must use the object oriented interface for this. The most common POST
+operation is to access a WWW form application:
+
+@example
+use LWP::UserAgent;
+$ua = new LWP::UserAgent;
+@end example
+
+@example
+my $req = new HTTP::Request @'POST@',@'http://www.perl.com/cgi-bin/BugGlimpse@';
+$req->content_type(@'application/x-www-form-urlencoded@');
+$req->content(@'match=www&errors=0@');
+@end example
+
+@example
+my $res = $ua->request($req);
+print $res->as_string;
+@end example
+
+If your application has the key/value pairs to be posted in an
+associative array, then we can exploit the URI::URL module to create
+the content for the POST request message (it handles all the escaping
+issues):
+
+@example
+%form = ( search => @'www@', errors => 0 );
+@end example
+
+@example
+use URI::URL;
+use LWP::UserAgent;
+$ua = new LWP::UserAgent;
+@end example
+
+@example
+my $req = new HTTP::Request @'POST@', @'http://www.perl.com/cgi-bin/BugGlimpse@';
+$req->content_type(@'application/x-www-form-urlencoded@');
+@end example
+
+@example
+my $curl = url("http:");      # create an empty HTTP URL object
+$curl->query_form(%form);
+$req->content($curl->equery); # %form content as escaped query string
+@end example
+
+@example
+print $ua->request($req)->as_string;
+@end example
+
+The lwp-request program (alias POST) that is distributed with the
+library can also be used for posting data.
+
+@unnumberedsec PROXIES
+
+Some sites use proxies to go through fire wall machines, or just as
+cache in order to improve performance.  Proxies can also be used for
+accessing resources through protocols not supported directly (or
+supported badly :-) by the libwww-perl library.
+
+You should initialize your proxy setting before you start sending
+requests:
+
+@example
+use LWP::UserAgent;
+$ua = new LWP::UserAgent;
+$ua->env_proxy; # initialize from environment variables
+# or
+$ua->proxy(ftp  => @'http://proxy.myorg.com@');
+$ua->proxy(wais => @'http://proxy.myorg.com@');
+$ua->no_proxy(qw(no se fi));
+@end example
+
+@example
+my $req = new HTTP::Request @'wais://xxx.com/@';
+print $ua->request($req)->as_string;
+@end example
+
+The LWP::Simple interface will call env_proxy() for you automatically.
+Applications that use the $ua->env_proxy() method will normally not
+use the $ua->proxy() and $ua->no_proxy() methods.
+
+@unnumberedsec ACCESS TO PROTECTED DOCUMENTS
+
+Documents protected by basic authorization can easily be accessed
+like this:
+
+@example
+use LWP::UserAgent;
+$ua = new LWP::UserAgent;
+$req = new HTTP::Request GET => @'http://www.sn.no/secret/@';
+$req->authorization_basic(@'aas@', @'mypassword@');
+print $ua->request($req)->as_string;
+@end example
+
+The other alternative is to provide a subclass of @emph{LWP::UserAgent} that
+overrides the get_basic_credentials() method. Study the @emph{lwp-request}
+program for an example of this.
+
+@unnumberedsec MIRRORING
+
+If you want to mirror documents from a WWW server, then try to run
+code similar to this at regular intervals:
+
+@example
+use LWP::Simple;
+@end example
+
+@example
+%mirrors = (
+   @'http://www.sn.no/@'             => @'sn.html@',
+   @'http://www.perl.com/@'          => @'perl.html@',
+   @'http://www.sn.no/libwww-perl/@' => @'lwp.html@',
+   @'gopher://gopher.sn.no/@'        => @'gopher.html@',
+);
+@end example
+
+@example
+while (($url, $localfile) = each(%mirrors)) @{
+   mirror($url, $localfile);
+@}
+@end example
+
+Or, as a perl one-liner:
+
+@example
+perl -MLWP::Simple -e @'mirror("http://www.perl.com/", "perl.html")@';
+@end example
+
+The document will not be transfered unless it has been updated.
+
+@unnumberedsec LARGE DOCUMENTS
+
+If the document you want to fetch is too large to be kept in memory,
+then you have two alternatives.  You can instruct the library to write
+the document content to a file (second $ua->request() argument is a file
+name):
+
+@example
+use LWP::UserAgent;
+$ua = new LWP::UserAgent;
+@end example
+
+@example
+my $req = new HTTP::Request @'GET@',
+              @'http://www.sn.no/~aas/perl/www/libwww-perl-5.00.tar.gz@';
+$res = $ua->request($req, "libwww-perl.tar.gz");
+if ($res->is_success) @{
+   print "ok\n";
+@}
+@end example
+
+Or you can process the document as it arrives (second $ua->request()
+argument is a code reference):
+
+@example
+use LWP::UserAgent;
+$ua = new LWP::UserAgent;
+$URL = @'ftp://ftp.unit.no/pub/rfc/rfc-index.txt@';
+@end example
+
+@example
+my $expected_length;
+my $bytes_received = 0;
+$ua->request(HTTP::Request->new(@'GET@', $URL),
+             sub @{
+                 my($chunk, $res) = @@_;
+                 $bytes_received += length($chunk);
+	           unless (defined $expected_length) @{
+	              $expected_length = $res->content_length || 0;
+                 @}
+		   if ($expected_length) @{
+		        printf STDERR "%d%% - ",
+	                          100 * $bytes_received / $expected_length;
+                 @}
+	           print STDERR "$bytes_received bytes received\n";
+@end example
+
+@example
+# XXX Should really do something with the chunk itself
+	           # print $chunk;
+               @});
+@end example
+
+@unnumberedsec HTML FORMATTING
+
+It is easy to convert HTML code to "readable" text.
+
+@example
+use LWP::Simple;
+use HTML::Parse;
+print parse_html(get @'http://www.sn.no/libwww-perl/@')->format;
+@end example
+
+@unnumberedsec PARSE URLS
+
+To access individual elements of a URL, try this:
+
+@example
+use URI::URL;
+$host = url("http://www.sn.no/")->host;
+@end example
+
+or
+
+@example
+use URI::URL;
+$u = url("ftp://ftp.sn.no/test/aas;type=i");
+print "Protocol scheme is ", $u->scheme, "\n";
+print "Host is ", $u->host, " at port ", $u->port, "\n";
+@end example
+
+or even
+
+@example
+use URI::URL;
+my($host,$port) = (url("ftp://ftp.sn.no/test/aas;type=i")->crack)[3,4];
+@end example
+
+@unnumberedsec EXPAND RELATIVE URLS
+
+This code reads URLs and print expanded version.
+
+@example
+use URI::URL;
+$BASE = "http://www.sn.no/some/place?query";
+while (<>) @{
+   print url($_, $BASE)->abs->as_string, "\n";
+@}
+@end example
+
+We can expand URLs in an HTML document by using the parser to build a
+tree that we then traverse:
+
+@example
+%link_elements =
+(
+ @'a@'    => @'href@',
+ @'img@'  => @'src@',
+ @'form@' => @'action@',
+ @'link@' => @'href@',
+);
+@end example
+
+@example
+use HTML::Parse;
+use URI::URL;
+@end example
+
+@example
+$BASE = "http://somewhere/root/";
+$h = parse_htmlfile("xxx.html");
+$h->traverse(\&expand_urls, 1);
+@end example
+
+@example
+print $h->as_HTML;
+@end example
+
+@example
+sub expand_urls
+@{
+   my($e, $start) = @@_;
+   return 1 unless $start;
+   my $attr = $link_elements@{$e->tag@};
+   return 1 unless defined $attr;
+   my $url = $e->attr($attr);
+   return 1 unless defined $url;
+   $e->attr($attr, url($url, $BASE)->abs->as_string);
+@}
+@end example
+
+@unnumberedsec BASE URL
+
+If you want to resolve relative links in a page you will have to
+determine which base URL to use.  The HTTP::Response objects now has a
+base() method.
+
+@example
+$BASE = $res->base;
+@end example
+

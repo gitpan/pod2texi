@@ -1,0 +1,69 @@
+@node Net/DummyInetd, Net/FTP, Net/Domain, Module List
+@unnumbered A dummy Inetd server
+
+
+@unnumberedsec NAME
+
+Net::DummyInetd - A dummy Inetd server
+
+@unnumberedsec SYNOPSIS
+
+@example
+use Net::DummyInetd;
+use Net::SMTP;
+
+$inetd = new Net::DummyInetd qw(/usr/lib/sendmail -ba -bs);
+
+$smtp  = Net::SMTP->new(@'localhost@', Port => $inetd->port);
+@end example
+
+@unnumberedsec DESCRIPTION
+
+@code{Net::DummyInetd} is just what it@'s name says, it is a dummy inetd server.
+Creation of a @code{Net::DummyInetd} will cause a child process to be spawned off
+which will listen to a socket. When a connection arrives on this socket
+the specified command is fork@'d and exec@'d with STDIN and STDOUT file
+descriptors duplicated to the new socket.
+
+This package was added as an example of how to use @code{Net::SMTP} to connect
+to a @code{sendmail} process, which is not the default, via SIDIN and STDOUT.
+A @code{Net::Inetd} package will be avaliable in the next release of @code{libnet}
+
+@unnumberedsec CONSTRUCTOR
+
+@table @asis
+@item new ( CMD )
+Creates a new object and spawns a child process which listens to a socket.
+@code{CMD} is a list, which will be passed to exec when a new process needs
+to be created.
+
+@end table
+@unnumberedsec METHODS
+
+@table @asis
+@item port
+Returns the port number on which the @emph{DummyInet} object is listening
+
+@end table
+@unnumberedsec AUTHOR
+
+Graham Barr <Graham.Barr@@tiuk.ti.com>
+
+@unnumberedsec REVISION
+
+$Revision: 1.2 $
+
+The VERSION is derived from the revision by changing each number after the
+first dot into a 2 digit number so
+
+@example
+Revision 1.8   => VERSION 1.08
+Revision 1.2.3 => VERSION 1.0203
+@end example
+
+@unnumberedsec COPYRIGHT
+
+Copyright (c) 1995 Graham Barr. All rights reserved. This program is free
+software; you can redistribute it and/or modify it under the same terms
+as Perl itself.
+

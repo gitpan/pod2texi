@@ -1,0 +1,56 @@
+@node Symbol, Sys/Hostname, Sybase/Login, Module List
+@unnumbered manipulate Perl symbols and their names
+
+
+@unnumberedsec NAME
+
+Symbol - manipulate Perl symbols and their names
+
+@unnumberedsec SYNOPSIS
+
+@example
+use Symbol;
+@end example
+
+@example
+$sym = gensym;
+open($sym, "filename");
+$_ = <$sym>;
+# etc.
+@end example
+
+@example
+ungensym $sym;      # no effect
+@end example
+
+@example
+print qualify("x"), "\n";              # "Test::x"
+print qualify("x", "FOO"), "\n"        # "FOO::x"
+print qualify("BAR::x"), "\n";         # "BAR::x"
+print qualify("BAR::x", "FOO"), "\n";  # "BAR::x"
+print qualify("STDOUT", "FOO"), "\n";  # "main::STDOUT" (global)
+print qualify(\*x), "\n";              # returns \*x
+print qualify(\*x, "FOO"), "\n";       # returns \*x
+@end example
+
+@unnumberedsec DESCRIPTION
+
+@code{Symbol::gensym} creates an anonymous glob and returns a reference
+to it.  Such a glob reference can be used as a file or directory
+handle.
+
+For backward compatibility with older implementations that didn@'t
+support anonymous globs, @code{Symbol::ungensym} is also provided.
+But it doesn@'t do anything.
+
+@code{Symbol::qualify} turns unqualified symbol names into qualified
+variable names (e.g. "myvar" -> "MyPackage::myvar").  If it is given a
+second parameter, @code{qualify} uses it as the default package;
+otherwise, it uses the package of its caller.  Regardless, global
+variable names (e.g. "STDOUT", "ENV", "SIG") are always qualfied with
+"main::".
+
+Qualification applies only to symbol names (strings).  References are
+left unchanged under the assumption that they are glob references,
+which are qualified by their nature.
+

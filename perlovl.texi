@@ -1,0 +1,19 @@
+@node perlovl, Top, Top, Top
+@unnumbered overload perl mathematical functions [superseded]
+
+
+@unnumberedsec NAME
+
+perlovl - overload perl mathematical functions [superseded]
+
+@unnumberedsec DESCRIPTION
+
+This man page has been superseded by @xref{(pm.info)overload,Overload},.
+
+@unnumberedsec WARNING
+
+The old interface involving %OVERLOAD is deprecated and will go away
+RSN. Convert your scripts to
+use overload ...;
+style.
+

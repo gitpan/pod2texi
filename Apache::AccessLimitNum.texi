@@ -1,0 +1,54 @@
+@node Apache/AccessLimitNum, Apache/Authen, Apache, Module List
+@unnumbered Limit user access by number of requests
+
+
+@unnumberedsec NAME
+
+Apache::AccessLimitNum - Limit user access by number of requests
+
+@unnumberedsec SYNOPSIS
+
+@example
+#server config file
+@end example
+
+@example
+PerlModule Apache::AccessLimitNum
+@end example
+
+@example
+#access control directives
+@end example
+
+@example
+#use any authentication module
+AuthName SomeRealm
+Auth[DBM]UserFile /path/to/password/file
+
+PerlAccessHandler Apache::AccessLimitNum::handler
+PerlSetVar        AccessLimitNum  100
+PerlSetVar        AccessLimitFile /path/to/limit/file
+@end example
+
+@example
+<Limit GET>
+require valid-user #or some such
+</Limit>
+@end example
+
+@unnumberedsec DESCRIPTION
+
+Decide if an authenticated user has exceeded an access limit for the 
+requested realm, if so, forbid access.
+
+@strong{AccessLimitFile} is a dbm file consisting of @emph{username} = number value 
+pairs.  This file must be writeable by httpd server process.
+
+@unnumberedsec SEE ALSO
+
+Apache(3)
+
+@unnumberedsec AUTHOR
+
+Doug MacEachern <dougm@@osf.org>
+

@@ -1,0 +1,38 @@
+@node DCE/UUID, DCE/login_base, DCE/Status, Module List
+@unnumbered Misc UUID functions
+
+
+@unnumberedsec NAME
+
+DCE::UUID - Misc UUID functions
+
+@unnumberedsec SYNOPSIS
+
+@example
+use DCE::UUID;
+@end example
+
+@unnumberedsec DESCRIPTION
+
+DCE::UUID exports the following functions:
+
+@table @asis
+@item uuid_create()
+@example
+my($uuid, $status) = uuid_create();
+@end example
+
+@itemx uuid_hash()
+@example
+my($hash, $status) = uuid_hash($uuid);
+@end example
+
+@end table
+@unnumberedsec AUTHOR
+
+Doug MacEachern <dougm@@osf.org>
+
+@unnumberedsec SEE ALSO
+
+perl(1), DCE::Status(3), DCE::Registry(3), DCE::Login(3).
+

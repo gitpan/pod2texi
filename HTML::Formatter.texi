@@ -1,0 +1,31 @@
+@node HTML/Formatter, HTML/HeadParser, HTML/FormatText, Module List
+@unnumbered Base class for HTML formatters
+
+
+@unnumberedsec NAME
+
+HTML::Formatter - Base class for HTML formatters
+
+@unnumberedsec DESCRIPTION
+
+HTML formatters are able to format a HTML syntax tree into various
+printable formats.  Different formatters produce output for different
+output media.  Common for all formatters are that they will return the
+formatted output when the format() method is called.  Format() takes a
+HTML::Element as parameter.
+
+@unnumberedsec SEE ALSO
+
+@xref{HTML/FormatText,HTML/FormatText},, @xref{HTML/FormatPS,HTML/FormatPS},, @xref{HTML/Element,HTML/Element},
+
+@unnumberedsec COPYRIGHT
+
+Copyright (c) 1995 Gisle Aas. All rights reserved.
+
+This library is free software; you can redistribute it and/or
+modify it under the same terms as Perl itself.
+
+@unnumberedsec AUTHOR
+
+Gisle Aas <aas@@oslonett.no>
+

@@ -1,0 +1,124 @@
+@node HTTP/Status, HTTPD/Authen, HTTP/Response, Module List
+@unnumbered HTTP Status code processing
+
+
+@unnumberedsec NAME
+
+HTTP::Status - HTTP Status code processing
+
+@unnumberedsec SYNOPSIS
+
+@example
+use HTTP::Status;
+@end example
+
+@example
+if ($rc != RC_OK) @{
+    print status_message($rc), "\n";
+@}
+@end example
+
+@example
+if (is_success($rc)) @{ ... @}
+if (is_error($rc)) @{ ... @}
+if (is_redirect($rc)) @{ ... @}
+@end example
+
+@unnumberedsec DESCRIPTION
+
+@emph{HTTP::Status} is a library of routines for defining and
+classification of HTTP status codes for libwww-perl.  Status codes are
+used to encode the overall outcome of a HTTP response message.  Codes
+correspond to those defined in <draft-ietf-http-v11-spec-06>.
+
+The following functions can be used as mnemonic status code names:
+
+@example
+RC_CONTINUE				(100)
+RC_SWITCHING_PROTOCOLS		(101)
+@end example
+
+@example
+RC_OK				(200)
+RC_CREATED				(201)
+RC_ACCEPTED				(202)
+RC_NON_AUTHORITATIVE_INFORMATION	(203)
+RC_NO_CONTENT			(204)
+RC_RESET_CONTENT			(205)
+RC_PARTIAL_CONTENT			(206)
+@end example
+
+@example
+RC_MULTIPLE_CHOICES			(300)
+RC_MOVED_PERMANENTLY			(301)
+RC_MOVED_TEMPORARILY			(302)
+RC_SEE_OTHER				(303)
+RC_NOT_MODIFIED			(304)
+RC_USE_PROXY				(305)
+@end example
+
+@example
+RC_BAD_REQUEST			(400)
+RC_UNAUTHORIZED			(401)
+RC_PAYMENT_REQUIRED			(402)
+RC_FORBIDDEN				(403)
+RC_NOT_FOUND				(404)
+RC_METHOD_NOT_ALLOWED		(405)
+RC_NOT_ACCEPTABLE			(406)
+RC_PROXY_AUTHENTICATION_REQUIRED	(407)
+RC_REQUEST_TIMEOUT			(408)
+RC_CONFLICT				(409)
+RC_GONE				(410)
+RC_LENGTH_REQUIRED			(411)
+RC_PRECONDITION_FAILED		(412)
+RC_REQUEST_ENTITY_TOO_LARGE		(413)
+RC_REQUEST_URI_TOO_LARGE		(414)
+RC_UNSUPPORTED_MEDIA_TYPE		(415)
+@end example
+
+@example
+RC_INTERNAL_SERVER_ERROR		(500)
+RC_NOT_IMPLEMENTED			(501)
+RC_BAD_GATEWAY			(502)
+RC_SERVICE_UNAVAILABLE		(503)
+RC_GATEWAY_TIMEOUT			(504)
+RC_HTTP_VERSION_NOT_SUPPORTED	(505)
+@end example
+
+The status_message() function will translate status codes to human
+readable strings.
+
+The is_info(), is_success(), is_redirect(), and is_error() functions
+will return a TRUE value if the status code passed as argument is
+informational, indicates success, and error, or a redirect
+respectively.
+
+@unnumberedsubsec status_message($code)
+
+Return user friendly error message for status code @code{$code}
+
+@unnumberedsubsec is_info($code)
+
+Return TRUE if @code{$code} is an @emph{Informational} status code.
+
+@unnumberedsubsec is_success($code)
+
+Return TRUE if @code{$code} is a @emph{Successful} status code.
+
+@unnumberedsubsec is_redirect($code)
+
+Return TRUE if @code{$code} is a @emph{Redirection} status code.
+
+@unnumberedsubsec is_error($code)
+
+Return TRUE if @code{$code} is an Error status code.  The @code{$code} can be
+both a client error or a server error.
+
+@unnumberedsubsec is_client_error($code)
+
+Return TRUE if @code{$code} is an @emph{Client Error} status code.
+
+@unnumberedsubsec is_server_error($code)
+
+Return TRUE if @code{$code} is an @emph{Server Error} status code.
+

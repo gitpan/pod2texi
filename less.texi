@@ -1,0 +1,25 @@
+@node less, lib, iodbc, Module List
+@unnumbered perl pragma to request less of something from the compiler
+
+
+@unnumberedsec NAME
+
+less - perl pragma to request less of something from the compiler
+
+@unnumberedsec SYNOPSIS
+
+@example
+use less;  # unimplemented
+@end example
+
+@unnumberedsec DESCRIPTION
+
+Currently unimplemented, this may someday be a compiler directive
+to make certain trade-offs, such as perhaps
+
+@example
+use less @'memory@';
+use less @'CPU@';
+use less @'fat@';
+@end example
+

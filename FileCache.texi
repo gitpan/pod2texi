@@ -1,0 +1,27 @@
+@node FileCache, FileHandle, File/Tools, Module List
+@unnumbered keep more files open than the system permits
+
+
+@unnumberedsec NAME
+
+FileCache - keep more files open than the system permits
+
+@unnumberedsec SYNOPSIS
+
+@example
+cacheout $path;
+print $path @@data;
+@end example
+
+@unnumberedsec DESCRIPTION
+
+The @code{cacheout} function will make sure that there@'s a filehandle open
+for writing available as the pathname you give it.  It automatically
+closes and re-opens files if you exceed your system file descriptor
+maximum.
+
+@unnumberedsec BUGS
+
+@file{sys/param.h} lies with its @code{NOFILE} define on some systems,
+so you may have to set $cacheout::maxopen yourself.
+

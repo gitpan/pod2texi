@@ -1,0 +1,252 @@
+@node Logfile, MD5, Log/Topics, Module List
+@unnumbered Perl extension for generating reports from logfiles
+
+
+@unnumberedsec NAME
+
+Logfile - Perl extension for generating reports from logfiles
+
+@unnumberedsec SYNOPSIS
+
+@example
+use Logfile::Cern;
+@end example
+
+@example
+$l = new Logfile::Cern  File  => @'cache.log.gz@', 
+                        Group => [Domain,File,Hour];
+$l->report(Group => File,   Sort => Records);
+$l->report(Group => Domain, Sort => Bytes);
+$l->report(Group => Hour, List => [Bytes, Records]);
+@end example
+
+@example
+use Logfile::Wftp;
+@end example
+
+@example
+[...]
+@end example
+
+@unnumberedsec DESCRIPTION
+
+The Logfile extension will help you generate various reports from
+different server logfiles. In general there is no restriction as to what
+information you extract from the logfiles.
+
+@unnumberedsubsec Reading the files
+
+The package can be customized by subclassing @code{Logfile}.
+
+A subclass should provide a funtion next which reads the next
+record from the file handle @code{$self->@{Fh@}} and returns an object of
+type @code{Logfile::Record}. In addition a function @code{norm} may be
+specified to normalize the various record fields.
+
+Here is a shortened version of the @code{Logfile::Cern} class:
+
+@example
+package Logfile::Cern;
+@@ISA = qw ( Logfile::Base ) ;
+@end example
+
+@example
+sub next @{
+    my $self = shift;
+    my $fh = $self->@{Fh@};
+@end example
+
+@example
+*S = $fh;
+my ($line,$host,$user,$pass,$rest,$date,$req,$code,$bytes);
+@end example
+
+@example
+($host,$user,$pass,$rest) = split @' @', $line, 4;
+($rest =~ s!\[([^\]]+)\]\s*!!) && ($date = $1);
+($rest =~ s!\"([^\"]+)\"\s*!!) && ($req = (split @' @', $1)[1]);
+($code, $bytes) = split @' @', $rest;
+Logfile::Record->new(Host  => $host,
+                     Date  => $date,
+                     File  => $req,
+                     Bytes => $bytes);
+  @}
+@end example
+
+As stated above, in general you are free to choose the fields you
+enter in the record. But:
+
+@table @asis
+@item Date
+should be a valid date string. For conversion to the seconds elapsed
+since the start of epoch the modules @file{GetDate} and @file{Date::DateParse}
+are tried. If both cannot be useed, a crude build-in module is
+used.
+
+The record constructor replaces Date by the date in @code{yymmdd}
+form to make it sortable. Also the field @strong{Hour} is padded in.
+
+@item Host
+Setting Host will also set field @strong{Domain} by the verbose name of
+the country given by the the domain suffix of the fully qualified
+domain name (hostname.domain). @code{foo.bar.PG} will be mapped to @code{Papua
+New}. Hostnames containing no dot will be assigned to the domain
+@strong{Local}. IP numbers will be assiged to the domain
+@strong{Unresolved}. Mapping of short to long domain names is done in the
+@strong{Net::Country} extension which might be usefull in other contexts:
+
+@example
+use Net::Country;
+$germany = Net::Country::Name(@'de@');
+@end example
+
+@item Records
+is always set to 1 in the @code{Record} constructor. So this field gives
+the number of successful returns from the next function.
+
+@end table
+Here is the shortened optional @code{norm} method:
+
+@example
+sub norm @{
+    my ($self, $key, $val) = @@_;
+@end example
+
+@example
+if ($key eq File) @{
+    $val =~ s/\?.*//;                             # remove query
+    $val =~ s!%([\da-f][\da-f])!chr(hex($1))!eig; # decode escapes
+@}
+$val;
+  @}
+@end example
+
+The constructor reads in a logfile and builds one or more indices.
+
+@example
+$l = new Logfile::Cern  File => @'cache.log.gz@', 
+                        Group => [Host,Domain,File,Hour,Date];
+@end example
+
+There is little space but some time overhead in generating additional
+indexes. If the @strong{File} parameter is not given, @strong{STDIN} is used. The
+Group parameter may be a field name or a reference to a list of field
+names. Only the field names given as constructor argument can be used
+for report generation.
+
+@unnumberedsubsec Report Generation
+
+The Index to use for a report must be given as the Group
+parameter. Output is sorted by the index field unless a Sort
+parameter is given. Also the output can be truncated by a Top
+argument or Limit.
+
+The report generator lists the fields @strong{Bytes} and Records for a
+given index. The option List may be a single field name or a
+reference to an array fo field names. It specifies which field should
+be listed in addition to the Group field. List defaults to
+Records.
+
+@example
+$l->report(Group => Domain, List => [Bytes, Records])
+@end example
+
+Output is sorted by the Group field unless overwritten by a Sort
+option. Default sorting order is increasing for Date and @strong{Hour}
+fields and decreasing for all other Fields. The order can be reversed
+using the Reverse option.
+
+This code
+
+@example
+$l->report(Group => File, Sort => Records, Top => 10);
+@end example
+
+prints:
+
+@example
+File                          Records 
+=====================================
+/htbin/SFgate               30 31.58% 
+/freeWAIS-sf/*              22 23.16% 
+/SFgate/SFgate               8  8.42% 
+/SFgate/SFgate-small         7  7.37% 
+/icons/*                     4  4.21% 
+/~goevert                    3  3.16% 
+/journals/SIGMOD             3  3.16% 
+/SFgate/ciw                  2  2.11% 
+/search                      1  1.05% 
+/reports/96/                 1  1.05% 
+@end example
+
+Here are other examples. Also take a look at the @file{t/*} files.
+
+@example
+$l->report(Group => Domain, Sort => Bytes);
+@end example
+
+@example
+Domain                  Records 
+===============================
+Germany               12 12.63% 
+Unresolved             8  8.42% 
+Israel                34 35.79% 
+Denmark                4  4.21% 
+Canada                 3  3.16% 
+Network                6  6.32% 
+US Commercial         14 14.74% 
+US Educational         8  8.42% 
+Hong Kong              2  2.11% 
+Sweden                 2  2.11% 
+Non-Profit             1  1.05% 
+Local                  1  1.05% 
+
+$l->report(Group => Hour, List => [Bytes, Records]);
+@end example
+
+@example
+Hour            Bytes          Records 
+======================================
+07      245093 17.66%        34 35.79% 
+08      438280 31.59%        19 20.00% 
+09      156730 11.30%        11 11.58% 
+10      255451 18.41%        16 16.84% 
+11      274521 19.79%        10 10.53% 
+12       17396  1.25%         5  5.26% 
+@end example
+
+@unnumberedsubsec Report options
+
+@table @asis
+@item Group @code{=>} @emph{field}
+Mandatory. @emph{field} must be one of the fields passed to the constructor.
+
+@item List @code{=>} @emph{field}
+@itemx List @code{=>} [@emph{field}, @emph{field}]
+List the subtotals for @emph{field}s. Defaults to Records.
+
+@item Sort @code{=>} @emph{field}.
+Sort output by @emph{field}. By default, Date and @strong{Hour} are sorted in increasing order, whereas all
+  other fields are sorted in decreasing order.
+
+@item Reverse @code{=> 1} 
+Reverse sorting order.
+
+@item Top @code{=>} number
+Print only the first number subtotals.
+
+@item Limit @code{=>} number
+Print only the subtotals with Sort field greater than number
+(less than number if sorted in increasing order).
+
+@end table
+Currently reports are simply printed to STDOUT.
+
+@unnumberedsec AUTHOR
+
+Ulrich Pfeifer <@file{pfeifer@@ls6.informatik.uni-dortmund.de}>
+
+@unnumberedsec SEE ALSO
+
+perl(1).
+

@@ -1,0 +1,191 @@
+@node Religion, Remedy/Ar, Proc/Simple, Module List
+@unnumbered Generate tracebacks and create and install die() and  warn() handlers.
+
+
+@unnumberedsec NAME
+
+Religion - Generate tracebacks and create and install die() and
+ warn() handlers.
+
+@unnumberedsec DESCRIPTION
+
+This is a second go at a module to simplify installing die() and warn()
+handlers, and to make such handlers easier to write and control.
+
+For most people, this just means that if use @code{use Religion;} then you@'ll
+get noticably better error reporting from warn() and die(). This is especially
+useful if you are using eval().
+
+Religion provides four classes, WarnHandler, DieHandler, WarnPreHandler, and
+DiePreHandler, that when you construct them return closures that can be
+stored in variables that in turn get invoked by $SIG@{__DIE__@} and
+$SIG@{__WARN__@}. Note that if Religion is in use, you should not modify
+$SIG@{__DIE__@} or $SIG@{__WARN__@}, unless you are careful about invoking
+chaining to the old handler.
+
+Religion also provides a TraceBack function, which is used by a DieHandler
+after you @code{die()} to give a better handle on the current scope of your
+situation, and provide information about where you were, which might
+influence where you want to go next, either returning back to where you
+were, or going on to the very last. [Sorry - Ed.]
+
+See below for usage and examples.
+
+@unnumberedsec USAGE
+
+@table @asis
+@item DieHandler SUB
+Invoke like this:
+
+@example
+$Die::Handler = new DieHandler sub @{
+	#...
+@};
+@end example
+
+where @code{#...} contains your handler code. Your handler will receive the
+following arguments:
+
+@example
+$message, $full_message, $level, $eval, 
+		    $iline, $ifile, $oline, $ofile, $oscope
+@end example
+
+@code{$message} is the message provided to die(). Note that the default addition
+of " at FILE line LINE.\n" will have been stripped off if it was present.
+If you want to add such a message back on, feel free to do so with $iline
+and $ifile.
+
+C<$full_message) is the message with a scope message added on if there was
+no newline at the end of @code{$message}. Currently,
+this is @emph{not} the original message that die() tacked on, but something 
+along the lines of " at line 3 of the eval at line 4 of Foo.pl\n".
+
+@code{$eval} is non-zero if the die() was invoked inside an eval.
+
+The rest of the arguments are explained in the source for
+Religion::TraceBack. Yes, I need to document these, but not just now, for
+they are a pain to explain.
+
+Whenever you install a DieHandler, it will automatically store the current
+value of $Die::Handler so it can chain to it. If you want to install a 
+handler only temporarily, use local().
+
+If your handler returns data using return or by falling off the end, 
+then the items returns will be used to fill back in the argument list, and 
+the next handler in the chain, if any, will be invoked. @strong{Don@'t fall off the
+end if you don@'t want to change the error message.}
+
+If your handler exits using last, then no further handlers will be
+invoked, and the program will die immediatly.
+
+If your handler exits using next, then the next handler in the chain will
+be invoked directly, without giving you a chance to change its arguments as
+you could if you used return.
+
+If your handler invokes die(), then die() will proceed as if no handlers
+were installed. If you are inside an eval, then it will exit to the scope
+enclosing the eval, otherwise it will exit the program.
+
+@item WarnHandler SUB
+Invoke like this:
+
+@example
+$Warn::Handler = new WarnHandler sub @{
+	#...
+@};
+
+For the rest of its explanation, see DieHandler, and subsitute warn() for
+die(). Note that once the last DieHandler completes (or C<last> is invoked)
+then execution will return to the code that invoked warn().
+@end example
+
+@item DiePreHandler SUB
+Invoke like this:
+
+@example
+$Die::PreHandler = new DiePreHandler sub @{
+	#...
+@};
+
+This works identically to $Die::Handler, except that it forms a separate chain
+that is invoked I<before> the DieHandler chain. Since you can use C<last> to
+abort all the handlers and die immediately, or change the messages or scope
+details, this can be useful for modifying data that all future handlers will
+see, or to dispose of some messages from further handling.
+@end example
+
+This is even more useful in $Warn::PreHandler, since you can just throw
+away warnings that you @emph{know} aren@'t needed.
+
+@item WarnPreHandler SUB
+Invoke like this:
+
+@example
+$Warn::PreHandler = new WarnPreHandler sub @{
+	#...
+@};
+
+This works identically to $Warn::Handler, except that it forms a separate
+chain that is invoked I<before> the WarnHandler chain. Since you can use
+C<last> to abort all the handlers and return to the program, or change
+the messages or scope details, this can be useful for modifying data that
+all future handlers will see, or to dispose of some messages.
+@end example
+
+This is very useful, since you can just throw
+away warnings that you @emph{know} aren@'t needed.
+
+@end table
+@unnumberedsec EXAMPLES
+
+@table @asis
+@item A dialog error message:
+@example
+$Die::Handler = new DieHandler sub @{
+   my($msg,$fmsg,$level,$eval) = @@_;
+   if($eval) @{
+		# if we are in an eval, skip to the next handler
+		next;
+	@} else @{
+		# show a message box describing the error.
+	 	print "ShowMessageBox $fmsg";
+	 	
+	 	# force the program to exit
+	 	exit 0;
+	 	next;
+	@}
+@};
+@end example
+
+@itemx A handler that changes die() messages back to the original format
+@example
+local($Die::Handler) = new DieHandler sub @{
+   my($msg,$fmsg,$level,@@trace) = @@_;
+@end example
+
+@example
+$fmsg = $msg . ((substr($msg,-1,1) ne "\n") ?
+			 " at $trace[2] line $trace[1].\n"
+			 : "");
+return ($msg,$fmsg);
+ @};
+@end example
+
+@itemx A warn handler that does nothing.
+@example
+$Warn::Handler = new WarnHandler sub @{next;@};
+@end example
+
+@itemx A warn prehandler that throws away a warning.
+@example
+$Warn::PreHandler = new WarnPreHandler sub @{
+	my($msg,$fmsg,$level,$eval) = @@_;
+	if($msg =~ /Use of uninitialized/) @{
+		last;
+	@}
+	next;
+@};
+@end example
+
+@end table

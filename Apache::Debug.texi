@@ -1,0 +1,23 @@
+@node Apache/Debug, Apache/MsqlProxy, Apache/CGI, Module List
+@unnumbered Utilities for debugging embedded perl code
+
+
+@unnumberedsec NAME
+
+Apache::Debug - Utilities for debugging embedded perl code
+
+@unnumberedsec SYNOPSIS
+
+@example
+require Apache::Debug;
+@end example
+
+@example
+Apache::Debug::dump(Apache->request, 500, "Uh Oh!");
+@end example
+
+@unnumberedsec DESCRIPTION
+
+This module sends what may be helpful debugging info to the client
+rather that the error log.
+

@@ -1,0 +1,418 @@
+@node MIME/Decoder, MIME/Entity, MIME/Body, Module List
+@unnumbered an object for decoding the body part of a MIME stream
+
+
+@unnumberedsec NAME
+
+MIME::Decoder - an object for decoding the body part of a MIME stream
+
+@unnumberedsec SYNOPSIS
+
+@strong{Decoding a data stream.}
+Here@'s a simple filter program to read quoted-printable data from STDIN
+(until EOF) and write the decoded data to STDOUT:
+
+@example
+use MIME::Decoder;
+
+$decoder = new MIME::Decoder @'quoted-printable@' or die "unsupported";
+$decoder->decode(\*STDIN, \*STDOUT);
+@end example
+
+@strong{Encoding a data stream.}
+Here@'s a simple filter program to read binary data from STDIN
+(until EOF) and write base64-encoded data to STDOUT:
+
+@example
+use MIME::Decoder;
+
+$decoder = new MIME::Decoder @'base64@' or die "unsupported";
+$decoder->encode(\*STDIN, \*STDOUT);
+@end example
+
+You can @strong{write and install your own decoders} so that
+MIME::Decoder will know about them:
+
+@example
+use MyBase64Decoder;
+
+install MyBase64Decoder @'base64@';
+@end example
+
+You can also @strong{test if an encoding is supported:} 
+
+@example
+if (MIME::Decoder->supported(@'x-uuencode@')) @{
+    # we can uuencode!
+@}
+@end example
+
+@unnumberedsec DESCRIPTION
+
+This abstract class, and its private concrete subclasses (see below)
+provide an OO front end to the actions of...
+
+@itemize @bullet
+@item 
+Decoding a MIME-encoded stream
+
+@item 
+Encoding a raw data stream into a MIME-encoded stream.
+
+@end itemize
+The constructor for MIME::Decoder takes the name of an encoding
+(@code{base64}, @code{7bit}, etc.), and returns an instance of a @emph{subclass}
+of MIME::Decoder whose @code{decode()} method will perform the appropriate
+decoding action, and whose @code{encode()} method will perform the appropriate
+encoding action.
+
+@unnumberedsec PUBLIC INTERFACE
+
+@unnumberedsubsec Standard interface
+
+If all you are doing is @emph{using} this class, here@'s all you@'ll need...
+
+@table @asis
+@item new ENCODING
+@emph{Class method}.
+Create and return a new decoder object which can handle the 
+given ENCODING.
+
+@example
+my $decoder = new MIME::Decoder "7bit";
+@end example
+
+Returns the undefined value if no known decoders are appropriate.
+
+@item decode INSTREAM,OUTSTREAM
+Decode the document waiting in the input handle INSTREAM,
+writing the decoded information to the output handle OUTSTREAM.
+
+Read the section in this document on I/O handles for more information
+about the arguments.  Note that you can still supply old-style
+unblessed filehandles for INSTREAM and OUTSTREAM.
+
+@item encode INSTREAM,OUTSTREAM
+Encode the document waiting in the input filehandle INSTREAM,
+writing the encoded information to the output stream OUTSTREAM.
+
+Read the section in this document on I/O handles for more information
+about the arguments.  Note that you can still supply old-style
+unblessed filehandles for INSTREAM and OUTSTREAM.
+
+@item encoding
+Return the encoding that this object was created to handle,
+coerced to all lowercase (e.g., @code{"base64"}).
+
+@item supported [ENCODING]
+@emph{Class method}.
+With one arg (an ENCODING name), returns truth if that encoding
+is currently handled, and falsity otherwise.  The ENCODING will
+be automatically coerced to lowercase:
+
+@example
+if (MIME::Decoder->supported(@'7BIT@')) @{
+    # yes, we can handle it...
+@}
+else @{
+    # drop back six and punt...
+@} 
+@end example
+
+With no args, returns all the available decoders as a hash reference... 
+where the key is the encoding name (all lowercase, like @'7bit@'),
+and the associated value is true (it happens to be the name of the class 
+that handles the decoding, but you probably shouldn@'t rely on that).
+Hence:
+
+@example
+my $supported = MIME::Decoder->supported;
+if ($supported->@{7bit@}) @{
+    # yes, we can handle it...
+@}
+elsif ($supported->@{8bit@}) @{
+    # yes, we can handle it...
+@}
+@end example
+
+You may safely modify this hash; it will @emph{not} change the way the 
+module performs its lookups.  Only install can do that.
+
+@emph{Thanks to Achim Bohnet for suggesting this method.}
+
+@end table
+@unnumberedsubsec Subclass interface
+
+If you are writing (or installing) a new decoder subclass, there
+are some other methods you@'ll need to know about:
+
+@table @asis
+@item decode_it INSTREAM,OUTSTREAM
+@emph{Abstract instance method}.  
+The back-end of the decode method.  It takes an input handle
+opened for reading (INSTREAM), and an output handle opened for
+writing (OUTSTREAM).
+
+If you are writing your own decoder subclass, you must override this
+method in your class.  Your method should read from the input
+handle via @code{getline()} or @code{read()}, decode this input, and print the
+decoded data to the output handle via @code{print()}.  You may do this
+however you see fit, so long as the end result is the same.
+
+Note that unblessed references and globrefs are automatically turned
+into I/O handles for you by @code{decode()}, so you don@'t need to worry
+about it.
+
+Your method must return either undef (to indicate failure),
+or 1 (to indicate success).
+
+@item encode_it INSTREAM,OUTSTREAM
+@emph{Abstract instance method}.  
+The back-end of the encode method.  It takes an input handle
+opened for reading (INSTREAM), and an output handle opened for
+writing (OUTSTREAM).
+
+If you are writing your own decoder subclass, you must override this
+method in your class.  Your method should read from the input
+handle via @code{getline()} or @code{read()}, encode this input, and print the
+encoded data to the output handle via @code{print()}.  You may do this
+however you see fit, so long as the end result is the same.
+
+Note that unblessed references and globrefs are automatically turned
+into I/O handles for you by @code{encode()}, so you don@'t need to worry
+about it.
+
+Your method must return either undef (to indicate failure),
+or 1 (to indicate success).
+
+@item init ARGS...
+@emph{Instance method}.  Do any necessary initialization of the new instance,
+taking whatever arguments were given to new().
+Should return the self object on success, undef on failure.
+
+@item install ENCODING
+@emph{Class method}.  Install this class so that ENCODING is handled by it.
+You should not override this method.
+
+@end table
+@unnumberedsec BUILT-IN DECODER SUBCLASSES
+
+You don@'t need to "use" any other Perl modules; the
+following are included as part of MIME::Decoder.
+
+@unnumberedsubsec MIME::Decoder::Base64
+
+The built-in decoder for the @code{"base64"} encoding.
+
+The name was chosen to jibe with the pre-existing MIME::Base64
+utility package, which this class actually uses to translate each line.
+
+When @strong{decoding}, the input is read one line at a time.
+The input accumulates in an internal buffer, which is decoded in
+multiple-of-4-sized chunks (plus a possible "leftover" input chunk,
+of course).
+
+When encoding, the input is read 45 bytes at a time: this ensures
+that the output lines are not too long.   We chose 45 since it is
+a multiple of 3 and produces lines under 76 characters, as RFC-1521 
+specifies.
+
+@emph{Thanks to Phil Abercrombie for locating one idiotic bug in this
+module, which led me to discover another.}
+
+@unnumberedsubsec MIME::Decoder::Binary
+
+The built-in decoder for a @code{"binary"} encoding (in other words,
+no encoding).  
+
+The @code{"binary"} decoder is a special case, since it@'s ill-advised
+to read the input line-by-line: after all, an uncompressed image file might
+conceivably have loooooooooong stretches of bytes without a @code{"\n"} among
+them, and we don@'t want to risk blowing out our core.  So, we 
+read-and-write fixed-size chunks.
+
+Both the @strong{encoder} and @strong{decoder} do a simple pass-through of the data
+from input to output.
+
+@unnumberedsubsec MIME::Decoder::QuotedPrint
+
+The built-in decoder the for @code{"quoted-printable"} encoding.
+
+The name was chosen to jibe with the pre-existing MIME::QuotedPrint
+utility package, which this class actually uses to translate each line.
+
+The @strong{decoder} does a line-by-line translation from input to output.
+
+The @strong{encoder} does a line-by-line translation, breaking lines
+so that they fall under the standard 76-character limit for this
+encoding.  
+
+@strong{Note:} just like MIME::QuotedPrint, we currently use the 
+native @code{"\n"} for line breaks, and not @code{CRLF}.  This may
+need to change in future versions.
+
+@unnumberedsubsec MIME::Decoder::Xbit
+
+The built-in decoder for both @code{"7bit"} and @code{"8bit"} encodings,
+which guarantee short lines (a maximum of 1000 characters per line) 
+of US-ASCII data compatible with RFC-821.
+
+The @strong{decoder} does a line-by-line pass-through from input to output,
+leaving the data unchanged @emph{except} that an end-of-line sequence of
+CRLF is converted to a newline "\n".
+
+The @strong{encoder} does a line-by-line pass-through from input to output,
+splitting long lines if necessary.  If created as a 7-bit encoder, any
+8-bit characters are mapped to zero or more 7-bit characters: note
+that this is a potentially @emph{lossy} encoding if you hand it anything
+but 7-bit input: therefore, don@'t use it on binary files (GIFs) and
+the like; use it only when it "doesn@'t matter" if extra newlines are
+inserted and 8-bit characters are squished.
+
+There are several possible ways to use this class to encode arbitrary 
+8-bit text as 7-bit text:
+
+@table @asis
+@item Don@'t use this class.
+Really.  Use a more-appropriate encoding, like quoted-printable.
+
+@item APPROX
+Approximate the appearance of the Latin-1 character via Internet
+conventions; e.g., @code{"\c,"}, @code{"\n~"}, etc.  This is the default
+behavior of this class.
+
+@item CLEARBIT8
+Just clear the 8th bit.  Yuck.  Sort of a sledgehammer approach.
+Not recommended at all.
+
+@item ENTITY
+Output as an HTML-style entity; e.g., @code{"&}@code{#189;"}.
+This sounds like a good idea, until you see some French text which
+is actually encoded this way... yuck.  You@'re better off with
+quoted-printable.
+
+@item STRIP
+Strip out any 8-bit characters.  Nice if you@'re @emph{really} sure that any
+such characters in your input are mistakes to be deleted, but it@'ll
+transform non-English documents into an abbreviated mess.
+
+@end table
+@unnumberedsec NOTES
+
+@unnumberedsubsec Input/Output handles
+
+As of MIME-tools 2.0, this class has to play nice with the new MIME::Body
+class... which means that input and output routines cannot just assume that 
+they are dealing with filehandles.  
+
+Therefore, all that MIME::Decoder and its subclasses require (and, thus, 
+all that they can assume) is that INSTREAMs and OUTSTREAMs are objects 
+which respond to the messages defined in @strong{MIME::IO} (basically, a 
+subset of those defined by IO::Handle).
+
+For backwards compatibilty, if you supply a scalar filehandle name
+(like @code{"STDOUT"}) or an unblessed glob reference (like @code{\*STDOUT})
+where an INSTREAM or OUTSTREAM is expected, this package will 
+automatically wrap it in an object that fits the I/O handle criteria.
+
+@emph{Thanks to Achim Bohnet for suggesting this more-generic I/O model.}
+
+@unnumberedsubsec Writing a decoder
+
+If you@'re experimenting with your own encodings, you@'ll probably want
+to write a decoder.  Here are the basics:
+
+@enumerate
+@item 
+Create a module, like "MyDecoder::", for your decoder.
+Declare it to be a subclass of MIME::Decoder.
+
+@item 
+Create the following instance methods in your class, as described above:
+
+@example
+decode_it
+encode_it
+init
+@end example
+
+@item 
+In your application program, activate your decoder for one or
+more encodings like this:
+
+@example
+require MyDecoder;
+@end example
+
+@example
+install MyDecoder "7bit";        # use MyDecoder to decode "7bit"    
+install MyDecoder "x-foo";       # also, use MyDecoder to decode "x-foo"
+@end example
+
+@end enumerate
+To illustrate, here@'s a custom decoder class for the @code{quoted-printable} 
+encoding:
+
+@example
+package MyQPDecoder;
+@end example
+
+@example
+@@ISA = qw(MIME::Decoder);    
+use MIME::Decoder;
+use MIME::QuotedPrint;
+
+# decode_it - the private decoding method
+sub decode_it @{
+    my ($self, $in, $out) = @@_;
+    
+    while (defined($_ = $in->getline())) @{
+        my $decoded = decode_qp($_);
+	    $out->print($decoded);
+    @}
+    1;
+@}
+
+# encode_it - the private encoding method
+sub encode_it @{
+    my ($self, $in, $out) = @@_;
+    
+    my ($buf, $nread) = (@'@', 0); 
+    while ($in->read($buf, 60)) @{
+        my $encoded = encode_qp($buf);
+	    $out->print($encoded);
+    @}
+    1;
+@}
+@end example
+
+That@'s it.
+
+The task was pretty simple because the @code{"quoted-printable"} 
+encoding can easily be converted line-by-line... as can
+even @code{"7bit"} and @code{"8bit"} (since all these encodings guarantee 
+short lines, with a max of 1000 characters).
+The good news is: it is very likely that it will be similarly-easy to 
+write a MIME::Decoder for any future standard encodings.
+
+The @code{"binary"} decoder, however, really required block reads and writes:
+see @samp{"MIME::Decoder::Binary"} in this node for details.
+
+@unnumberedsec SEE ALSO
+
+MIME::Decoder,
+MIME::Entity,
+MIME::Head, 
+MIME::Parser.
+
+@unnumberedsec AUTHOR
+
+Copyright (c) 1996 by Eryq / eryq@@rhine.gsfc.nasa.gov
+
+All rights reserved.  This program is free software; you can redistribute 
+it and/or modify it under the same terms as Perl itself.
+
+@unnumberedsec VERSION
+
+$Revision: 2.7 $ $Date: 1996/10/23 17:03:49 $
+

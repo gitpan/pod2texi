@@ -1,0 +1,151 @@
+@node HTTP/Response, HTTP/Status, HTTP/Request, Module List
+@unnumbered Class encapsulating HTTP Responses
+
+
+@unnumberedsec NAME
+
+HTTP::Response - Class encapsulating HTTP Responses
+
+@unnumberedsec SYNOPSIS
+
+@example
+require HTTP::Response;
+@end example
+
+@unnumberedsec DESCRIPTION
+
+The @code{HTTP::Response} class encapsulate HTTP style responses.  A
+response consist of a response line, some headers, and a (potential
+empty) content. Note that the LWP library will use HTTP style
+responses also for non-HTTP protocol schemes.
+
+Instances of this class are usually created and returned by the
+@code{request()} method of an @code{LWP::UserAgent} object:
+
+@example
+...
+$response = $ua->request($request)
+if ($response->is_success) @{
+    print $response->content;
+@} else @{
+    print $response->error_as_HTML;
+@}
+@end example
+
+@unnumberedsec METHODS
+
+@code{HTTP::Response} is a subclass of @code{HTTP::Message} and therefore
+inherits its methods.  The inherited methods are header(),
+push_header(), remove_header(), headers_as_string(), and content().
+The header convenience methods are also available.  See
+@xref{HTTP/Message,HTTP/Message}, for details.
+
+@unnumberedsubsec $r = new HTTP::Response ($rc, [$msg, [$header, [$content]]])
+
+Constructs a new @code{HTTP::Response} object describing a response with
+response code @code{$rc} and optional message @code{$msg}.
+
+@unnumberedsubsec $r->code([$code])
+
+@unnumberedsubsec $r->message([$message])
+
+@unnumberedsubsec $r->request([$request])
+
+@unnumberedsubsec $r->previous([$previousResponse])
+
+These methods provide public access to the member variables.  The
+first two containing respectively the response code and the message
+of the response.
+
+The request attribute is a reference the request that gave this
+response.  It does not have to be the same request as passed to the
+$ua->request() method, because there might have been redirects and
+authorization retries in between.
+
+The previous attribute is used to link together chains of responses.
+You get chains of responses if the first response is redirect or
+unauthorized.
+
+@unnumberedsubsec $r->base
+
+Returns the base URL for this response.  The return value will be a
+reference to a URI::URL object.
+
+The base URL is obtained from one the following sources (in priority
+order):
+
+@enumerate
+@item 
+Embedded in the document content, for instance <BASE HREF="...">
+in HTML documents.
+
+@item 
+A "Content-Base:" or a "Content-Location:" header in the response.
+
+For backwards compatability with older HTTP implementations we will
+also look for the "Base:" header.
+
+@item 
+The URL used to request this response. This might not be the original
+URL that was passed to $ua->request() method, because we might have
+received some redirect responses first.
+
+@end enumerate
+When the LWP protocol modules produce the HTTP::Response object, then
+any base URL embedded in the document (step 1) will already have
+initialized the "Content-Base:" header. This means that this method
+only perform the last 2 steps (the content is not always available
+either).
+
+@unnumberedsubsec $r->as_string()
+
+Method returning a textual representation of the request.  Mainly
+useful for debugging purposes. It takes no arguments.
+
+@unnumberedsubsec $r->is_info
+
+@unnumberedsubsec $r->is_success
+
+@unnumberedsubsec $r->is_redirect
+
+@unnumberedsubsec $r->is_error
+
+These methods indicate if the response was informational, sucessful, a
+redirection, or an error.
+
+@unnumberedsubsec $r->error_as_HTML()
+
+Return a string containing a complete HTML document indicating what
+error occurred.  This method should only be called when $r->is_error
+is TRUE.
+
+@unnumberedsubsec $r->current_age
+
+This function will calculate the "current age" of the response as
+specified by <draft-ietf-http-v11-spec-07> section 13.2.3.  The
+age of a response is the time since it was sent by the origin server.
+The returned value is a number representing the age in seconds.
+
+@unnumberedsubsec $r->freshness_lifetime
+
+This function will calculate the "freshness lifetime" of the response
+as specified by <draft-ietf-http-v11-spec-07> section 13.2.4.  The
+"freshness lifetime" is the length of time between the generation of a
+response and its expiration time.  The returned value is a number
+representing the freshness lifetime in seconds.
+
+If the response does not contain an "Expires" or a "Cache-Control"
+header, then this function will apply some simple heuristic based on
+@'Last-Modified@' to determine a suitable lifetime.
+
+@unnumberedsubsec $r->is_fresh
+
+Returns TRUE if the response is fresh, based on the values of
+freshness_lifetime() and current_age().  If the response is not longer
+fresh, then it has to be refetched or revalidated by the origin
+server.
+
+@unnumberedsubsec $r->fresh_until
+
+Returns the time when this entiy is no longer fresh.
+

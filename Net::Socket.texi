@@ -1,0 +1,97 @@
+@node Net/Socket, Net/Telnet, Net/SSLeay, Module List
+@unnumbered TEMPORARY Socket filedescriptor class, so Net::FTP still works while IO::Socket is having a re-fit <GBARR>
+
+
+@unnumberedsec NAME
+
+Net::Socket - TEMPORARY Socket filedescriptor class, so Net::FTP still
+works while IO::Socket is having a re-fit <GBARR>
+
+@unnumberedsec DESCRIPTION
+
+NO TEXT --- THIS MODULE IS TEMPORARY
+
+@unnumberedsubsec new( %args )
+
+The new constructor takes its arguments in the form of a hash. Accepted 
+arguments are
+
+@example
+Peer     => remote host name for a @'connect@' socket
+Proto    => specifiy protocol by it self (but override by Service)
+Service  => require service eg @'ftp@' or @'ftp/tcp@', overrides Proto
+Port     => port num for connect eg @'ftp@' or 21, defaults to Service
+Bind     => port to bind to, defaults to INADDR_ANY
+Listen   => queue size for listen
+@end example
+
+@unnumberedsubsec autoflush( [$val] )
+
+Set the file descriptor to autoflush, depending on @code{$val}
+
+@unnumberedsubsec accept
+
+perform the system call accept on the socket and return a new Net::Socket
+object. This object can be used to communicate with the client that was trying
+to connect.
+
+@unnumberedsubsec close
+
+Close the file descriptor
+
+@unnumberedsubsec dup
+
+Create a duplicate of the socket object
+
+@unnumberedsubsec sockname
+
+Return a packed sockaddr structure for the socket
+
+@unnumberedsubsec sockaddr
+
+Return the address part of the sockaddr structure for the socket
+
+@unnumberedsubsec sockport
+
+Return the port number that the socket is using on the local host
+
+@unnumberedsubsec sockhost
+
+Return the address part of the sockaddr structure for the socket in a
+text form xx.xx.xx.xx
+
+@unnumberedsubsec peername, peeraddr, peerport, peerhost
+
+Same as for the sock* functions, but returns the data about the peer
+host instead of the local host.
+
+@unnumberedsubsec send( $buf [, $flags [, $to]] )
+
+For a udp socket, send the contents of @code{$buf} to the remote host @code{$to} using
+flags @code{$flags}. 
+
+If @code{$to} is not specified then the data is sent to the host which the socket
+last communicated with, ie sent to or recieved from.
+
+If @code{$flags} is ommited then 0 is used
+
+@unnumberedsubsec recv( $buf, $len [, $flags] )
+
+Receive @code{$len} bytes of data from the socket and place into @code{$buf}
+
+If @code{$flags} is ommited then 0 is used
+
+@unnumberedsec AUTHOR
+
+Graham Barr <Graham.Barr@@tiuk.ti.com>
+
+@unnumberedsec REVISION
+
+$Revision: 1.2 $
+
+@unnumberedsec COPYRIGHT
+
+Copyright (c) 1995 Graham Barr. All rights reserved. This program is free
+software; you can redistribute it and/or modify it under the same terms
+as Perl itself.
+

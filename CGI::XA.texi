@@ -1,0 +1,61 @@
+@node CGI/XA, CPAN, CGI/Wrap, Module List
+@unnumbered Clone of CGI.pm with less backwards compatibility and less namespace pollution
+
+
+@unnumberedsec NAME
+
+CGI::XA - Clone of CGI.pm with less backwards compatibility and less namespace pollution
+
+@unnumberedsec SYNOPSIS
+
+@example
+use CGI::XA;
+# then follow the CGI.pm docs and see if it does the same.
+@end example
+
+@unnumberedsec BE AWARE, THIS IS ALPHA SOFTWARE
+
+It@'s main purpose is to start a discussion about CGI.pm. Maybe parts
+of this will be folded back to CGI.pm, and then probably this module
+won@'t be developed any further.
+
+@unnumberedsec DESCRIPTION
+
+I have started with major hacks on top of Lincoln@'s version 2.23 of
+CGI.pm in order to get rid of both AUTOLOADING and uncontrolled
+global variables.
+
+I release this package as CGI::XA (which stands for "for Apache")
+for a limited audience as a test case.
+
+This software is alpha software and it is not clear if it will be
+supported for a longer time. My preferred solution would be, Lincoln
+accepts (most of) the changes and continues with his excellent work.
+
+@unnumberedsubsec where are the main differences?
+
+@example
+No AUTOLOAD
+use strict clean
+no exports
+no cgi-lib.pl compatibility
+no "Q" namespace
+abandoned the rearrange method in several places
+@end example
+
+@unnumberedsubsec DOCUMENTATION
+
+is in CGI.pm with which we are quite compatible with. See comments in
+the code. If you could supply test cases for methods that are not
+depending on a browser, we@'d be glad to hear from you.
+
+@unnumberedsec AUTHOR
+
+Lincoln D. Stein is th author of the original code which was the basis
+for this development. Responsibility is with Andreas König
+<andreas.koenig@@mind.de>
+
+@unnumberedsec SEE ALSO
+
+perl(1), Apache(3), Apache::Switch(3).
+

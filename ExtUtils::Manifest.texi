@@ -1,0 +1,141 @@
+@node ExtUtils/Manifest, ExtUtils/Miniperl, ExtUtils/MakeMaker, Module List
+@unnumbered utilities to write and check a MANIFEST file
+
+
+@unnumberedsec NAME
+
+ExtUtils::Manifest - utilities to write and check a MANIFEST file
+
+@unnumberedsec SYNOPSIS
+
+@code{require ExtUtils::Manifest;}
+
+@code{ExtUtils::Manifest::mkmanifest;}
+
+@code{ExtUtils::Manifest::manicheck;}
+
+@code{ExtUtils::Manifest::filecheck;}
+
+@code{ExtUtils::Manifest::fullcheck;}
+
+@code{ExtUtils::Manifest::skipcheck;}
+
+@code{ExtUtild::Manifest::manifind();}
+
+@code{ExtUtils::Manifest::maniread($file);}
+
+@code{ExtUtils::Manifest::manicopy($read,$target,$how);}
+
+@unnumberedsec DESCRIPTION
+
+Mkmanifest() writes all files in and below the current directory to a
+file named in the global variable $ExtUtils::Manifest::MANIFEST (which
+defaults to @code{MANIFEST}) in the current directory. It works similar to
+
+@example
+find . -print
+@end example
+
+but in doing so checks each line in an existing @code{MANIFEST} file and
+includes any comments that are found in the existing @code{MANIFEST} file
+in the new one. Anything between white space and an end of line within
+a @code{MANIFEST} file is considered to be a comment. Filenames and
+comments are seperated by one or more TAB characters in the
+output. All files that match any regular expression in a file
+MANIFEST.SKIP (if such a file exists) are ignored.
+
+Manicheck() checks if all the files within a @code{MANIFEST} in the
+current directory really do exist. It only reports discrepancies and
+exits silently if MANIFEST and the tree below the current directory
+are in sync.
+
+Filecheck() finds files below the current directory that are not
+mentioned in the @code{MANIFEST} file. An optional file MANIFEST.SKIP
+will be consulted. Any file matching a regular expression in such a
+file will not be reported as missing in the @code{MANIFEST} file.
+
+Fullcheck() does both a manicheck() and a filecheck().
+
+Skipcheck() lists all the files that are skipped due to your
+MANIFEST.SKIP file.
+
+Manifind() retruns a hash reference. The keys of the hash are the
+files found below the current directory.
+
+Maniread($file) reads a named @code{MANIFEST} file (defaults to
+@code{MANIFEST} in the current directory) and returns a HASH reference
+with files being the keys and comments being the values of the HASH.
+
+@emph{Manicopy($read,$target,$how)} copies the files that are the keys in
+the HASH @emph{%$read} to the named target directory. The HASH reference
+@emph{$read} is typically returned by the maniread() function. This
+function is useful for producing a directory tree identical to the
+intended distribution tree. The third parameter $how can be used to
+specify a different methods of "copying". Valid values are @code{cp},
+which actually copies the files, @code{ln} which creates hard links, and
+@code{best} which mostly links the files but copies any symbolic link to
+make a tree without any symbolic link. Best is the default.
+
+@unnumberedsec MANIFEST.SKIP
+
+The file MANIFEST.SKIP may contain regular expressions of files that
+should be ignored by mkmanifest() and filecheck(). The regular
+expressions should appear one on each line. A typical example:
+
+@example
+\bRCS\b
+^MANIFEST\.
+^Makefile$
+~$
+\.html$
+\.old$
+^blib/
+^MakeMaker-\d
+@end example
+
+@unnumberedsec EXPORT_OK
+
+@code{&mkmanifest}, @code{&manicheck}, @code{&filecheck}, @code{&fullcheck},
+@code{&maniread}, and @code{&manicopy} are exportable.
+
+@unnumberedsec GLOBAL VARIABLES
+
+@code{$ExtUtils::Manifest::MANIFEST} defaults to @code{MANIFEST}. Changing it
+results in both a different @code{MANIFEST} and a different
+MANIFEST.SKIP file. This is useful if you want to maintain
+different distributions for different audiences (say a user version
+and a developer version including RCS).
+
+@code{$ExtUtils::Manifest::Quiet} defaults to 0. If set to a true value,
+all functions act silently.
+
+@unnumberedsec DIAGNOSTICS
+
+All diagnostic output is sent to @code{STDERR}.
+
+@table @asis
+@item @code{Not in MANIFEST:} @emph{file}
+is reported if a file is found, that is missing in the @code{MANIFEST}
+file which is excluded by a regular expression in the file
+MANIFEST.SKIP.
+
+@item @code{No such file:} @emph{file}
+is reported if a file mentioned in a @code{MANIFEST} file does not
+exist.
+
+@item @code{MANIFEST:} $!
+is reported if @code{MANIFEST} could not be opened.
+
+@item @code{Added to MANIFEST:} @emph{file}
+is reported by mkmanifest() if $Verbose is set and a file is added
+to MANIFEST. $Verbose is set to 1 by default.
+
+@end table
+@unnumberedsec SEE ALSO
+
+@xref{ExtUtils/MakeMaker,ExtUtils/MakeMaker}, which has handy targets for most of the functionality.
+
+@unnumberedsec AUTHOR
+
+Andreas Koenig <@file{koenig@@franz.ww.TU-Berlin.DE}>
+

@@ -1,0 +1,144 @@
+@node Net/POP3, Net/Ping, Net/Netrc, Module List
+@unnumbered Post Office Protocol 3 Client class (RFC1081)
+
+
+@unnumberedsec NAME
+
+Net::POP3 - Post Office Protocol 3 Client class (RFC1081)
+
+@unnumberedsec SYNOPSIS
+
+@example
+use Net::POP3;
+
+# Constructors
+$pop = Net::POP3->new(@'pop3host@');
+$pop = Net::POP3->new(@'pop3host@', Timeout => 60);
+@end example
+
+@unnumberedsec DESCRIPTION
+
+This module implements a client interface to the POP3 protocol, enabling
+a perl5 application to talk to POP3 servers. This documentation assumes
+that you are familiar with the POP3 protocol described in RFC1081.
+
+A new Net::POP3 object must be created with the new method. Once
+this has been done, all POP3 commands are accessed via method calls
+on the object.
+
+@unnumberedsec EXAMPLES
+
+@example
+Need some small examples in here :-)
+@end example
+
+@unnumberedsec CONSTRUCTOR
+
+@table @asis
+@item new ( HOST, [ OPTIONS ] )
+This is the constructor for a new Net::POP3 object. @code{HOST} is the
+name of the remote host to which a POP3 connection is required.
+
+OPTIONS are passed in a hash like fasion, using key and value pairs.
+Possible options are:
+
+@strong{Timeout} - Maximum time, in seconds, to wait for a response from the
+POP3 server (default: 120)
+
+Debug - Enable debugging information
+
+@end table
+@unnumberedsec METHODS
+
+Unless otherwise stated all methods return either a @emph{true} or @emph{false}
+value, with @emph{true} meaning that the operation was a success. When a method
+states that it returns a value, falure will be returned as undef or an
+empty list.
+
+@table @asis
+@item user ( USER )
+Send the USER command.
+
+@item pass ( PASS )
+Send the PASS command. Returns the number of messages in the mailbox.
+
+@item login ( [ USER [, PASS ]] )
+Send both the the USER and PASS commands. If @code{PASS} is not given the
+@code{Net::POP3} uses @code{Net::Netrc} to lookup the password using the host
+and username. If the username is not specified then the current user name
+will be used.
+
+Returns the number of messages in the mailbox.
+
+@item top ( MSGNUM [, NUMLINES ] )
+Get the header and the first @code{NUMLINES} of the body for the message
+@code{MSGNUM}. Returns a reference to an array which contains the lines of text
+read from the server.
+
+@item list ( [ MSGNUM ] )
+If called with an argument the list returns the size of the messsage
+in octets.
+
+If called without arguments the a refererence to a hash is returned. The
+keys will be the @code{MSGNUM}@'s of all undeleted messages and the values will
+be their size in octets.
+
+@item get ( MSGNUM )
+Get the message @code{MSGNUM} from the remote mailbox. Returns a reference to an
+array which contains the lines of text read from the server.
+
+@item last ()
+Returns the highest @code{MSGNUM} of all the messages accessed.
+
+@item popstat ()
+Returns an array of two elements. These are the number of undeleted
+elements and the size of the mbox in octets.
+
+@item delete ( MSGNUM )
+Mark message @code{MSGNUM} to be deleted from the remote mailbox. All messages
+that are marked to be deleted will be removed from the remote mailbox
+when the server connection closed.
+
+@item reset ()
+Reset the status of the remote POP3 server. This includes reseting the
+status of all messages to not be deleted.
+
+@item quit ()
+Quit and close the connection to the remote POP3 server. Any messages marked
+as deleted will be deleted from the remote mailbox.
+
+@end table
+@unnumberedsec NOTES
+
+If a @code{Net::POP3} object goes out of scope before quit method is called
+then the reset method will called before the connection is closed. This
+means that any messages marked to be deleted will not be.
+
+@unnumberedsec SEE ALSO
+
+@xref{Net/Netrc,Net/Netrc},
+@xref{Net/Cmd,Net/Cmd},
+
+@unnumberedsec AUTHOR
+
+Graham Barr <Graham.Barr@@tiuk.ti.com>
+
+@unnumberedsec REVISION
+
+$Revision: 2.1 $
+$Date: 1996/07/26 06:44:44 $
+
+The VERSION is derived from the revision by changing each number after the
+first dot into a 2 digit number so
+
+@example
+Revision 1.8   => VERSION 1.08
+Revision 1.2.3 => VERSION 1.0203
+@end example
+
+@unnumberedsec COPYRIGHT
+
+Copyright (c) 1995 Graham Barr. All rights reserved. This program is free
+software; you can redistribute it and/or modify it under the same terms
+as Perl itself.
+

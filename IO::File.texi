@@ -1,0 +1,109 @@
+@node IO/File, IO/Handle, IO, Module List
+@unnumbered supply object methods for filehandles
+
+
+@unnumberedsec NAME
+
+IO::File - supply object methods for filehandles
+
+@unnumberedsec SYNOPSIS
+
+@example
+use IO::File;
+@end example
+
+@example
+$fh = new IO::File;
+if ($fh->open "< file") @{
+    print <$fh>;
+    $fh->close;
+@}
+@end example
+
+@example
+$fh = new IO::File "> FOO";
+if (defined $fh) @{
+    print $fh "bar\n";
+    $fh->close;
+@}
+@end example
+
+@example
+$fh = new IO::File "file", "r";
+if (defined $fh) @{
+    print <$fh>;
+    undef $fh;       # automatically closes the file
+@}
+@end example
+
+@example
+$fh = new IO::File "file", O_WRONLY|O_APPEND;
+if (defined $fh) @{
+    print $fh "corge\n";
+    undef $fh;       # automatically closes the file
+@}
+@end example
+
+@example
+$pos = $fh->getpos;
+$fh->setpos $pos;
+@end example
+
+@example
+$fh->setvbuf($buffer_var, _IOLBF, 1024);
+@end example
+
+@example
+autoflush STDOUT 1;
+@end example
+
+@unnumberedsec DESCRIPTION
+
+@code{IO::File} is inherits from @code{IO::Handle} ans @code{IO::Seekable}. It extends
+these classes with methods that are specific to file handles.
+
+@unnumberedsec CONSTRUCTOR
+
+@table @asis
+@item new ([ ARGS ] )
+Creates a @code{IO::File}.  If it receives any parameters, they are passed to
+the method open; if the open fails, the object is destroyed.  Otherwise,
+it is returned to the caller.
+
+@end table
+@unnumberedsec METHODS
+
+@table @asis
+@item open( FILENAME [,MODE [,PERMS]] )
+open accepts one, two or three parameters.  With one parameter,
+it is just a front end for the built-in open function.  With two
+parameters, the first parameter is a filename that may include
+whitespace or other special characters, and the second parameter is
+the open mode, optionally followed by a file permission value.
+
+If @code{IO::File::open} receives a Perl mode string (">", "+<", etc.)
+or a POSIX fopen() mode string ("w", "r+", etc.), it uses the basic
+Perl open operator.
+
+If @code{IO::File::open} is given a numeric mode, it passes that mode
+and the optional permissions value to the Perl sysopen operator.
+For convenience, @code{IO::File::import} tries to import the O_XXX
+constants from the Fcntl module.  If dynamic loading is not available,
+this may fail, but the rest of IO::File will still work.
+
+@end table
+@unnumberedsec SEE ALSO
+
+@xref{(perl.info)perlfunc,Perlfunc},, 
+@samp{"I}, @xref{(perl.info)perlop,Perlop},,
+@samp{"I}, @xref{IO/Handle,IO/Handle},
+@samp{"I}, @xref{IO/Seekable,IO/Seekable},
+
+@unnumberedsec HISTORY
+
+Derived from FileHandle.pm by Graham Barr <@file{bodg@@tiuk.ti.com}>.
+
+@unnumberedsec REVISION
+
+$Revision: 1.5 $
+

@@ -1,0 +1,152 @@
+@node Agent, Alias, , Module List
+@unnumbered supplies agentspace methods for perl5.
+
+
+@unnumberedsec NAME
+
+Agent - supplies agentspace methods for perl5.
+
+@unnumberedsec SYNOPSIS
+
+@example
+use Agent;
+   
+@end example
+
+@unnumberedsec DESCRIPTION
+
+@code{Agent::new} creates @code{Agent} objects,  variables can be stored and
+retrieved within the @code{Agent}@'s agentspace with the @code{Agent::add}, 
+@code{Agent::write}, and @code{Agent::read} methods.  When the @code{Agent} needs to 
+be transported,  it can be packed completely via the @code{Agent::sleep} 
+method.  Once it gets wherever it@'s going,  use @code{Agent::wake} to 
+turn it back into an object.  To set the importance (priority level) of the
+agentspace,  use the @code{Agent::setpriority} method.  You can set the level of
+priority to three different values:  @code{Urgent},  Normal,  and @code{Low}.
+This will eventully define how much precedence the agentspace will have on a
+remote machine,  if lots of other agents are also running.  The
+@code{Agent::addcode} method allows you to add some form of code to the agent. 
+It does not matter what language the code is written in,  except when a remote 
+machine runs it, the particular remote machine must be able to read and 
+parse that language.
+
+Agent 2.91 @code{should} be backwardly compatible with the first release of
+Agent,  even though Agentspace has had data compartments replaced and added.
+
+@unnumberedsec @code{Agent::new}
+
+@example
+$my_agent = new Agent;
+@end example
+
+@example
+Agent::new creates Agentspace objects.
+@end example
+
+@unnumberedsec @code{Agent::add}
+
+@example
+$my_agent->add ( Name => @'A_Variable@',  Value => @'Untyped_value@' );  
+@end example
+
+@example
+Agent::add allows you to declare new variables inside the Agentspace.
+@end example
+
+@unnumberedsec @code{Agent::write}
+
+@example
+$my_agent->write ( Name => @'An_Existing_Variable@', Value => @'New_Value@' );
+@end example
+
+@example
+Agent::write lets you re-write (Modify) existing Agentspace variables.
+@end example
+
+@unnumberedsec @code{Agent::read}
+
+@example
+$my_value = $my_agent->read ( Name => @'A Variable@' );
+
+Agent::read lets you read variables out of the Agentspace.
+@end example
+
+@unnumberedsec @code{Agent::addcode}
+
+@example
+$my_agent->addcode ( Code => @'any_code@' );
+@end example
+
+@example
+Agent::addcode lets you add information into the Codespace of the Agent.
+@end example
+
+@unnumberedsec @code{Agent::setpriority}
+
+@example
+$my_agent->setpriority ( Level => @'Normal@' );
+@end example
+
+@example
+Agent::setpriority allows you to set the execution priority level of the
+Agentspace agent.  It has three levels: C<Urgent>, C<Normal>,  and C<Low>. 
+All agents start with priority level set at normal. 
+@end example
+
+@unnumberedsec @code{Agent::sleep}
+
+@example
+$my_var = $my_agent->sleep();
+@end example
+
+@example
+Agent::sleep returns a packed agentspace variable.  The contents of
+this variable could then be transported in many ways.
+
+@end example
+
+@unnumberedsec @code{Agent::wake}
+
+@example
+wake $my_agent Agent => $sleeping_agent;
+@end example
+
+@example
+Agent::wake is used to unpack agentspace created with packself.
+@end example
+
+@unnumberedsec @code{Agent::contents}
+
+@example
+$my_agent_vars = $my_agent->var_contents();
+$my_agent_code = $my_agent->code_contents();
+$my_agent_level = $my_agent->getlevel();
+@end example
+
+@example
+Agent::contents returns the contents of the various compartments within
+the agentspace.
+@end example
+
+@unnumberedsec HISTORY
+
+Agent 1.0   	General idea and bad implementation. @code{Undistibuted!}
+Agent 2.0	Better implementation.	@code{Undistributed!}
+Agent 2.9	Decent implementation. @code{First Distribtion!}
+Agent 2.91	Decent implementation, works with
+                Agentspace2 compartments. @code{Distributed}
+
+@unnumberedsec AUTHOR
+
+@example
+Agent/Agentspace code written by James Duncan <jduncan@@hawk.igs.net>
+@end example
+
+@unnumberedsec CREDITS
+
+@example
+Thanks go out to Steve Purkis <spurkis@@hawk.igs.net> and everyone who
+has submitted oo modules to CPAN.
+ 
+@end example
+

@@ -1,0 +1,35 @@
+@node Fatal, Fcntl, ExtUtils/testlib, Module List
+@unnumbered replace functions with equivalents which succeed or die
+
+
+@unnumberedsec NAME
+
+Fatal - replace functions with equivalents which succeed or die
+
+@unnumberedsec SYNOPSIS
+
+@example
+use Fatal qw(open print close);
+@end example
+
+@example
+sub juggle @{ . . . @}
+import Fatal @'juggle@';
+@end example
+
+@unnumberedsec DESCRIPTION
+
+Fatal provides a way to conveniently replace functions which normally
+return a false value when they fail with equivalents which halt execution
+if they are not successful.  This lets you use these functions without
+having to test their return values explicitly on each call.   Errors are
+reported via die, so you can trap them using @code{$SIG@{__DIE__@}} if you
+wish to take some action before the program exits.
+
+The do-or-die equivalents are set up simply by calling Fatal@'s import
+routine, passing it the names of the functions to be replaced.  You may
+wrap both user-defined functions and CORE operators in this way.
+
+@unnumberedsec AUTHOR
+
+Lionel.Cons@@cern.ch

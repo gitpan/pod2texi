@@ -1,0 +1,220 @@
+@node SyslogScan/Summary, SyslogScan/SyslogEntry, SyslogScan/SendmailUtil, Module List
+@unnumbered encapsulates a tally of how many bytes people have sent and received through sendmail
+
+
+@unnumberedsec NAME
+
+SyslogScan::Summary -- encapsulates a tally of how many bytes people
+have sent and received through sendmail
+
+@unnumberedsec SYNOPSIS
+
+@example
+Use SyslogScan::Summary;
+Use SyslogScan::DeliveryIterator;
+@end example
+
+@example
+my $iter = new SyslogScan::DeliveryIterator(syslogList => 
+						[/var/log/syslog]);
+my $summary;
+if (defined $DOING_IT_THE_HARD_WAY_FOR_NO_PARTICULAR_REASON)
+@{
+	# feed a series of SyslogScan::Delivery objects
+	$summary = new SyslogScan::Summary();
+	my $delivery;
+	while ($delivery = $iter -> next())
+	@{
+	    $summary -> registerDelivery($delivery);
+@end example
+
+@example
+# You would instead use:
+# $summary -> registerDelivery($delivery,@'foo\.com\.$@')
+# if you only cared to get statistics relating to how
+# much mail users at foo.com sent or received.
+	@}
+    @}
+    else
+    @{
+	# slurps up all deliveries in the iterator,
+	# producing the same effect as the block above
+	$summary = new SyslogScan::Summary($iter);
+    @}
+@end example
+
+@example
+print $summary -> dump();
+@end example
+
+@example
+use SyslogScan::Usage;
+my $usage = $$summary@{@'john_doe@@foo.com@'@};
+if (defined $usage)
+@{
+	print "Here is the usage of John Doe at foo.com:\n";
+	print $usage -> dump();
+@}
+else
+@{
+    print "John Doe has neither sent nor received messages lately.\n";
+@}
+@end example
+
+@unnumberedsec DESCRIPTION
+
+A SyslogScan::Summary object will @'register@' a series of
+SyslogScan::Delivery objects.  All registered deliveries are grouped
+by sender and receiver e-mail addresses, and then added up.  Three
+sums are kept: Total Bytes Recieved, Total Bytes Sent, and Total Bytes
+Broadcast.
+
+@unnumberedsubsec Methods
+
+@table @asis
+@item static new() method
+new takes as arguments a (possibly null) list of
+SyslogScan::DeliveryIterator objects, from which it extracts
+and registers all queued deliveries.
+
+@item registerDelivery() method
+@emph{registerDelivery} takes as its first argument a SyslogScan::Delivery
+object followed by up to two optional patterns.  If the first pattern
+is specified, only those e-mail addresses which match the pattern are
+tallied.  This enables you to create an accounting summary for only
+those users at your site.
+
+If the second pattern is also specified, then deliveries will only be
+registered to the person matched by the first pattern if the second
+pattern matches the address at @'the other end of the pipe@'.
+
+Pattern-matches are case-insensitive.  Remember the @'(?!regexp)@'
+operation if you want only addresses which do _not_ match the pattern
+to get passed through the filter.  For example, if mail to or from
+@'support@' is exempt from billing charges, note that the pattern-match
+
+/^(?!support)/
+
+does _not_ match @'support@@foo.com@' but _does_ match
+@'random_guy@@foo.com@'.
+
+@item registerAllInIterators() method
+Takes as parameters two patterns and a list of iterators, then feeds
+deliveries in the iterators and the patterns to registerDelivery().
+
+For example:
+
+@example
+$sum -> registerAllInIterators(@'foo\.com$@',@'^(?!.*bar\.com$)@',@@iterList)
+@end example
+
+will bill users at foo.com for all mail extracted from @@iterList which
+was sent from foo.com to somewhere besides bar.com, or sent to foo.com
+from somewhere besides bar.com.
+
+@item dump() method
+dump returns a string containing address lines alternating with
+usage reports.  Usage reports are in the form:
+
+@example
+B#,Bb        S#,Sb        R#,Rb
+@end example
+
+Where:
+
+B# is the number of messages broadcast
+B# is the total number of bytes broadcast
+
+S# is the number of messages sent
+S# is the total number of bytes sent
+
+R# is the number of messages received
+R# is the total number of bytes received
+
+@item persist() method
+@emph{persist} takes as its single argument an output file-handle, and
+then persists the state of the summary to the file.
+
+@item static restore() method
+restore takes as its single argument an input file-handle which
+stores the results of a previous persist() command, and then returns a
+copy of the object in the state in which it was originally persisted.
+
+@item addSummary() method
+@emph{addSummary} takes as its single argument a second
+SyslogScan::Summary object, and then adds this second summary to the
+$self object.
+
+@end table
+@unnumberedsubsec Example of use
+
+Suppose I have a function getTodaySummary() which gets a Summary of
+the last 24 hours of sendmail logging.
+
+@example
+my $summary = getTodaySummary();
+open(SUMMARY1,">summary1.sav");
+$summary -> persist(\*SUMMARY1);
+close(SUMMARY1);
+exit 0;
+@end example
+
+@example
+# wait 24 hours
+@end example
+
+@example
+my $summary = getTodaySummary();
+open(SUMMARY2,">summary2.sav");
+$summary -> persist(\*SUMMARY2);
+close(SUMMARY2);
+exit 0;
+@end example
+
+@example
+# some time later, you decide you want a summary of the total
+# for both days.  So, you write this program:
+@end example
+
+@example
+open(INSUM1,"summary1.sav");
+my $sum = SyslogScan::Summary -> restore(\*INSUM1);
+@end example
+
+@example
+open(INSUM2,"summary2.sav");
+my $sum2 = SyslogScan::Summary -> restore(\*INSUM2);
+@end example
+
+@example
+$sum -> addSummary($sum2);
+print "Here is the grand total for both days:\n\n";
+print $sum -> dump();
+@end example
+
+@unnumberedsubsec Internals
+
+A SyslogScan::Summary object is a hash of SyslogScan::Usage objects,
+where the key is the e-mail address of the user in question.
+SyslogScan::Usage has its own man page which describes how to extract
+information without having to use the dump() method.
+
+@unnumberedsec AUTHOR and COPYRIGHT
+
+The author (Rolf Harold Nelson) can currently be e-mailed as
+rolf@@usa.healthnet.org.
+
+This code is Copyright (C) SatelLife, Inc. 1996.  All rights reserved.
+This code is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself.
+
+In no event shall SatelLife be liable to any party for direct,
+indirect, special, incidental, or consequential damages arising out of
+the use of this software and its documentation (including, but not
+limited to, lost profits) even if the authors have been advised of the
+possibility of such damage.
+
+@unnumberedsec SEE ALSO
+
+@xref{SyslogScan/Usage,SyslogScan/Usage},, @xref{SyslogScan/DeliveryIterator,SyslogScan/DeliveryIterator},,
+@xref{SyslogScan/Delivery,SyslogScan/Delivery},, @xref{SyslogScan/ByGroup,SyslogScan/ByGroup},

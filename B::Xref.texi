@@ -1,0 +1,83 @@
+@node B/Xref, BSD/Resource, AutoSplit, Module List
+@unnumbered Generates cross reference reports for Perl programs
+
+
+@unnumberedsec NAME
+
+B::Xref - Generates cross reference reports for Perl programs
+
+@unnumberedsec SYNOPSIS
+
+perl -MO=Xref[,OPTIONS] foo.pl
+
+@unnumberedsec DESCRIPTION
+
+The B::Xref module is used to generate a cross reference listing of all
+definitions and uses of variables, subroutines and formats in a Perl program.
+It is implemented as a backend for the Perl compiler.
+
+The report generated is in the following format:
+
+@example
+File filename1
+  Subroutine subname1
+	Package package1
+	  object1        C<line numbers>
+	  object2        C<line numbers>
+	  ...
+	Package package2
+	...
+@end example
+
+Each @strong{File} section reports on a single file. Each Subroutine section
+reports on a single subroutine apart from the special cases
+"(definitions)" and "(main)". These report, respectively, on subroutine
+definitions found by the initial symbol table walk and on the main part of
+the program or module external to all subroutines.
+
+The report is then grouped by the Package of each variable,
+subroutine or format with the special case "(lexicals)" meaning
+lexical variables. Each @strong{object} name (implicitly qualified by its
+containing Package) includes its type character(s) at the beginning
+where possible. Lexical variables are easier to track and even
+included dereferencing information where possible.
+
+The @code{line numbers} are a comma separated list of line numbers (some
+preceded by code letters) where that object is used in some way.
+Simple uses aren@'t preceded by a code letter. Introductions (such as
+where a lexical is first defined with my) are indicated with the
+letter "i". Subroutine and method calls are indicated by the character
+"&".  Subroutine definitions are indicated by "s" and format
+definitions by "f".
+
+@unnumberedsec OPTIONS
+
+Option words are separated by commas (not whitespace) and follow the
+usual conventions of compiler backend options.
+
+@table @asis
+@item @code{-oFILENAME}
+Directs output to @code{FILENAME} instead of standard output.
+
+@item -r
+Raw output. Instead of producing a human-readable report, outputs a line
+in machine-readable form for each definition/use of a variable/sub/format.
+
+@item @code{-D[tO]}
+(Internal) debug options, probably only useful if -r included.
+The t option prints the object on the top of the stack as it@'s
+being tracked. The O option prints each operator as it@'s being
+processed in the execution order of the program.
+
+@end table
+@unnumberedsec BUGS
+
+Non-lexical variables are quite difficult to track through a program.
+Sometimes the type of a non-lexical variable@'s use is impossible to
+determine. Introductions of non-lexical non-scalars don@'t seem to be
+reported properly.
+
+@unnumberedsec AUTHOR
+
+Malcolm Beattie, mbeattie@@sable.ox.ac.uk.
+

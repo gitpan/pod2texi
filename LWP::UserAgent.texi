@@ -1,0 +1,272 @@
+@node LWP/UserAgent, Log/Topics, LWP/TkIO, Module List
+@unnumbered A WWW UserAgent class
+
+
+@unnumberedsec NAME
+
+LWP::UserAgent - A WWW UserAgent class
+
+@unnumberedsec SYNOPSIS
+
+@example
+require LWP::UserAgent;
+$ua = new LWP::UserAgent;
+@end example
+
+@example
+$request = new HTTP::Request(@'GET@', @'file://localhost/etc/motd@');
+@end example
+
+@example
+$response = $ua->request($request); # or
+$response = $ua->request($request, @'/tmp/sss@'); # or
+$response = $ua->request($request, \&callback, 4096);
+@end example
+
+@example
+sub callback @{ my($data, $response, $protocol) = @@_; .... @}
+@end example
+
+@unnumberedsec DESCRIPTION
+
+The @code{LWP::UserAgent} is a class implementing a simple World-Wide Web
+user agent in Perl. It brings together the HTTP::Request,
+HTTP::Response and the LWP::Protocol classes that form the rest of the
+core of libwww-perl library. For simple uses this class can be used
+directly to dispatch WWW requests, alternatively it can be subclassed
+for application-specific behaviour.
+
+In normal usage the application creates a UserAgent object, and then
+configures it with values for timeouts proxies, name, etc. The next
+step is to create an instance of @code{HTTP::Request} for the request that
+needs to be performed. This request is then passed to the UserAgent
+request() method, which dispatches it using the relevant protocol,
+and returns a @code{HTTP::Response} object.
+
+The basic approach of the library is to use HTTP style communication
+for all protocol schemes, i.e. you will receive an @code{HTTP::Response}
+object also for gopher or ftp requests.  In order to achieve even more
+similarities with HTTP style communications, gopher menus and file
+directories will be converted to HTML documents.
+
+The request() method can process the content of the response in one of
+three ways: in core, into a file, or into repeated calls of a
+subroutine.  You choose which one by the kind of value passed as the
+second argument to request().
+
+The in core variant simply returns the content in a scalar attribute
+called content() of the response object, and is suitable for small
+HTML replies that might need further parsing.  This variant is used if
+the second argument is missing (or is undef).
+
+The filename variant requires a scalar containing a filename as the
+second argument to request(), and is suitable for large WWW objects
+which need to be written directly to the file, without requiring large
+amounts of memory. In this case the response object returned from
+request() will have empty content().  If the request fails, then the
+content() might not be empty, and the file will be untouched.
+
+The subroutine variant requires a reference to callback routine as the
+second argument to request() and it can also take an optional chuck
+size as third argument.  This variant can be used to construct
+"pipe-lined" processing, where processing of received chuncks can
+begin before the complete data has arrived.  The callback function is
+called with 3 arguments: the data received this time, a reference to
+the response object and a reference to the protocol object.  The
+response object returned from request() will have empty content().  If
+the request fails, then the the callback routine will not have been
+called, and the response->content() might not be empty.
+
+The request can be aborted by calling die() within the callback
+routine.  The die message will be available as the "X-Died" special
+response header field.
+
+The library also accepts that you put a subroutine reference as
+content in the request object.  This subroutine should return the
+content (possibly in pieces) when called.  It should return an empty
+string when there is no more content.
+
+The user of this module can finetune timeouts and error handling by
+calling the use_alarm() and use_eval() methods.
+
+By default the library uses alarm() to implement timeouts, dying if
+the timeout occurs. If this is not the prefered behaviour or it
+interferes with other parts of the application one can disable the use
+alarms. When alarms are disabled timeouts can still occur for example
+when reading data, but other cases like name lookups etc will not be
+timed out by the library itself.
+
+The library catches errors (such as internal errors and timeouts) and
+present them as HTTP error responses. Alternatively one can switch off
+this behaviour, and let the application handle dies.
+
+@unnumberedsec SEE ALSO
+
+See @xref{LWP,LWP}, for a complete overview of libwww-perl5.  See @samp{request} in this node and
+@samp{mirror} in this node for examples of usage.
+
+@unnumberedsec METHODS
+
+@unnumberedsubsec $ua = new LWP::UserAgent;
+
+Constructor for the UserAgent.  Returns a reference to a
+LWP::UserAgent object.
+
+@unnumberedsubsec $ua->simple_request($request, [$arg [, $size]])
+
+This method dispatches a single WWW request on behalf of a user, and
+returns the response received.  The @code{$request} should be a reference
+to a @code{HTTP::Request} object with values defined for at least the
+method() and url() attributes.
+
+If @code{$arg} is a scalar it is taken as a filename where the content of
+the response is stored.
+
+If @code{$arg} is a reference to a subroutine, then this routine is called
+as chunks of the content is received.  An optional @code{$size} argument
+is taken as a hint for an appropriate chunk size.
+
+If @code{$arg} is omitted, then the content is stored in the response
+object itself.
+
+@unnumberedsubsec $ua->request($request, $arg [, $size])
+
+Process a request, including redirects and security.  This method may
+actually send several different simple reqeusts.
+
+The arguments are the same as for @code{simple_request()}.
+
+@unnumberedsubsec $ua->redirect_ok
+
+This method is called by request() before it tries to do any
+redirects.  It should return a true value if the redirect is allowed
+to be performed. Subclasses might want to override this.
+
+The default implementation will return FALSE for POST request and TRUE
+for all others.
+
+@unnumberedsubsec $ua->credentials($netloc, $realm, $uname, $pass)
+
+Set the user name and password to be used for a realm.  It is often more
+useful to specialize the get_basic_credentials() method instead.
+
+@unnumberedsubsec $ua->get_basic_credentials($realm, $uri)
+
+This is called by request() to retrieve credentials for a Realm
+protected by Basic Authentication or Digest Authentication.
+
+Should return username and password in a list.  Return undef to abort
+the authentication resolution atempts.
+
+This implementation simply checks a set of pre-stored member
+variables. Subclasses can override this method to e.g. ask the user
+for a username/password.  An example of this can be found in
+@code{lwp-request} program distributed with this library.
+
+@unnumberedsubsec $ua->agent([$product_id])
+
+Get/set the product token that is used to identify the user agent on
+the network.  The agent value is sent as the "User-Agent" header in
+the requests. The default agent name is "libwww-perl/#.##", where
+"#.##" is substitued with the version numer of this library.
+
+The user agent string should be one or more simple product identifiers
+with an optional version number separated by the "/" character.
+Examples are:
+
+@example
+$ua->agent(@'Checkbot/0.4 @' . $ua->agent);
+$ua->agent(@'Mozilla/5.0@');
+@end example
+
+@unnumberedsubsec $ua->from([$email_address])
+
+Get/set the Internet e-mail address for the human user who controls
+the requesting user agent.  The address should be machine-usable, as
+defined in RFC 822.  The from value is send as the "From" header in
+the requests.  There is no default.  Example:
+
+@example
+$ua->from(@'aas@@sn.no@');
+@end example
+
+@unnumberedsubsec $ua->timeout([$secs])
+
+Get/set the timeout value in seconds. The default timeout() value is
+180 seconds, i.e. 3 minutes.
+
+@unnumberedsubsec $ua->use_alarm([$boolean])
+
+Get/set a value indicating wether to use alarm() when implementing
+timeouts.  The default is TRUE, i.e. to use alarm.  Disable this on
+systems that does not implement alarm, or if this interfers with other
+uses of alarm in your application.
+
+@unnumberedsubsec $ua->use_eval([$boolean])
+
+Get/set a value indicating wether to handle internal errors internally
+by trapping with eval.  The default is TRUE, i.e. the $ua->request()
+will never die.
+
+@unnumberedsubsec $ua->parse_head([$boolean])
+
+Get/set a value indicating wether we should initialize response
+headers from the <head> section of HTML documents. The default is
+TRUE.  Do not turn this off, unless you know what you are doing.
+
+@unnumberedsubsec $ua->clone;
+
+Returns a copy of the LWP::UserAgent object
+
+@unnumberedsubsec $ua->is_protocol_supported($scheme)
+
+You can use this method to query if the library currently support the
+specified @code{scheme}.  The @code{scheme} might be a string (like @'http@' or
+@'ftp@') or it might be an URI::URL object reference.
+
+@unnumberedsubsec $ua->mirror($url, $file)
+
+Get and store a document identified by a URL, using If-Modified-Since,
+and checking of the Content-Length.  Returns a reference to the
+response object.
+
+@unnumberedsubsec $ua->proxy(...)
+
+Set/retrieve proxy URL for a scheme:
+
+@example
+$ua->proxy([@'http@', @'ftp@'], @'http://proxy.sn.no:8001/@');
+$ua->proxy(@'gopher@', @'http://proxy.sn.no:8001/@');
+@end example
+
+The first form specifies that the URL is to be used for proxying of
+access methods listed in the list in the first method argument,
+i.e. @'http@' and @'ftp@'.
+
+The second form shows a shorthand form for specifying
+proxy URL for a single access scheme.
+
+@unnumberedsubsec $ua->env_proxy()
+
+Load proxy settings from *_proxy environment variables.  You might
+specify proxies like this (sh-syntax):
+
+@example
+gopher_proxy=http://proxy.my.place/
+wais_proxy=http://proxy.my.place/
+no_proxy="my.place"
+export gopher_proxy wais_proxy no_proxy
+@end example
+
+Csh or tcsh users should use the @code{setenv} command to define these
+envirionment variables.
+
+@unnumberedsubsec $ua->no_proxy($domain,...)
+
+Do not proxy requests to the given domains.  Calling no_proxy without
+any domains clears the list of domains. Eg:
+
+@example
+$ua->no_proxy(@'localhost@', @'no@', ...);
+@end example
+

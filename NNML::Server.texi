@@ -1,0 +1,100 @@
+@node NNML/Server, Net/Cmd, NDBM_File, Module List
+@unnumbered a minimal NNTP server
+
+
+@unnumberedsec NAME
+
+NNML::Server - a minimal NNTP server
+
+@unnumberedsec SYNOPSIS
+
+@example
+perl -MNNML::Server -e @'server()@'
+@end example
+
+@unnumberedsec DESCRIPTION
+
+@strong{NNML::Server} server implements a minimal NNTP server. It is (hope-)
+fully conformant to rfc977. In addition the commands @code{XOVER} and
+@code{AUTHINFO} are implemented.
+
+Supported commands:
+
+@example
+ARTICLE, AUTHINFO, BODY, GROUP, HEAD, HELP, IHAVE, LAST, LIST,
+MODE, NEWGROUPS, NEWNEWS, NEXT, POST, QUIT, SLAVE, STAT, XOVER
+@end example
+
+The main reason for writing this was to synchronize my mail directories
+across different hosts. The Mail directories are MH-Style with a @file{.overview}
+file in each folder and an active file in the base
+directory. These are maintained by the @strong{Emacs} @strong{Gnus} backend
+@strong{NNML}. To get started, you can generate/update this files using the
+@strong{overview} program. Upon POST and @code{IHAVE} commands this files
+will also be updated.
+
+To start from scratch use:
+
+@example
+touch /tmp/active;
+perl -MNNML::Server -e @'server(base => "/tmp", port => 3000)@'
+@end example
+
+To export your mh-Mail use:
+
+@example
+perl overview -base ~/Mail
+perl -MNNML::Server -e @'server(base => "$ENV@{HOME@}/Mail", port => 3000)@'
+@end example
+
+The command POST and @strong{IHAVE} honour the @code{Newsgroups} header @strong{if}
+not overwritten by the @code{X-Nnml-Groups} header. Articles will contain
+an appropriate @code{X-Nnml-Groups} header when retrieved by message-id.
+
+@unnumberedsec AUTHORIZATION
+
+To enable access restrictions use:
+
+@example
+perl -MNNML::Auth -e "NNML::Auth::add_user($ENV@{LOGANME@}, @'passwd@', \
+  @'read@', @'write@', @'admin@')"
+@end example
+
+If @emph{base}@file{/passwd} exists, three levels of authorization are recognized:
+
+@table @asis
+@item admin
+Users with permission admin may shut down the server using @code{SHUT}.
+Also these users may create new groups simply by posting to them.
+
+@item write
+Users with permission write may use the POST and @strong{IHAVE} commands.
+
+@item read
+All other commands require the read permission.
+
+@end table
+@unnumberedsec FEATURES
+
+Version 1.06 implements the @code{MODE GZIP} command. After submiting this
+commands, all articles, heads and bodies will be piped through @code{gzip
+-cf | mimencode}. The server will recognize post requeste using the
+same pipe automatically. This will speed up @strong{nnmirror} if the line is
+sufficiant slow.
+
+@unnumberedsec BUGS
+
+The server handles multiple connections in a single thread. So a hung
+POST or @code{IHAVE} would block all connections. Therfore a post
+request is interrupted if the server could not read any bytes for 30
+seconds. The Client is notified by message 441. If the client
+continues to send the article, it is interpreted by the command loop.
+
+@unnumberedsec SEE ALSO
+
+The @strong{overview}(1) and @strong{nnmirror}(1) manpages.
+
+@unnumberedsec AUTHOR
+
+Ulrich Pfeifer <@file{pfeifer@@ls6.informatik.uni-dortmund.de}>
+

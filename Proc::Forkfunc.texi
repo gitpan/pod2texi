@@ -1,0 +1,30 @@
+@node Proc/Forkfunc, Proc/Simple, Pod/test, Module List
+@unnumbered fork off a function
+
+
+@unnumberedsec NAME
+
+Proc::Forkfunk -- fork off a function
+
+@unnumberedsec SYNOPSIS
+
+@example
+use Proc::Forkfunc;
+@end example
+
+@example
+forkfunc(\&child_func,@@child_args);
+@end example
+
+@unnumberedsec DESCRIPTION
+
+Fork off a process.  Call a function on the child process
+the function should be passed in as a reference.  
+The child function should not return.
+
+Logic copied from somewhere, probably Larry Wall.
+
+@unnumberedsec AUTHOR
+
+David Muir Sharnoff <muir@@idiom.com>
+

@@ -1,0 +1,48 @@
+@node ExtUtils/Install, ExtUtils/Liblist, ExtUtils/Embed, Module List
+@unnumbered install files from here to there
+
+
+@unnumberedsec NAME
+
+ExtUtils::Install - install files from here to there
+
+@unnumberedsec SYNOPSIS
+
+@strong{use ExtUtils::Install;}
+
+@strong{install($hashref,$verbose,$nonono);}
+
+@strong{uninstall($packlistfile,$verbose,$nonono);}
+
+@strong{pm_to_blib($hashref);}
+
+@unnumberedsec DESCRIPTION
+
+Both install() and uninstall() are specific to the way
+ExtUtils::MakeMaker handles the installation and deinstallation of
+perl modules. They are not designed as general purpose tools.
+
+install() takes three arguments. A reference to a hash, a verbose
+switch and a don@'t-really-do-it switch. The hash ref contains a
+mapping of directories: each key/value pair is a combination of
+directories to be copied. Key is a directory to copy from, value is a
+directory to copy to. The whole tree below the "from" directory will
+be copied preserving timestamps and permissions.
+
+There are two keys with a special meaning in the hash: "read" and
+"write". After the copying is done, install will write the list of
+target files to the file named by @code{$hashref->@{write@}}. If there is
+another file named by @code{$hashref->@{read@}}, the contents of this file will
+be merged into the written file. The read and the written file may be
+identical, but on AFS it is quite likely, people are installing to a
+different directory than the one where the files later appear.
+
+uninstall() takes as first argument a file containing filenames to be
+unlinked. The second argument is a verbose switch, the third is a
+no-don@'t-really-do-it-now switch.
+
+pm_to_blib() takes a hashref as the first argument and copies all keys
+of the hash to the corresponding values efficiently. Filenames with
+the extension pm are autosplit. Second argument is the autosplit
+directory.
+

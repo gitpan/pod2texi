@@ -1,0 +1,53 @@
+@node ConfigFile, Convert/UU, Config, Module List
+@unnumbered Perl module to read and write Windows-like config files
+
+
+@unnumberedsec NAME
+
+ConfigFile.pm -- Perl module to read and write Windows-like config files
+
+@unnumberedsec SYSNOPSIS
+
+@example
+use ConfigFile;
+$config = new ConfigFile "config_file_path";
+$val = $config->Parameter ($section, $parameter);
+$config->Parameter ($section, $parameter, $val);
+@end example
+
+@unnumberedsec DESCRIPTION
+
+This module provides an easy and standard way for accessing configuration
+files from Perl. Its structure is meant to be very simple and extendable. 
+The module reads and writes configuration files that are simular to 
+Microsoft Windows INI files. 
+
+The Windows INI file format was chosen because of its simplicity, 
+the ability to have multiple sections, and the wide spread use in many 
+hundreds of applications. The file format consists of
+three types of lines: section declarations, definitions, and comments. 
+
+@itemize @bullet
+@item Section declarations Section declarations simply mark the start of another section in the configuration file. It is easily recognizable because of the square brackets ([]) that surround the section name. Any white space that is placed on this line--before, inside, or after the square  brackets--is ignored. Any white space within the section name is squeezed down to a single space.
+@item Section definitions Section definitions are the actual settings. The section definitions consists of key and value pairs that are seperated by an equal sign (=). Any white space that is before or after the key or value  is ignored. White space in the key portion is left intact and is squeezed down to one space. The value portion is treated the same as a key unless it is surrounded by double quotes ("), in which case the white space remains as is and the double quotes are  removed from the value portion.
+@item Comments Comments are totally ignored. Comment lines begin with either a semicolon (;) or a pound sign (#). White space is allowed before the semicolon and pound sign. A comment can not be on  the same line as a section definition. 
+@end itemize
+@unnumberedsubsec Configuration File Example
+
+@example
+; Mail configuration 
+@end example
+
+@example
+[ Mail ]
+
+User = hickey
+Connection Type = imap
+@end example
+
+@unnumberedsec AUTHOR
+
+
+Gerard Hickey
+hickey@@ctron.com
+

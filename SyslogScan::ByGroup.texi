@@ -1,0 +1,92 @@
+@node SyslogScan/ByGroup, SyslogScan/Delivery, SysV, Module List
+@unnumbered Organizes a Summary of mail statistics into Groups of related e-mail users
+
+
+@unnumberedsec NAME
+
+SyslogScan::ByGroup -- Organizes a Summary of mail statistics into
+Groups of related e-mail users
+
+@unnumberedsec SYNOPSIS
+
+@example
+# $summary is a SyslogScan::Summary object
+@end example
+
+@example
+# default is to organize by internet host
+my $byGroup = new SyslogScan::ByGroup($summary);
+print $byGroup -> dump();
+@end example
+
+@example
+# group by whether users use @'jupiter@' or @'satellife@' as
+# their machine name, and discard users who use neither
+@end example
+
+@example
+my $pointerToGroupingRoutine = sub @{
+	my $address = shift;
+@end example
+
+@example
+return @'jupiter@' if $address =~ /jupiter.healthnet.org$/;
+	return @'satellife@' if $address =~ /satellife.healthnet.org$/;
+@end example
+
+@example
+# ignore all others
+return undef;
+    @}
+@end example
+
+@example
+my $groupByMachine = new SyslogScan::ByGroup($summary,
+						 $pointerToGroupingRoutine);
+print $groupByMachine -> dump();
+@end example
+
+@example
+# Extract a SyslogScan::Group object
+my $jupiterGroup = $$groupByMachine@{jupiter@};
+print $jupiterGroup -> dump();
+@end example
+
+@example
+# Extract a SyslogScan::Summary object
+my $summaryOfJupiter = $jupiterGroup@{byAddress@};
+print $summaryOfJupiter -> dump();
+
+# Create a summary by group, rather than a summary by address
+my $summaryByMachine = $groupByMachine -> createSummary();
+@end example
+
+@unnumberedsec DESCRIPTION
+
+A SyslogScan::ByGroup object is a hash table of SyslogScan::Group
+objects, each indexed by the group name as returned by the sorting
+algorithm fed to @'new@'.
+
+A SyslogScan::Group is a hash table with two members: @'byAddress@',
+which is a SyslogScan::Summary of each address which is a member of
+the Group, and @'groupUsage@', which is a SyslogScan::Usage object
+containing the total usage of the group.
+
+@unnumberedsec AUTHOR and COPYRIGHT
+
+The author (Rolf Harold Nelson) can currently be e-mailed as
+rolf@@usa.healthnet.org.
+
+This code is Copyright (C) SatelLife, Inc. 1996.  All rights reserved.
+This code is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself.
+
+In no event shall SatelLife be liable to any party for direct,
+indirect, special, incidental, or consequential damages arising out of
+the use of this software and its documentation (including, but not
+limited to, lost profits) even if the authors have been advised of the
+possibility of such damage.
+
+@unnumberedsec SEE ALSO
+
+@xref{SyslogScan/Summary,SyslogScan/Summary},, @xref{SyslogScan/Usage,SyslogScan/Usage},

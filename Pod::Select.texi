@@ -1,0 +1,67 @@
+@node Pod/Select, Pod/Text, Pod/Parser, Module List
+@unnumbered function to extract selected sections of pod documentation
+
+
+@unnumberedsec NAME
+
+podselect - function to extract selected sections of pod documentation
+
+@unnumberedsec SYNOPSIS
+
+@example
+use Pod::Select;
+podselect (@@filelist);
+podselect (@{OUTPUT => "tmp.out"@}, @@filelist):
+podselect (@{SELECT => ["NAME|SYNOPSIS", "OPTIONS"]@}, @@filelist):
+podselect (@{OUTPUT => ">&STDERR", SELECT => ["DESCRIPTION"]@}, "-");
+@end example
+
+@unnumberedsec DESCRIPTION
+
+@strong{podselect()} is a function which will extract specified sections of
+pod documentation from an input stream. This ability is already provided
+in the @strong{Pod::Parser} module. Subclasses of @strong{Pod::Parser} that wish to
+take advantage of this feature do @emph{not} need to derive from
+@strong{Pod::Select}. @strong{Pod::Select} merely provides a single function named
+@strong{podselect()} which provides this capability in function form (as
+opposed to object form) for extracting the raw pod docs.
+
+@unnumberedsubsec podselect(\%options, @@filelist)
+
+@strong{podselect} will print the raw (untranslated) pod documentation of all
+pod sections in the given input files specified by @code{@@filelist}
+according to the given options.
+
+If any argument to @strong{podselect} is a reference to a hash
+(associative array) then the values with the following keys are
+processed as follows:
+
+@table @asis
+@item OUTPUT
+A string corresponding to the desired output file (or ">&STDOUT"
+or ">&STDERR"). The default is to use standard output.
+
+@item @code{SELECT}
+A reference to an array of sections specifications (as described in
+@samp{"SECTION SPECIFICATIONS"}, @xref{Pod/Parser,Pod/Parser},) which indicate the desired set of pod
+sections and subsections to be selected from input. If no section
+specifications are given, then all sections of pod documentation are
+used.
+
+@end table
+All other arguments should correspond to the names of input files
+containing pod documentation. A file name of "-" or "<&STDIN" will
+be interpeted to mean standard input (which is the default if no
+filenames are given).
+
+@unnumberedsec SEE ALSO
+
+@xref{Pod/Parser,Pod/Parser},
+
+@unnumberedsec AUTHOR
+
+Brad Appleton <Brad_Appleton-GBDA001@@email.mot.com>
+
+Based on code for @strong{pod2text} written by
+Tom Christiansen <tchrist@@mox.perl.com>
+

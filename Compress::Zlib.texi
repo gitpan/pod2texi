@@ -1,0 +1,544 @@
+@node Compress/Zlib, Config, Color, Module List
+@unnumbered Interface to zlib compression library
+
+
+@unnumberedsec NAME
+
+Compress::Zlib - Interface to zlib compression library
+
+@unnumberedsec SYNOPSIS
+
+@example
+use Compress::Zlib ;
+@end example
+
+@example
+($d, $status) = deflateInit() ;
+($out, $status) = $d->deflate($buffer) ;
+($out, $status) = $d->flush() ;
+$d->dict_adler() ;
+@end example
+
+@example
+($i, $status) = inflateInit() ;
+($out, $status) = $i->inflate($buffer) ;
+$i->dict_adler() ;
+@end example
+
+@example
+$dest = compress($source) ;
+$dest = uncompress($source) ;
+@end example
+
+@example
+$gz = gzopen($filename, $mode) ;
+$status = $gz->gzread($buffer [,$size]) ;
+$status = $gz->gzreadline($line) ;
+$status = $gz->gzwrite($buffer) ;
+$status = $gz->gzflush($flush) ;
+$status = $gz->gzclose() ;
+$errstring = $gz->gzerror() ; 
+$gzerrno
+@end example
+
+@example
+$crc = adler32($buffer [,$crc]) ;
+$crc = crc32($buffer [,$crc]) ;
+@end example
+
+@example
+ZLIB_VERSION
+@end example
+
+@unnumberedsec DESCRIPTION
+
+The @emph{Compress::Zlib} module provides a Perl interface to the @emph{zlib}
+compression library (see @samp{} in this node for details about where to get
+@emph{zlib}). Most of the functionality provided by @emph{zlib} is available
+in @emph{Compress::Zlib}.
+
+The module can be split into two general areas of functionality, namely
+in-memory compression/decompression and read/write access to @emph{gzip}
+files. Each of these areas will be discussed separately below.
+
+@strong{WARNING: The interface defined in this document is alpha and is
+liable to change.}
+
+@unnumberedsec DEFLATE 
+
+The interface @emph{Compress::Zlib} provides to the in-memory @emph{deflate}
+(and @emph{inflate}) functions has been modified to fit into a Perl model.
+
+The main difference is that for both inflation and deflation, the Perl
+interface will @emph{always} consume the complete input buffer before
+returning. Also the output buffer returned will be automatically grown
+to fit the amount of output available.
+
+Here is a definition of the interface available:
+
+@unnumberedsubsec ($d, $status) = deflateInit()
+
+Initialises a deflation stream. 
+
+It combines the features of the @emph{zlib} functions @strong{deflateInit},
+@strong{deflateInit2} and @strong{deflateSetDictionary}.
+
+If successful, it will return the initialised deflation stream, $d
+and $status of @code{Z_OK} in a list context. In scalar context it
+returns the deflation stream, $d, only.
+
+If not successful, the returned deflation stream ($d) will be
+undef and $status will hold the exact @emph{zlib} error code.
+
+The function takes one optional parameter, a reference to a hash.  The
+contents of the hash allow the deflation interface to be tailored.
+
+Below is a list of the valid keys that the hash can take:
+
+@table @asis
+@item Level
+Defines the compression level. Valid values are 1 through 9,
+@code{Z_BEST_SPEED}, @code{Z_BEST_COMPRESSION}, and @code{Z_DEFAULT_COMPRESSION}.
+
+The default is @code{Z_DEFAULT_COMPRESSION}.
+
+@item Method
+Defines the compression method. The only valid value at present (and
+the default) is @code{Z_DEFLATED}.
+
+@item WindowBits
+For a definition of the meaning and valid values for WindowBits
+refer to the @emph{zlib} documentation for @emph{deflateInit2}.
+
+Defaults to @code{MAX_WBITS}.
+
+@item MemLevel
+For a definition of the meaning and valid values for MemLevel
+refer to the @emph{zlib} documentation for @emph{deflateInit2}.
+
+Defaults to @code{MAX_MEM_LEVEL}.
+
+@item Strategy
+Defines the strategy used to tune the compression. The valid values are
+@code{Z_DEFAULT_STRATEGY}, @code{Z_FILTERED} and @code{Z_HUFFMAN_ONLY}. 
+
+The default is @code{Z_DEFAULT_STRATEGY}.
+
+@item Dictionary
+When a dictionary is specified @emph{Compress::Zlib} will automatically
+call @strong{deflateSetDictionary} directly after calling @strong{deflateInit}. The
+Adler32 value for the dictionary can be obtained by calling tht method 
+@code{$d-}dict_adler()>.
+
+The default is no dictionary.
+
+@item Bufsize
+Sets the initial size for the deflation buffer. If the buffer has to be
+reallocated to increase the size, it will grow in increments of
+Bufsize.
+
+The default is 4096.
+
+@end table
+Here is an example of using the @strong{deflateInit} optional parameter to
+override the default buffer size and compression level.
+
+@example
+deflateInit( @{Bufsize => 300, Level => Z_BEST_SPEED @} ) ;
+@end example
+
+@unnumberedsubsec ($out, $status) = $d->deflate($buffer)
+
+Deflates the contents of @strong{$buffer}. When finished, @strong{$buffer} will be
+completely processed (assuming there were no errors). If the deflation
+was successful it returns the deflated output, @strong{$out}, and a status
+value, $status, of @code{Z_OK}.
+
+On error, @strong{$out} will be undef and $status will contain the
+@emph{zlib} error code.
+
+In a scalar context @strong{deflate} will return @strong{$out} only.
+
+As with the @emph{deflate} function in @emph{zlib}, it is not necessarily the
+case that any output will be produced by this method. So don@'t rely on
+the fact that @strong{$out} is empty for an error test.
+
+@unnumberedsubsec ($out, $status) = $d->flush()
+
+Finishes the deflation. Any pending output will be returned via @strong{$out}.
+$status will have a value @code{Z_OK} if successful.
+
+In a scalar context flush will return @strong{$out} only.
+
+Note that flushing can degrade the compression ratio, so it should only
+be used to terminate a decompression.
+
+@unnumberedsubsec $d->dict_adler()
+
+Returns the adler32 value for the dictionary.
+
+@unnumberedsubsec Example
+
+Here is a trivial example of using @strong{deflate}. It simply reads standard
+input, deflates it and writes it to standard output.
+
+@example
+use Compress::Zlib ;
+@end example
+
+@example
+$x = deflateInit()
+   or die "Cannot create a deflation stream\n" ;
+@end example
+
+@example
+while (<>)
+@{
+    ($output, $status) = $x->deflate($_) ;
+
+    $status == Z_OK
+        or die "deflation failed\n" ;
+@end example
+
+@example
+print $output ;
+    @}
+@end example
+
+@example
+($output, $status) = $x->flush() ;
+@end example
+
+@example
+$status == Z_OK
+    or die "deflation failed\n" ;
+@end example
+
+@example
+print $output ;
+@end example
+
+@unnumberedsec INFLATE
+
+Here is a definition of the interface:
+
+@unnumberedsubsec ($i, $status) = inflateInit()
+
+Initialises an inflation stream. 
+
+In a list context it returns the inflation stream, @strong{$i}, and the
+@emph{zlib} status code ($status). In a scalar context it returns the
+inflation stream only.
+
+If successful, @strong{$i} will hold the inflation stream and $status will
+be @code{Z_OK}.
+
+If not successful, @strong{$i} will be undef and $status will hold the
+@emph{zlib} error code.
+
+The function takes one optional parameter, a reference to a hash.  The
+contents of the hash allow the inflation interface to be tailored.
+
+Below is a list of the valid keys that the hash can take.
+
+@table @asis
+@item WindowBits
+For a definition of the meaning and valid values for WindowBits
+refer to the @emph{zlib} documentation for @emph{inflateInit2}.
+
+Defaults to @code{MAX_WBITS}.
+
+@item Bufsize
+Sets the initial size for the inflation buffer. If the buffer has to be
+reallocated to increase the size, it will grow in increments of
+Bufsize. 
+
+Default is 4096.
+
+@item Dictionary
+The default is no dictionary.
+
+@end table
+Here is an example of using the @strong{inflateInit} optional parameter to
+override the default buffer size.
+
+@example
+deflateInit( @{Bufsize => 300 @} ) ;
+@end example
+
+@unnumberedsubsec ($out, $status) = $i->inflate($buffer)
+
+Inflates the complete contents of @strong{$buffer} 
+
+Returns @code{Z_OK} if successful and @code{Z_STREAM_END} if the end of the
+compressed data has been reached.
+
+@unnumberedsubsec $i->dict_adler()
+
+@unnumberedsubsec Example
+
+Here is an example of using @strong{inflate}.
+
+@example
+use Compress::Zlib ;
+@end example
+
+@example
+$x = inflateInit()
+   or die "Cannot create a inflation stream\n" ;
+@end example
+
+@example
+$input = @'@' ;
+@end example
+
+@example
+while (read(STDIN, $input, 4096))
+@{
+    ($output, $status) = $x->inflate($input) ;
+@end example
+
+@example
+print $output 
+    if $status == Z_OK or $status == Z_STREAM_END ;
+@end example
+
+@example
+last if $status != Z_OK ;
+    @}
+@end example
+
+@example
+die "inflation failed\n"
+    unless $status == Z_STREAM_END ;
+@end example
+
+@unnumberedsec COMPRESS/UNCOMPRESS
+
+Two high-level functions are provided by @emph{zlib} to perform in-memory
+compression. They are @strong{compress} and @strong{uncompress}. Two Perl subs are
+provided which provide similar functionality.
+
+@table @asis
+@item @strong{$dest = compress($source) ;}
+Compresses @strong{$source}. If successful it returns the
+compressed data. Otherwise it returns undef.
+
+@item @strong{$dest = uncompress($source) ;}
+Uncompresses @strong{$source}. If successful it returns the uncompressed
+data. Otherwise it returns undef.
+
+@end table
+@unnumberedsec GZIP INTERFACE
+
+A number of functions are supplied in @emph{zlib} for reading and writing
+@emph{gzip} files. This module provides an interface to most of them. In
+general the interface provided by this module operates identically to
+the functions provided by @emph{zlib}. Any differences are explained
+below.
+
+@table @asis
+@item @strong{$gz = gzopen(filename, mode)}
+This function operates identically to the @emph{zlib} equivalent except
+that it returns an object which is used to access the other @emph{gzip}
+methods.
+
+As with the @emph{zlib} equivalent, the @strong{mode} parameter is used to
+specify both whether the file is opened for reading or writing and to
+optionally specify a a compression level. Refer to the @emph{zlib}
+documentation for the exact format of the @strong{mode} parameter.
+
+@item @strong{$status = $gz->gzread($buffer [, $size]) ;}
+Reads @strong{$size} bytes from the compressed file into @strong{$buffer}. If
+@strong{$size} is not specified, it will default to 4096. If the scalar
+@strong{$buffer} is not large enough, it will be extended automatically.
+
+@item @strong{$status = $gz->gzreadline($line) ;}
+Reads the next line from the compressed file into @strong{$line}.
+
+It is legal to intermix calls to @strong{gzread} and @strong{gzreadline}.
+
+At this time @strong{gzreadline} ignores the variable $/
+($INPUT_RECORD_SEPARATOR or $RS when English is in use). The
+end of a line is denoted by the C character @code{@'\n@'}.
+
+@item @strong{$status = $gz->gzwrite($buffer) ;}
+Writes the contents of @strong{$buffer} to the compressed file.
+
+@item @strong{$status = $gz->gzflush($flush) ;}
+Flushes all pending output into the compressed file.
+Works identically to the @emph{zlib} function it interfaces to. Note that
+the use of @strong{gzflush} can degrade compression.
+
+Refer to the @emph{zlib} documentation for the valid values of @strong{$flush}.
+
+@item @strong{$gz->gzclose}
+Closes the compressed file. Any pending data is flushed to the file
+before it is closed.
+
+@item @strong{$gz->gzerror}
+Returns the @emph{zlib} error message or number for the last operation
+associated with $gz. The return value will be the @emph{zlib} error
+number when used in a numeric context and the @emph{zlib} error message
+when used in a string context. The @emph{zlib} error number constants,
+shown below, are available for use.
+
+@example
+Z_OK
+Z_STREAM_END
+Z_ERRNO
+Z_STREAM_ERROR
+Z_DATA_ERROR
+Z_MEM_ERROR
+Z_BUF_ERROR
+@end example
+
+@item $gzerrno
+The $gzerrno scalar holds the error code associated with the most
+recent @emph{gzip} routine. Note that unlike @strong{gzerror()}, the error is
+@emph{not} associated with a particular file.
+
+As with @strong{gzerror()} it returns an error number in numeric context and
+an error message in string context. Unlike @strong{gzerror()} though, the
+error message will correspond to the @emph{zlib} message when the error is
+associated with @emph{zlib} itself, or the UNIX error message when it is
+not (i.e. @emph{zlib} returned @code{Z_ERRORNO}).
+
+As there is an overlap between the error numbers used by @emph{zlib} and
+UNIX, $gzerrno should only be used to check for the presence of
+an error in numeric context. Use @strong{gzerror()} to check for specific
+@emph{zlib} errors. The @emph{gzcat} example below shows how the variable can
+be used safely.
+
+@end table
+@unnumberedsubsec Examples
+
+Here is an example script which uses the interface. It implements a
+@emph{gzcat} function.
+
+@example
+use Compress::Zlib ;
+@end example
+
+@example
+die "Usage: gzcat file...\n"
+	unless @@ARGV ;
+@end example
+
+@example
+foreach $file (@@ARGV) @{
+    $gz = gzopen($file, "rb") 
+	    or die "Cannot open $file: $gzerrno\n" ;
+@end example
+
+@example
+print $buffer 
+    while $gz->gzread($buffer) > 0 ;
+die "Error reading from $file: $gzerrno\n" 
+    if $gzerrno != Z_STREAM_END ;
+    
+$gz->gzclose() ;
+    @}
+@end example
+
+Below is a script which makes use of @strong{gzreadline}. It implements a
+very simple grep like script.
+
+@example
+use Compress::Zlib ;
+@end example
+
+@example
+die "Usage: gzgrep pattern file...\n"
+    unless @@ARGV >= 2;
+@end example
+
+@example
+$pattern = shift ;
+@end example
+
+@example
+foreach $file (@@ARGV) @{
+    $gz = gzopen($file, "rb") 
+         or die "Cannot open $file: $gzerrno\n" ;
+
+    while ($gz->gzreadline($_) > 0) @{
+        print if /$pattern/ ;
+    @}
+
+    die "Error reading from $file: $gzerrno\n" 
+        if $gzerrno != Z_STREAM_END ;
+
+    $gz->gzclose() ;
+@}
+@end example
+
+@unnumberedsec CHECKSUM FUNCTIONS
+
+Two functions are provided by @emph{zlib} to calculate a checksum. For the
+Perl interface, the order of the two parameters in both functions has
+been reversed. This allows both running checksums and one off
+calculations to be done.
+
+@example
+$crc = adler32($buffer [,$crc]) ;
+$crc = crc32($buffer [,$crc]) ;
+@end example
+
+@unnumberedsec CONSTANTS
+
+All the @emph{zlib} constants are automatically imported when you make use
+of @emph{Compress::Zlib}.
+
+@unnumberedsec AUTHOR
+
+The @emph{Compress::Zlib} module was written by Paul Marquess,
+@file{pmarquess@@bfsec.bt.co.uk}. The latest copy of the module can be found
+on CPAN in @file{modules/by-module/Compress/Compress-Zlib-x.x.tar.gz}.
+
+The @emph{zlib} compression library was written by Jean-loup Gailly
+@file{gzip@@prep.ai.mit.edu} and Mark Adler @file{madler@@alumni.caltech.edu}.
+It is available at @file{ftp://ftp.uu.net/pub/archiving/zip/zlib*} and
+@file{ftp://swrinde.nde.swri.edu/pub/png/src/zlib*}.
+
+Questions about @emph{zlib} itself should be sent to
+@file{zlib@@quest.jpl.nasa.gov} or, if this fails, to the addresses given
+for the authors above.
+
+@unnumberedsec MODIFICATION HISTORY
+
+@unnumberedsubsec 0.1 2nd October 1995.
+
+First public release of @emph{Compress::Zlib}.
+
+@unnumberedsubsec 0.2 5th October 1995.
+
+Fixed a minor allocation problem in Zlib.xs
+
+@unnumberedsubsec 0.3 12th October 1995.
+
+Added prototype specification.
+
+@unnumberedsubsec 0.4 25th June 1996.
+
+@enumerate
+@item 
+Documentation update.
+
+@item 
+Upgraded to support zlib 1.0.2
+
+@item 
+Added dictionary interface.
+
+@item 
+Fixed bug in gzreadline - previously it would keep returning the same
+buffer. This bug was reported by Helmut Jarausch
+
+@item 
+Removed dependancy to zutil.h and so dropped support for 
+	
+    DEF_MEM_LEVEL (use MAX_MEM_LEVEL instead)
+    DEF_WBITS     (use MAX_WBITS instead)
+
+@end enumerate

@@ -1,0 +1,62 @@
+@node CGI/Wrap, CGI/XA, CGI/Switch, Module List
+@unnumbered buffer output when building CGI programs
+
+
+@unnumberedsec NAME
+
+CGI::Wrap - buffer output when building CGI programs
+
+@unnumberedsec SYNOPSIS
+
+@example
+use CGI;
+use CGI::Croak;
+use CGI::Wrap;
+@end example
+
+@example
+$query = new CGI;
+savequery $query;		# to reconstruct input
+$CGI::Out::mailto = @'fred@';	# override default of $<
+@end example
+
+@example
+run \&myfunc, @@myargs		# a function
+run sub @{ code @}		# an inline function
+run @'code@'			# something to eval
+@end example
+
+@example
+sub myfunc @{
+	out $query->header();
+	out $query->start_html(
+		-title=>@'A test@',
+		-author=>@'muir@@idiom.com@');
+@}
+@end example
+
+@unnumberedsec DESCRIPTION
+
+This is a helper routine for building CGI programs.  It buffers
+stdout until you@'re completed building your output.  If you should
+get an error before you are finished, then it will display a nice
+error message (in HTML), log the error, and send email about the
+problem.
+
+To use it, you must condense your program down to a single 
+function call and then use CGI::Wrap::run to call it.
+
+Instead of print, use @code{out}.
+
+@unnumberedsec AUTHOR
+
+David Muir Sharnoff <muir@@idiom.com>
+
+@unnumberedsec SEE ALSO
+
+Carp, CGI::Carp, CGI::Out,  CGI
+
+@unnumberedsec BUGS
+
+No support for formats is provided by CGI::Wrap.
+

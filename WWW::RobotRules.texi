@@ -1,0 +1,151 @@
+@node WWW/RobotRules, WWW/RobotRules/AnyDBM_File, VRML/VRML1/Standard, Module List
+@unnumbered Parse robots.txt files
+
+
+@unnumberedsec NAME
+
+WWW::RobotsRules - Parse robots.txt files
+
+@unnumberedsec SYNOPSIS
+
+@example
+require WWW::RobotRules;
+my $robotsrules = new WWW::RobotRules @'MOMspider/1.0@';
+@end example
+
+@example
+use LWP::Simple qw(get);
+@end example
+
+@example
+$url = "http://some.place/robots.txt";
+my $robots_txt = get $url;
+$robotsrules->parse($url, $robots_txt);
+@end example
+
+@example
+$url = "http://some.other.place/robots.txt";
+my $robots_txt = get $url;
+$robotsrules->parse($url, $robots_txt);
+@end example
+
+@example
+# Now we are able to check if a URL is valid for those servers that
+# we have obtained and parsed "robots.txt" files for.
+if($robotsrules->allowed($url)) @{
+    $c = get $url;
+    ...
+@}
+@end example
+
+@unnumberedsec DESCRIPTION
+
+This module parses a @file{robots.txt} file as specified in
+"A Standard for Robot Exclusion", described in
+<URL:http://info.webcrawler.com/mak/projects/robots/norobots.html>
+Webmasters can use the @file{robots.txt} file to disallow conforming
+robots access to parts of their WWW server.
+
+The parsed file is kept in the WWW::RobotRules object, and this object
+provide methods to check if access to a given URL is prohibited.  The
+same WWW::RobotRules object can parse multiple @file{robots.txt} files.
+
+@unnumberedsec METHODS
+
+@unnumberedsubsec $rules = new WWW::RobotRules @'MOMspider/1.0@'
+
+This is the constructor for WWW::RobotRules objects.  The first 
+argument given to new() is the name of the robot. 
+
+@unnumberedsubsec $rules->parse($url, $content, $fresh_until)
+
+The parse() method takes as arguments the URL that was used to
+retrieve the @file{/robots.txt} file, and the contents of the file.
+
+@unnumberedsubsec $rules->allowed($url)
+
+Returns TRUE if this robot is allowed to retrieve this URL.
+
+@unnumberedsubsec $rules->agent([$name])
+
+Get/set the agent name. NOTE: Changing the agent name will clear the robots.txt
+rules and expire times out of the cache.
+
+@unnumberedsec ROBOTS.TXT
+
+The format and semantics of the "/robots.txt" file are as follows
+(this is an edited abstract of
+<URL:http://info.webcrawler.com/mak/projects/robots/norobots.html>):
+
+The file consists of one or more records separated by one or more
+blank lines. Each record contains lines of the form
+
+@example
+<field-name>: <value>
+@end example
+
+The field name is case insensitive.  Text after the @'#@' character on a
+line is ignored during parsing.  This is used for comments.  The
+following <field-names> can be used:
+
+@table @asis
+@item User-Agent
+The value of this field is the name of the robot the record is
+describing access policy for.  If more than one @emph{User-Agent} field is
+present the record describes an identical access policy for more than
+one robot. At least one field needs to be present per record.  If the
+value is @'*@', the record describes the default access policy for any
+robot that has not not matched any of the other records.
+
+@item Disallow
+The value of this field specifies a partial URL that is not to be
+visited. This can be a full path, or a partial path; any URL that
+starts with this value will not be retrieved
+
+@end table
+@unnumberedsubsec Examples
+
+The following example "/robots.txt" file specifies that no robots
+should visit any URL starting with "/cyberworld/map/" or "/tmp/":
+
+@example
+# robots.txt for http://www.site.com/
+@end example
+
+@example
+User-agent: *
+Disallow: /cyberworld/map/ # This is an infinite virtual URL space
+Disallow: /tmp/ # these will soon disappear
+@end example
+
+This example "/robots.txt" file specifies that no robots should visit
+any URL starting with "/cyberworld/map/", except the robot called
+"cybermapper":
+
+@example
+# robots.txt for http://www.site.com/
+@end example
+
+@example
+User-agent: *
+Disallow: /cyberworld/map/ # This is an infinite virtual URL space
+@end example
+
+@example
+# Cybermapper knows where to go.
+User-agent: cybermapper
+Disallow:
+@end example
+
+This example indicates that no robots should visit this site further:
+
+@example
+# go away
+User-agent: *
+Disallow: /
+@end example
+
+@unnumberedsec SEE ALSO
+
+@xref{LWP/RobotUA,LWP/RobotUA},, @xref{WWW/RobotRules/AnyDBM_File,WWW/RobotRules/AnyDBM_File},
+

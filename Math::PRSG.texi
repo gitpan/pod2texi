@@ -1,0 +1,51 @@
+@node Math/PRSG, Math/Spline, Math/Matrix, Module List
+@unnumbered Perl interface to pseudo random sequence generator function.
+
+
+@unnumberedsec NAME
+
+PRSG - Perl interface to pseudo random sequence generator function.
+
+@unnumberedsec SYNOPSIS
+
+@example
+use Math::PRSG;
+
+@end example
+
+@unnumberedsec DESCRIPTION
+
+This perl extension implements a (159, 31, 0) LFSR, giving a period
+of 160 bits.  This can then be used as a RNG if seeded well (ie. with
+160 bits of entropy) and if the output is fed through a message digest
+function (in order to prevent any prediction).
+
+@unnumberedsec FUNCTIONS
+
+@table @asis
+@item new
+@example
+my $prsg = new PRSG $seed;
+@end example
+
+Create a new PRSG object.  A 160 bit (20-byte) $seed must be provided,
+which is used to seed the LFSR.
+
+@item seed
+@example
+$prsg->seed($rnd);
+@end example
+
+Seed the LFSR with $rnd.
+
+@item clock
+@example
+$value = $prsg->clock();
+@end example
+
+Clock the LFSR, returning the new register value as a 20-byte string.
+
+@end table
+@unnumberedsec COPYRIGHT
+
+Systemics Ltd ( http://www.systemics.com/ )

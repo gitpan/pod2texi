@@ -1,0 +1,99 @@
+@node Math/VecStat, Mmap, Math/TrulyRandom, Module List
+@unnumberedsec SYNOPSIS
+
+@example
+use Math::VecStat qw(max min maxabs minabs sum average);
+$max=max(@@vector);
+$max=max(\@@vector);
+($max,$imax)=max(@@vector);
+($max,$imax)=max(\@@vector);
+$min=min(@@vector);
+$min=min(\@@vector);
+($max,$imin)=min(@@vector);
+($max,$imin)=min(\@@vector);
+$max=maxabs(@@vector);
+$max=maxabs(\@@vector);
+($max,$imax)=maxabs(@@vector);
+($max,$imax)=maxabs(\@@vector);
+$min=minabs(@@vector);
+$min=minabs(\@@vector);
+($max,$imin)=minabs(@@vector);
+($max,$imin)=minabs(\@@vector);
+$sum=sum($v1,$v2,...);
+$sum=sum(@@vector);
+$sum=sum(\@@vector);
+$average=average($v1,$v2,...);
+$av=average(@@vector);
+$av=average(\@@vector);
+@end example
+
+@unnumberedsec DESCRIPTION
+
+@example
+This package procides some basic statistics on numerical
+vectors. All the subroutines can take a copy of the vector, or,
+preferably for efficiency, a reference to the vector to be operated
+on.
+@end example
+
+@table @asis
+@item max(@@vector), max(\@@vector)
+return the maximum value of given values or vector. In an array
+context returns the value and the index in the array where it
+occurs.
+
+@item min(@@vector), min(\@@vector)
+return the minimum value of given values or vector, In an array
+context returns the value and the index in the array where it
+occurs.
+
+@item maxabs(@@vector), maxabs(\@@vector)
+return the maximum value of absolute of the given values or vector. In
+an array context returns the value and the index in the array where it
+occurs.
+
+@item minabs(@@vector), minabs(\@@vector)
+return the minimum value of the absolute of the given values or
+vector, In an array context returns the value and the index in the
+array where it occurs.
+
+@item sum($v1,$v2,...), sum(@@vector), sum(\@@vector)
+return the sum of the given values or vector
+
+@item average($v1,$v2,..), average(@@vector), average(\@@vector)
+return the average of the given values or vector
+
+@end table
+@unnumberedsec HISTORY
+
+@example
+$Log: VecStat.pm,v $
+Revision 1.4  1996/02/20 07:53:10  willijar
+Added ability to return index in array contex to max and min
+functions. Added minabs and maxabs functions.
+Thanks to Mark Borges <mdb@@cdc.noaa.gov> for these suggestions.
+@end example
+
+@example
+Revision 1.3  1996/01/06 11:03:30  willijar
+Fixed stupid bug that crept into looping in min and max functions
+@end example
+
+@example
+Revision 1.2  1995/12/26 09:56:38  willijar
+Oops - removed xy data functions.
+@end example
+
+@example
+Revision 1.1  1995/12/26 09:39:07  willijar
+Initial revision
+@end example
+
+@unnumberedsec BUGS
+
+Let me know. I welcome any appropriate additions for this package.
+
+@unnumberedsec AUTHOR
+
+John A.R. Williams <J.A.R.Williams@@aston.ac.uk>
+

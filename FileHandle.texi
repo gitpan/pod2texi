@@ -1,0 +1,175 @@
+@node FileHandle, Filter/Util/Call, FileCache, Module List
+@unnumbered supply object methods for filehandles
+
+
+@unnumberedsec NAME
+
+FileHandle - supply object methods for filehandles
+
+@unnumberedsec SYNOPSIS
+
+@example
+use FileHandle;
+@end example
+
+@example
+$fh = new FileHandle;
+if ($fh->open "< file") @{
+    print <$fh>;
+    $fh->close;
+@}
+@end example
+
+@example
+$fh = new FileHandle "> FOO";
+if (defined $fh) @{
+    print $fh "bar\n";
+    $fh->close;
+@}
+@end example
+
+@example
+$fh = new FileHandle "file", "r";
+if (defined $fh) @{
+    print <$fh>;
+    undef $fh;       # automatically closes the file
+@}
+@end example
+
+@example
+$fh = new FileHandle "file", O_WRONLY|O_APPEND;
+if (defined $fh) @{
+    print $fh "corge\n";
+    undef $fh;       # automatically closes the file
+@}
+@end example
+
+@example
+$pos = $fh->getpos;
+$fh->setpos $pos;
+@end example
+
+@example
+$fh->setvbuf($buffer_var, _IOLBF, 1024);
+@end example
+
+@example
+($readfh, $writefh) = FileHandle::pipe;
+@end example
+
+@example
+autoflush STDOUT 1;
+@end example
+
+@unnumberedsec DESCRIPTION
+
+@code{FileHandle::new} creates a FileHandle, which is a reference to a
+newly created symbol (see the Symbol package).  If it receives any
+parameters, they are passed to @code{FileHandle::open}; if the open fails,
+the FileHandle object is destroyed.  Otherwise, it is returned to
+the caller.
+
+@code{FileHandle::new_from_fd} creates a FileHandle like new does.
+It requires two parameters, which are passed to @code{FileHandle::fdopen};
+if the fdopen fails, the FileHandle object is destroyed.
+Otherwise, it is returned to the caller.
+
+@code{FileHandle::open} accepts one parameter or two.  With one parameter,
+it is just a front end for the built-in open function.  With two
+parameters, the first parameter is a filename that may include
+whitespace or other special characters, and the second parameter is
+the open mode, optionally followed by a file permission value.
+
+If @code{FileHandle::open} receives a Perl mode string (">", "+<", etc.)
+or a POSIX fopen() mode string ("w", "r+", etc.), it uses the basic
+Perl open operator.
+
+If @code{FileHandle::open} is given a numeric mode, it passes that mode
+and the optional permissions value to the Perl sysopen operator.
+For convenience, @code{FileHandle::import} tries to import the O_XXX
+constants from the Fcntl module.  If dynamic loading is not available,
+this may fail, but the rest of FileHandle will still work.
+
+@code{FileHandle::fdopen} is like open except that its first parameter
+is not a filename but rather a file handle name, a FileHandle object,
+or a file descriptor number.
+
+If the C functions fgetpos() and fsetpos() are available, then
+@code{FileHandle::getpos} returns an opaque value that represents the
+current position of the FileHandle, and @code{FileHandle::setpos} uses
+that value to return to a previously visited position.
+
+If the C function setvbuf() is available, then @code{FileHandle::setvbuf}
+sets the buffering policy for the FileHandle.  The calling sequence
+for the Perl function is the same as its C counterpart, including the
+macros @code{_IOFBF}, @code{_IOLBF}, and @code{_IONBF}, except that the buffer
+parameter specifies a scalar variable to use as a buffer.  WARNING: A
+variable used as a buffer by @code{FileHandle::setvbuf} must not be
+modified in any way until the FileHandle is closed or until
+@code{FileHandle::setvbuf} is called again, or memory corruption may
+result!
+
+See @xref{(perl.info)perlfunc,Perlfunc}, for complete descriptions of each of the following
+supported FileHandle methods, which are just front ends for the
+corresponding built-in functions:
+  
+    close
+    fileno
+    getc
+    gets
+    eof
+    clearerr
+    seek
+    tell
+
+See @xref{(perl.info)perlvar,Perlvar}, for complete descriptions of each of the following
+supported FileHandle methods:
+
+@example
+autoflush
+output_field_separator
+output_record_separator
+input_record_separator
+input_line_number
+format_page_number
+format_lines_per_page
+format_lines_left
+format_name
+format_top_name
+format_line_break_characters
+format_formfeed
+@end example
+
+Furthermore, for doing normal I/O you might need these:
+
+@table @asis
+@item $fh->print
+See @samp{print}, @xref{(perl.info)perlfunc,Perlfunc},.
+
+@item $fh->printf
+See @samp{printf}, @xref{(perl.info)perlfunc,Perlfunc},.
+
+@item $fh->getline
+This works like <$fh> described in @samp{"I}, @xref{(perl.info)perlop,Perlop},
+except that it@'s more readable and can be safely called in an
+array context but still returns just one line.
+
+@item $fh->getlines
+This works like <$fh> when called in an array context to
+read all the remaining lines in a file, except that it@'s more readable.
+It will also croak() if accidentally called in a scalar context.
+
+@end table
+@unnumberedsec SEE ALSO
+
+@xref{(perl.info)perlfunc,Perlfunc},, 
+@samp{"I}, @xref{(perl.info)perlop,Perlop},,
+@samp{"FileHandle"}, @xref{POSIX,POSIX},
+
+@unnumberedsec BUGS
+
+Due to backwards compatibility, all filehandles resemble objects
+of class FileHandle, or actually classes derived from that class.
+They actually aren@'t.  Which means you can@'t derive your own 
+class from FileHandle and inherit those methods.
+

@@ -1,0 +1,36 @@
+@node Penguin/Easy, Pg, Parity, Module List
+@unnumbered provides easy access to Penguin module.
+
+
+@unnumberedsec NAME
+
+@example
+Penguin::Easy -- provides easy access to Penguin module.
+@end example
+
+@unnumberedsec SYNOPSIS
+
+@example
+use Penguin::Easy;
+my $ep = new Penguin::Easy Title => @'Easy Program@',
+			     Name => @'James Duncan@',
+			     Sig => $my_pgp_sig,
+			     Code => $my_perl_code;
+$results = $ep->run;
+print "$results\n";
+@end example
+
+@unnumberedsec DESCRIPTION
+
+@code{Penguin::Easy} is an OO module, that provides quick-and-dirty access to the
+penguin module for those not wanting to learn the nittygrittys about it.  The
+@code{Easy} module provides transparent access to the @code{Penguin} module, even to
+the extent of deciding whether the Penguin code should be transparently wrapped,
+or PGP wrapped (if you include a sig in the call to the new method,  it
+will use PGP).  
+
+@unnumberedsec NOTES
+
+While writing this little module,  I@'ve decided that @code{Wrapper} is perhaps one
+of the funniest words I have ever seen.  It has completly lost all meaning.
+

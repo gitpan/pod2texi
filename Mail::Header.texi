@@ -1,0 +1,96 @@
+@node Mail/Header, Mail/Internet, Mail/Folder/Mbox, Module List
+@unnumbered manipulate mail RFC822 compliant headers
+
+
+@unnumberedsec NAME
+
+Mail::Header - manipulate mail RFC822 compliant headers
+
+@unnumberedsec SYNOPSIS
+
+@example
+use Mail::Header;
+
+$head = new Mail::Header;
+$head = new Mail::Header \*STDIN;
+$head = new Mail::Header [<>], Modify => 0;
+@end example
+
+@unnumberedsec DESCRIPTION
+
+This package provides a class object which can be used for reading, creating,
+manipulating and writing RFC822 compliant headers.
+
+@unnumberedsec CONSTRUCTOR
+
+@table @asis
+@item new ( [ ARG ], [ OPTIONS ] )
+@code{ARG} may be either a file descriptor (reference to a GLOB)
+or a reference to an array. If given the new object will be
+initialized with headers either from the array of read from 
+the file descriptor.
+
+OPTIONS is a list of options given in the form of key-value
+pairs, just like a hash table. Valid options are
+
+@table @asis
+@item Reformat
+If this value is @emph{true} then the headers will be re-formatted,
+otherwise the format of the header lines will remain unchanged.
+
+@item MailFrom
+This option specifies what to do when a header in the form @`From @'
+is encountered. Valid values are @code{IGNORE} - ignore and discard the header,
+@code{ERROR} - invoke an error (call die), @code{COERCE} - rename them as Mail-From
+and @code{KEEP} - keep them.
+
+@item FoldLength
+The default length of line to be used when folding header lines
+
+@end table
+@end table
+@unnumberedsec METHODS
+
+@table @asis
+@item modify ( [ VALUE ] )
+@itemx mail_from ( OPTION )
+@itemx fold ( [ LENGTH ] )
+@itemx extract ( ARRAY_REF )
+@itemx read ( FD )
+@itemx empty ()
+@itemx header ( [ ARRAY_REF ] )
+@itemx add ( TAG, LINE [, INDEX ] )
+@itemx replace ( TAG, LINE [, INDEX ] )
+@itemx combine ( TAG [, WITH ] )
+@itemx get ( TAG [, INDEX ] )
+@itemx exists ( TAG )
+@itemx delete ( TAG [, INDEX ] )
+@itemx print ( [ FD ] )
+@itemx fold_length ( [ LENGTH ] )
+@itemx tags ()
+@itemx dup ()
+@itemx cleanup ()
+@end table
+@unnumberedsec AUTHOR
+
+Graham Barr <Graham.Barr@@tiuk.ti.com>
+
+@unnumberedsec COPYRIGHT
+
+Copyright (c) 1996 Graham Barr. All rights reserved. This program is free
+software; you can redistribute it and/or modify it under the same terms
+as Perl itself.
+
+@unnumberedsec REVISION
+
+$Revision: 1.1 $
+$Date: 1996/08/13 09:26:15 $
+
+The VERSION is derived from the revision turning each number after the
+first dot into a 2 digit number so
+
+@example
+Revision 1.8   => VERSION 1.08
+Revision 1.2.3 => VERSION 1.0203
+@end example
+

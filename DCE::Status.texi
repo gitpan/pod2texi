@@ -1,0 +1,22 @@
+@node DCE/Status, DCE/UUID, DCE/Registry, Module List
+@unnumbered Make sense of DCE status codes
+
+
+@unnumberedsec NAME 
+
+DCE::Status - Make sense of DCE status codes
+
+@unnumberedsec SYNOPSIS
+
+@example
+use DCE::Status;
+
+$errstr = error_inq_text($status);
+@end example
+
+@example
+tie $status => DCE::Status;
+@end example
+
+@unnumberedsec DESCRIPTION
+

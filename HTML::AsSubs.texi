@@ -1,0 +1,79 @@
+@node HTML/AsSubs, HTML/Element, Getopt/Std, Module List
+@unnumbered functions that construct a HTML syntax tree
+
+
+@unnumberedsec NAME
+
+HTML::AsSubs - functions that construct a HTML syntax tree
+
+@unnumberedsec SYNOPSIS
+
+@example
+use HTML::AsSubs;
+$h = body(
+	   h1("This is the heading"),
+	   p("This is the first paragraph which contains a ",
+	     a(@{href=>@'link.html@'@}, "link"),
+	     " and an ",
+	     img(@{src=>@'img.gif@', alt=>@'image@'@}),
+	     "."
+	    ),
+	  );
+print $h->as_HTML;
+@end example
+
+@unnumberedsec DESCRIPTION
+
+This module exports functions that can be used to construct various
+HTML elements. The functions are named after the tags of the
+correponding HTML element and are all written in lower case. If the
+first argument is a @emph{hash} then it will be used to initialize the
+attributes of this element. The remaining arguments are regarded as
+content.
+
+@unnumberedsec ACKNOWLEDGEMENT
+
+This module was inspired by the following message:
+
+@example
+Date: Tue, 4 Oct 1994 16:11:30 +0100
+Subject: Wow! I have a large lightbulb above my head!
+@end example
+
+@example
+Take a moment to consider these lines:
+@end example
+
+@example
+%OVERLOAD=( @'""@' => sub @{ join("", @@@{$_[0]@}) @} );
+@end example
+
+@example
+sub html @{ my($type)=shift; bless ["<$type>", @@_, "</$type>"]; @}
+@end example
+
+@example
+:-)  I *love* Perl 5!  Thankyou Larry and Ilya.
+@end example
+
+@example
+Regards,
+Tim Bunce.
+@end example
+
+@example
+p.s. If you didn@'t get it, think about recursive data types: html(html())
+p.p.s. I@'ll turn this into a much more practical example in a day or two.
+p.p.p.s. It@'s a pity that overloads are not inherited. Is this a bug?
+@end example
+
+@unnumberedsec BUGS
+
+The exported link() function overrides the builtin link() function.
+The exported tr() function must be called using &tr(...) syntax
+because it clashes with the builtin tr/../../ operator.
+
+@unnumberedsec SEE ALSO
+
+@xref{HTML/Element,HTML/Element},
+

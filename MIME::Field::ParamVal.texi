@@ -1,0 +1,102 @@
+@node MIME/Field/ParamVal, MIME/Head, MIME/Field/ContType, Module List
+@unnumbered subclass of Mail::Field, for structured MIME fields
+
+
+@unnumberedsec NAME
+
+MIME::Field::ParamVal - subclass of Mail::Field, for structured MIME fields
+
+@unnumberedsec DESCRIPTION
+
+This is an abstract superclass of most MIME fields.  It handles 
+fields with a general syntax like this:
+
+@example
+Content-Type: Message/Partial;
+    number=2; total=3;
+    id="oc=jpbe0M2Yt4s@@thumper.bellcore.com"
+@end example
+
+Comments are supported @emph{between} items, like this:
+
+@example
+Content-Type: Message/Partial; (a comment)
+    number=2  (another comment) ; (yet another comment) total=3;
+    id="oc=jpbe0M2Yt4s@@thumper.bellcore.com"
+@end example
+
+@unnumberedsec PUBLIC INTERFACE
+
+@table @asis
+@item set [\%PARAMHASH | KEY=>VAL,...,KEY=>VAL]
+Set this field.
+The paramhash should contain parameter names
+in @emph{all lowercase}, with the special @code{"_"} parameter name
+signifying the "default" (unnamed) parameter for the field:
+
+@example
+# Set up to be...
+#
+#     Content-type: Message/Partial; number=2; total=3; id="ocj=pbe0M2"
+#
+$conttype->set(@'_@'       => @'Message/Partial@',
+		  @'number@'  => 2,
+		  @'total@'   => 3,
+		  @'id@'      => "ocj=pbe0M2");
+@end example
+
+Note that a single argument is taken to be a @emph{reference} to 
+a paramhash, while multiple args are taken to be the elements
+of the paramhash themselves.
+
+Supplying undef for a hashref, or an empty set of values, effectively
+clears the object.
+
+The self object is returned.
+
+@item parse_params STRING
+@emph{Class/instance utility method.}
+Extract parameter info from a structured field, and return
+it as a hash reference.  For example, here is a field with parameters:
+
+@example
+Content-Type: Message/Partial;
+    number=2; total=3;
+    id="oc=jpbe0M2Yt4s@@thumper.bellcore.com"
+@end example
+
+Here is how you@'d extract them:
+
+@example
+$params = $class->parse_params(@'content-type@');
+if ($$params@{@'_@'@} eq @'message/partial@') @{
+    $number = $$params@{@'number@'@};
+    $total  = $$params@{@'total@'@};
+    $id     = $$params@{@'id@'@};
+@}
+@end example
+
+Like field names, parameter names are coerced to lowercase.
+The special @'_@' parameter means the default parameter for the
+field.
+
+@strong{NOTE:} This has been provided as a public method to support backwards
+compatibility, but you probably shouldn@'t use it.
+
+@item parse STRING
+Parse the string into the instance.  Any previous information is wiped.
+
+The self object is returned.
+
+@item param PARAMNAME,[VALUE]
+Return the given parameter, or undef if it isn@'t there.
+With argument, set the parameter to that VALUE.
+The PARAMNAME is case-insensitive.  A "_" refers to the "default" parameter.
+
+@item stringify
+Convert the field to a string, and return it.
+
+@item tag
+Return the tag for this field.  Abstract!
+
+@end table

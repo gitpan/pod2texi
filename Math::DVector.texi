@@ -1,0 +1,88 @@
+@node Math/DVector, Math/Derivative, Math/Complex, Module List
+@unnumbered Fast, compact vectors using arrays of double.
+
+
+@unnumberedsec NAME
+
+Math::DVector -- Fast, compact vectors using arrays of double.
+
+@unnumberedsec DESCRIPTION
+
+@strong{Math::DVector} implements a very simple class of vectors 
+(arrays of double). 
+Indexing starts from zero. 
+
+The interface is somewhat arbitrary, I hope to remove some of
+the redundant functions later and have a better interface
+to this class.
+
+Methods:
+
+@table @asis
+@item new(size)
+Creates a new vector with initial size size
+
+@item aslist 
+Returns a list with the elements of the vector.
+
+@item setlist(list)
+Sets the vector values to list. If list is different size
+than the vector, the surplus elements are ignored.
+
+@item asstr
+Returns a string with the elements of the vector separated by spaces,
+the whole string surrounded by brackets.
+(useful in print commands)
+
+@item copy
+Returns a new vector that is a copy of this vector
+
+@item getelem(@emph{i})
+Returns the @emph{i}th element of the vector
+
+@item putelem(@emph{i},@emph{el})
+Set the @emph{i}th element of the vector to @emph{el}.
+
+@item resize(n)
+Resize the vector to contain exactly n elements.
+Existing elements are preserved.  New elements have undefined values.
+
+@item zero
+Zero all elements of the vector.
+
+@item getsize
+Returns the size of the vector
+
+@item add_vec(vec,s)
+Add the values of vector vec multiplied by s to this vector.
+Vectors needn@'t be same size.
+
+@item set_vec(vec,s)
+Set this vector to the values of vector vec multiplied by s.
+No resizing.
+
+@item add_step(vec,s)
+Add the value of vec scaled so that its euclidean length is s
+to this vector. Result is undefined if |vec| is very small.
+
+@item mul_dbl(s)
+Multiply the vector by a scale.
+
+@item randomize(min,max)
+Set all the elements of this vector to evenly distributed random values
+between min and max.
+
+@end table
+@unnumberedsec BUGS
+
+Very arbitrary interface
+
+Currently, the only mode of operation is "safe", checking the indices
+on each element access, which is a pain in some operations.
+This should be an external pragma, so that there are two different
+DVector objects.
+
+@unnumberedsec AUTHOR
+
+Tuomas J. Lukka (Tuomas.Lukka@@Helsinki.FI)
+

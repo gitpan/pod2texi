@@ -1,0 +1,283 @@
+@node Sybase/Login, Symbol, Sybase/BCP, Module List
+@unnumbered A highly configurable Login widget for Sybperl and Perl/Tk
+
+
+@unnumberedsec NAME
+
+Sybase::Login - A highly configurable Login widget for Sybperl and Perl/Tk
+
+@unnumberedsec Change History
+
+@table @asis
+@item 
+1.0 - Initial Implementation
+
+@emph{1.1} - Componentized for perl5.0021bh, handlers fixed
+
+@emph{1.2} - Set up for general distribution, added Version and VERSION.  Changed funky menu generation to Optionmenus.
+
+@emph{Todo:} - Subclass Optionmenu to dynamically set up the Server selections on post (or Buttondown?)
+
+@end table
+@unnumberedsec DESCRIPTION
+
+Login is a Widget that presents a dialog box to the user so that
+the user may enter his or her login name and password, as well as 
+select the appropriate database and server.
+
+@unnumberedsec USAGE
+
+One uses Login by creating a new Login widget, adding at least one
+Database via the addDatabase method, configuring via the configure
+method, and then getting a valid login via the getVerification method.
+
+@table @asis
+@item 
+@end table
+@unnumberedsubsec Sample Program
+
+@table @asis
+@item 
+@example
+#!/usr/local/bin/perl -w
+@end example
+
+@example
+use Tk;
+use Sybase::DBlib;
+use Sybase::Login;
+use strict;
+@end example
+
+@example
+my($main) = MainWindow->new;
+my($Login) = $main->Login;
+@end example
+
+@example
+$Login->addDatabase(@'DB@',	@'SYBSRV1@',@'SYB11@');
+$Login->addDatabase(@'DBBACK@',	@'SYBSRV1@',@'SYB11@');
+@end example
+
+@example
+$Login->configure(-User => $ENV@{@'USER@'@},
+		   -ULabel => @'User Name:@',
+		   -Title => @'Please Login@');
+@end example
+
+@example
+my($msg) = $main->Message(-text => @'Ready to go@')->pack;
+$main->Button(-text => @'kick me!@',
+	       -command => sub @{
+		 my($pwd, $usr, $db, $srv, $mDB);
+		 if ($Login->getVerification(-Force => 1)) @{
+		   $pwd = $Login->cget(-Password);
+		   $usr = $Login->cget(-User);
+		   $db =  $Login->cget(-Database);
+		   $srv = $Login->cget(-Server);
+		   print "Results good:\n\tUser:\t\t$usr\n";
+		   print "\tPassword:\t$pwd\n\tDatabase:\t$db\n";
+		   print "\tServer:\t\t$srv\n";
+		   print "Verifying Login...\n";
+		   $mDB = Sybase::DBlib->dblogin("$usr","$pwd", "$srv");
+		   $mDB->dbuse($db);
+		   $mDB->dbclose;
+		   print "Login worked!!!\n";
+		 @} else @{
+		   print "Login cancelled at User request.\n";
+		 @}
+	       @})->pack;
+@end example
+
+@example
+$main->Button(-text => @'exit@',
+	       -command => sub @{$main->destroy;@})->pack;
+@end example
+
+@example
+MainLoop;
+@end example
+
+@example
+print "And I@'m on my way home!\n";
+@end example
+
+@example
+exit;
+@end example
+
+@end table
+@table @asis
+@item 
+@end table
+@unnumberedsubsec Operation
+
+The user is presented with a dialog box.  The focus is on the username
+entry if no user name has been configured; otherwise, it is on the
+password entry.  If multiple databases have been configured, the user
+may select the appropriate database from the menu button. If multiple
+servers have been configured for the selected database, the user may
+select the appropriate server from the menu button.
+
+When the user has finished entering information, she may press the OK
+button to attempt to login, or the cancel button to abort the process.
+If the user presses the OK button, and the login succeeds, control
+returns to the caller.  If the login fails, an error dialog box is
+displayed, and the user may press retry, or may press cancel, in which
+case control returns to the caller exactly as if the user had pressed
+cancel at the main login screen.
+
+When control returns to the caller, the return value will be 1 if the 
+login was successful, or 0 if not.
+
+@unnumberedsubsec Notes
+
+A caller may define a message or error handler either before or after
+calling any of the methods of this object. getCurrentVerification
+will restore the handlers extant when invoked.
+
+@unnumberedsec Methods
+
+@table @asis
+@item 
+@end table
+@unnumberedsubsec getCurrentVerification
+
+@emph{$Login-}>@emph{getCurrentVerification;}
+
+@emph{(No parameters)}
+
+return 1 if the current configuration will result
+in a valid login, 0 otherwise.  No GUI is ever displayed.
+
+@unnumberedsubsec getVerification
+
+@emph{$Login-}>@emph{getVerification(-Force =} ?);>
+
+If the current configuration is NOT valid, activate the login
+frame. This will return 1 with a valid configuration, or 0 if the user
+hit cancel.  If the -Force parameter is passed as @'t@', @'y@', or 1,
+the login frame will be activated even if the current configuration
+is valid.
+
+@unnumberedsubsec addDatabase
+
+@emph{$Login-}>@emph{addDatabase(Database, Server List);}
+
+adds a database/server set.  The first parameter is
+the name of the database, the second is a list of
+Associated Servers.  See the code above for examples.
+
+Note that the first server in the list is the default server for that
+database.  Further note that adding a database a second time simply
+alters the servers.
+
+@unnumberedsubsec clearDatabase
+
+@emph{$Login-}>@emph{clearDatabase([Database[, Database,...]]);}
+
+Clears the given Database entries, or all databases if 
+if none are specified.
+
+@unnumberedsubsec Version
+
+@emph{$Login-}>Version
+
+@emph{(No parameters)}
+
+Returns the current version of Login
+
+@unnumberedsec Configuration Items
+
+Any of the following configuration items may be set via the configure
+method, or retrieved via the cget method.
+
+@table @asis
+@item 
+@end table
+@unnumberedsubsec -User
+
+Set or get the username.  The default is blank.
+
+@unnumberedsubsec -Password
+
+Set or get the password.  The default is blank.
+
+@unnumberedsubsec -Title
+
+Set or get the Title of the Login Widget.  The default is @'Database Login@'
+
+@unnumberedsubsec -Database
+
+Set or get the default Database.  The default is blank.  The call will
+silently fail if the database is not configured via the AddDatabase
+method.  If the configured server is not a valid server for the given
+database, the server will be set to the default server for the
+database.
+
+@unnumberedsubsec -Server
+
+Set or get the default Server.  The default is blank.  The call will
+silently fail if the server is not a valid server for the currently
+configured database.
+
+@unnumberedsubsec -OKText
+
+Set or get the text for the @emph{OK} button.  The default is OK.
+
+@unnumberedsubsec -CancelText
+
+Set or get the text for the @emph{Cancel} button.  The default is Cancel.
+
+@unnumberedsubsec -ULabel
+
+Set or get the label for the User name entry.  The default is @'User:@'.
+
+@unnumberedsubsec -PLabel
+
+Set or get the label for the Password entry.  The default is @'Password:@'.
+
+@unnumberedsubsec -DLabel
+
+Set or get the label for the Database Menu Button.  The default is @'Database:@'.
+
+@unnumberedsubsec -SLabel
+
+Set or get the label for the Server Menu Button.  The default is @'Server:@'.
+
+@unnumberedsubsec -Labelfont
+
+Set or get the font used for the labels.  The default is 
+@'-Adobe-Courier-Bold-R-Normal--*-120-*@'.
+
+@unnumberedsubsec -EDlgTitle
+
+Set or get the Title for the Error Dialog. The default is
+@'Database Login Error!@'.
+
+@unnumberedsubsec -EDlgText
+
+Set or get the text displayed in the Error Dialog.  The default is
+@'Unable to login to $db at $srv@'.  $db will be interpreted as the 
+Database name, $srv will be interpreted as the Server name, $usr
+will be interpreted as the User name, and $pwd will be interpreted
+as the password.
+
+@unnumberedsubsec -EDlgRetry
+
+Set or get the text for the Retry button in the Error Dialog. The
+default is @'Retry@'.
+
+@unnumberedsubsec -EDlgCancel
+
+Set or get the text for the Cancel button in the Error Dialog. The
+default is @'Cancel@'.
+
+@unnumberedsec Author
+
+@strong{Brent B. Powers, Merrill Lynch (B2Pi)}
+
+powers@@ml.com
+
+This code may be distributed under the same conditions as perl itself.
+

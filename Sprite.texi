@@ -1,0 +1,658 @@
+@node Sprite, Statistics/ChiSquare, Sort/Versions, Module List
+@unnumbered Perl 5.0 module to manipulate text delimited databases.
+
+
+@unnumberedsec NAME
+
+Sprite - Perl 5.0 module to manipulate text delimited databases.
+
+@unnumberedsec SYNOPSIS
+
+@example
+use Sprite;
+@end example
+
+@example
+$rdb = new Sprite ();
+@end example
+
+@example
+$rdb->set_delimiter ("Read", "::");
+$rdb->set_delimiter ("Write", "::");
+@end example
+
+@example
+$rdb->set_os ("UNIX");
+@end example
+
+@example
+$rdb->sql (<<Query);
+    .
+    .
+    .
+Query
+@end example
+
+@example
+$rdb->close ();
+$rdb->close ($database);
+@end example
+
+@unnumberedsec DESCRIPTION
+
+Here is a simple database where the fields are delimted by commas:
+
+@example
+Player,Years,Points,Rebounds,Assists,Championships
+...                                                         
+Larry Joe Bird,12,28,10,7,3
+Michael Jordan,10,33,6,5,3
+Earvin Magic Johnson,12,22,7,12,5
+...
+@end example
+
+@emph{Note:} The first line must contain the field names (case sensitive).
+
+@unnumberedsec Supported SQL Commands
+
+Here are a list of the SQL commands that are supported by Sprite:
+
+@table @asis
+@item select - retrieves records that match specified criteria:
+@example
+select col1 [,col2] from database 
+    where (cond1 OPERATOR value1) 
+    [and|or cond2 OPERATOR value2 ...] 
+@end example
+
+The @'*@' operator can be used to select all columns.
+
+The @emph{database} is simply the file that contains the data. 
+If the file is not in the current directory, the path must 
+be specified. 
+
+Sprite does @emph{not} support multiple tables (or commonly knows
+as "joins").
+
+Valid column names can be used where [cond1..n] and 
+[value1..n] are expected, such as: 
+
+Example 1:
+
+@example
+select Player, Points from my_db
+    where (Rebounds > Assists) 
+@end example
+
+The following SQL operators can be used: =, <, >, <=, >=, <> 
+as well as Perl@'s special operators: =~ and !~. The =~ and !~ 
+operators are used to specify regular expressions, such as: 
+
+Example 2:
+
+@example
+select * from my_db
+    where (Name =~ /Bird$/i) 
+@end example
+
+Selects records where the Name column ends with 
+"Bird" (case insensitive). For more information, look at 
+a manual on regexps. 
+
+@item update - updates records that match specified criteria. 
+@example
+update database set (cond1 OPERATOR value1)[,(cond2 OPERATOR value2)...]*
+   where (cond1 OPERATOR value1)
+   [and|or cond2 OPERATOR value2 ...] 
+@end example
+
+@example
+* = This feature was added as of version 3.1.
+@end example
+
+Example:
+
+@example
+update my_db 
+	set Championships = (Championships + 1) 
+    where (Player = @'Larry Joe Bird@') 
+@end example
+
+@example
+update my_db
+     set Championships = (Championships + 1),
+	    Years = (12)
+@end example
+
+@example
+where (Player = @'Larry Joe Bird@')
+@end example
+
+@item delete - removes records that match specified criteria:
+@example
+delete from database 
+    where (cond1 OPERATOR value1) 
+    [and|or cond2 OPERATOR value2 ...] 
+@end example
+
+Example:
+
+@example
+delete from my_db
+    where (Player =~ /Johnson$/i) or
+          (Years > 12) 
+@end example
+
+@item alter - simplified version of SQL-92 counterpart
+Removes the specified column from the database. The 
+other standard SQL functions for alter table are not 
+supported:
+
+@example
+alter table database 
+    drop column column-name 
+@end example
+
+Example:
+
+@example
+alter table my_db 
+    drop column Championships 
+@end example
+
+@item insert - inserts a record into the database:
+@example
+insert into database 
+    (col1, col2, ... coln) 
+values 
+    (val1, val2, ... valn) 
+@end example
+
+Example:
+
+@example
+insert into my_db 
+    (Player, Years, Points, Championships) 
+values 
+    (@'Kareem Abdul-Jabbar@', 21, 27, 5) 
+@end example
+
+@emph{Note:} You do not have to specify all of the fields in the 
+database! Sprite also does not require you to specify 
+the fields in the same order as that of the database. 
+
+@emph{Note:} You should make it a habit to quote strings. 
+
+@end table
+@unnumberedsec METHODS
+
+Here are the four methods that are available:
+
+@table @asis
+@item set_delimiter
+The set_delimiter function sets the read and write delimiter 
+for the the SQL command. The delimiter is not limited to
+one character; you can have a string, and even a regexp (for reading only).
+
+@emph{Return Value}
+
+None
+
+@item set_os
+The set_os function can be used to notify Sprite as to the
+operating system that you@'re using. Valid arguments are:
+"UNIX", "VMS", "MSDOS", "NT" and "MacOS". UNIX is the default.
+
+@emph{Return Value}
+
+The previous OS value
+
+@item sql
+The sql function is used to pass a SQL command to this module. All 
+of the SQL commands described above are supported. The select SQL 
+command returns an array containing the data, where the first element
+is the status. All of the other other SQL commands simply return a status.
+
+@emph{Return Value}
+    1 - Success
+    0 - Error
+
+@item close
+The close function closes the file, and destroys the database object. 
+You can pass a filename to the function, in which case Sprite will 
+save the database to that file. 
+
+@emph{Return Value}
+
+None
+
+@end table
+@unnumberedsec EXAMPLES
+
+Here are two simple examples that illustrate some of the functions of this
+module:
+
+@unnumberedsubsec Example 1
+
+@example
+#!/usr/local/bin/perl5 
+@end example
+
+@example
+use Sprite; 
+@end example
+
+@example
+$rdb = new Sprite (); 
+@end example
+
+@example
+# Sets the read delimiter to a comma (,) character. The delimiter
+# is not limited to one character; you can have a string, or even
+# a regexp.
+@end example
+
+@example
+$rdb->set_delimiter ("Read", ","); 
+@end example
+
+@example
+# Retrieves all records that match the criteria.
+@end example
+
+@example
+@@data = $rdb->sql (<<End_of_Query);
+@end example
+
+@example
+select * from /shishir/nba
+    where (Points > 25) 
+@end example
+
+@example
+End_of_Query
+@end example
+
+@example
+# Close the database and destroy the database object (i.e $rdb).
+# Since we did not pass a argument to this function, the data
+# is not updated in any manner.
+@end example
+
+@example
+$rdb->close (); 
+@end example
+
+@example
+# The first element of the array indicates the status.
+@end example
+
+@example
+$status = shift (@@data);
+$no_records = scalar (@@data);
+@end example
+
+@example
+if (!$status) @{
+	die "Sprite database error. Check your query!", "\n";
+@} elsif (!$no_records) @{
+	print "There are no records that match your criteria!", "\n";
+	exit (0);
+@} else @{
+    print "Here are the records that match your criteria: ", "\n";
+@end example
+
+@example
+# The database returns a record where each field is
+# separated by the "\0" character.
+@end example
+
+@example
+foreach $record (@@data) @{ 
+            $record =~ s/\0/,/g;
+            print $record, "\n";
+        @}
+    @} 
+@end example
+
+@unnumberedsubsec Example 2
+
+@example
+#!/usr/local/bin/perl5 
+@end example
+
+@example
+use Sprite; 
+@end example
+
+@example
+$rdb = new Sprite (); 
+$rdb->set_delimiter ("Read", ","); 
+@end example
+
+@example
+# Deletes all records that match the specified criteria. If the
+# query contains an error, Sprite returns a status of 1.
+@end example
+
+@example
+$rdb->sql (<<Delete_Query) 
+		|| die "Database Error. Check your query", "\n";
+@end example
+
+@example
+delete from /shishir/nba
+    where (Rebounds <= 5) 
+@end example
+
+@example
+Delete_Query
+@end example
+
+@example
+# Access the database again! This time, select all the records that
+# match the specified criteria. The database is updated *internally*
+# after the previous delete statement.
+@end example
+
+@example
+# Notice the fact that the full path to the database does not
+# need to specified after the first SQL command. This
+# works correctly as of version 3.1.
+@end example
+
+@example
+@@data = $rdb->sql (<<End_of_Query);
+@end example
+
+@example
+select Player from nba
+    where (Points > 25)
+@end example
+
+@example
+End_of_Query
+@end example
+
+@example
+# Sets the write delimiter to the (:) character, and outputs the
+# updated information to the file: "nba.new". If you do not pass
+# an argument to the close function after you update the database,
+# the modified information will not be saved.
+@end example
+
+@example
+$rdb->set_delimiter ("Write", ":"); 
+$rdb->close ("nba.new"); 
+@end example
+
+@example
+# The first element of the array indicates the status.
+@end example
+
+@example
+$status = shift (@@data);
+$no_records = scalar (@@data);
+@end example
+
+@example
+if (!$status) @{
+	die "Sprite database error. Check your query!", "\n";
+@} elsif (!$no_records) @{
+	print "There are no records that match your criteria!", "\n";
+	exit (0);
+@} else @{
+    print "Here are the records that match your criteria: ", "\n";
+@end example
+
+@example
+# The database returns a record where each field is
+# separated by the "\0" character.
+@end example
+
+@example
+foreach $record (@@data) @{ 
+            $record =~ s/\0/,/g;
+            print $record, "\n";
+        @}
+    @} 
+@end example
+
+@unnumberedsec ADVANTAGES
+
+Here are the advantages of Sprite over mSQL by David Hughes available on
+the Net: 
+
+Allows for column names to be specified in the update command:
+
+Perl@'s Regular Expressions allows for powerful pattern matching
+
+The database is stored as text. Very Important! Information
+can be added/modified/removed with a text editor.
+
+Can add/delete columns quickly and easily
+
+@unnumberedsec DISADVANTAGES
+
+Here are the disadvantages of Sprite compared to mSQL: 
+
+@emph{Speed}. No where close to mSQL! Sprite was designed to be 
+used to manipulate very small databases (~1000-2000 records).
+
+Does not have the ability to "join" multiple tables (databases) 
+during a search operation. This will be added soon! 
+
+@unnumberedsec RESTRICTIONS
+
+@enumerate
+@item 
+If a value for a field contains the comma (,) character or the field 
+delimiter, then you need to quote the value. Here is an example:
+
+@example
+insert into $database
+(One, Two)
+values
+(@'$some_value@', $two)
+@end example
+
+The information in the variable $some_value @emph{might} contain
+the delimiter, so it is quoted -- you can use either the single
+quote (@') or the double quote (").
+
+@item 
+All single quotes and double quotes within a value must be escaped.
+Looking back at the previous example, if you think the variable
+$some_value contains quotes, do the following:
+
+@example
+$some_value =~ s/([@'"])/\\$1/g;
+@end example
+
+@item 
+If a field@'s value contains a newline character, you need to convert
+the newline to some other character (or string):
+
+@example
+$some_value =~ s/\n/<BR>/g;
+@end example
+
+@item 
+If you want to search a field by using a regular expression:
+
+@example
+select * from $database
+    where (Player =~ /Bird/i)
+@end example
+
+the only delimiter you are allowed is the standard one (i.e @emph{/../}).
+You @emph{cannot} use any other delimeter:
+
+@example
+select * from $database
+    where (Player =~ m|Bird|i)
+@end example
+
+@item 
+Field names can only be made up of the following characters:
+
+@example
+"A-Z", "a-z", and "_"
+@end example
+
+In other words,
+    
+    [A-Za-z_]
+
+@item 
+If your update value contains parentheses, you need to escape
+them:
+
+@example
+$rdb->sql (<<End_of_Query);
+@end example
+
+@example
+update my_db
+    set Phone = (@'\\(111\\) 222 3333@')
+    where (Name = /Gundavaram\$/i)
+@end example
+
+@example
+End_of_Query
+@end example
+
+Notice how the "$" (matches end of line) is escaped as well!
+
+@end enumerate
+@unnumberedsec SEE ALSO
+
+RDB (available at the Metronet Perl archive)
+
+@unnumberedsec REVISION HISTORY
+
+@table @asis
+@item v3.1 - June 18, 1996
+Added the following features:
+
+@itemize @bullet
+@item 
+As of this version, Sprite allows you to update multiple fields with a 
+single update command. See the Supported SQL Commands section above.
+
+@item 
+You can execute your scripts with the following:
+
+@example
+#!/usr/local/bin/perl5 -wT
+@end example
+
+@example
+use strict;
+@end example
+
+Sprite no longer generates the "Use of uninitialized value..."
+errors.
+
+@item 
+For records that don@'t contain quotes or escaped strings, Perl@'s
+split is used to dramatically speed up database loading.
+
+@item 
+The set_os function will allow you to set the operating system
+that you@'re using. 
+
+@item 
+Added a "require 5.002" as Sprite fails on versions of Perl older
+than 5.002 with the following error:
+ 
+    "Bad free() ignored at Sprite.pm..."
+
+@end itemize
+Fixed the following bugs:
+
+@itemize @bullet
+@item 
+If you call the close method with a database as an argument 
+@emph{without} opening a database first, Sprite will warn you as
+opposed to wiping out the database, as was the case in earlier
+versions of Sprite.
+
+@item 
+Sprite no longer chops off the trailing "0" on records.
+
+@item 
+The @emph{drop column} works as it should.
+
+@item 
+You can safely escape parentheses in the update command.
+
+@item 
+Extra spaces between field names in the select command and
+values in the update command no longer cause fatal errors. 
+
+@item 
+In earlier versions of Sprite, if you opened two databases
+that were located in different directories, @emph{but} with the
+same name, Sprite incorrectly assumed that it was the same database.
+As a result, the second database would never be loaded.
+
+@item 
+Can be used on the Mac OS and Windows NT.
+
+@end itemize
+@item v3.01 - March 5, 1996
+Fixed a bug in @emph{parse_expression} subroutine so that it recognizes
+the "_" character as valid in field names.
+
+@item v3.0 - Febraury 20, 1996
+Totally re-wrote parser; works reasonably well even in the worst case
+scenarios.
+
+@item v2.0 - November 23, 1995
+Fixed *numerous* errors in parsing, and added pod style documentation.
+
+@item v1.5 - September 10, 1995
+Created Perl 5 module instead of a command-line interface.
+
+@item v1.0 - September 7, 1995
+Initial Release
+
+@end table
+@unnumberedsec ACKNOWLEDGEMENTS
+
+I would like to thank the following for finding bugs and offering
+suggestions:
+
+@table @asis
+@item Dave Moore (dmoore@@videoactv.com)
+@itemx Shane Hutchins (hutchins@@ctron.com)
+@itemx Josh Hochman (josh@@bcdinc.com)
+@itemx Barry Harrison (barryh@@topnet.net)
+@itemx Lisa Farley (lfarley@@segue.com)
+@itemx Loyd Gore (lgore@@ascd.org)
+@itemx Tanju Cataltepe (tanju@@netlabs.net)
+@end table
+@unnumberedsec COPYRIGHT INFORMATION
+
+@example
+Copyright (c) 1995, 1996
+               Shishir Gundavaram and O@' Reilly & Associates
+   All Rights Reserved
+@end example
+
+@example
+Permission to use, copy, modify and distribute is hereby granted,
+providing  that  no charges are involved and the above  copyright
+notice and this permission appear in all copies and in supporting
+documentation. Requests for other distribution  rights, including
+incorporation in commercial  products,  such as  books,  magazine
+articles, or CD-ROMS should be made to the authors.
+@end example
+
+@example
+This  program  is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY;  without  even  the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+@end example
+

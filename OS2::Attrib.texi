@@ -1,0 +1,58 @@
+@node OS2/Attrib, OS2/SoftInstaller, ODBM_File, Module List
+@unnumbered Get or set OS/2 file attributes
+
+
+@unnumberedsec NAME
+
+OS2::Attrib - Get or set OS/2 file attributes
+
+@unnumberedsec SYNOPSIS
+
+@example
+use OS2::Attrib qw(get_attribs set_attribs);
+$attribs = get_attribs($path);
+set_attribs($attribs, $path1, $path2, ...);
+@end example
+
+@unnumberedsec DESCRIPTION
+
+OS2::Attrib provides access to OS/2 file attributes.  While the
+read-only attribute can be handled by chmod and stat, the
+hidden, system, and archive attributes cannot.
+
+@table @asis
+@item $attribs = get_attribs($path)
+Returns the attributes of @code{$path}, or the empty string if @code{$path}
+does not exist.  Attributes are returned as a five-character string in
+this format: "RHSAD".  Each letter is replaced by an underscore (@code{_})
+if the file does not have the corresponding attribute.  (This is the
+same format as a 4OS2 directory listing.)  The attributes are:
+
+@example
+R  The file is read-only (not writable)
+H  The file is hidden (does not appear in directory listings)
+S  The file is a system file (does not appear in directory listings)
+A  The file needs to be archived (it has changed since last backup)
+D  The file is a directory
+@end example
+
+@item $count = set_attribs($attribs, $path1, [$path2, ...])
+Sets the attributes of @code{$path1}, @code{$path2}, etc.  You can either
+specify the complete set of attributes, or add and subtract attributes
+by using + and -.  The case and order of the attributes is not
+important.  For example, @'-s+ra@' will remove the system attribute and
+add the read-only and archive attributes.  You should not use
+whitespace between attributes, although underscores are OK.  See
+@code{get_attribs} for an explanation of the attribute values.  You cannot
+change the directory attribute; if you specify it, it is ignored.
+Returns the number of files successfully changed.
+
+@end table
+@unnumberedsec AUTHOR
+
+Christopher J. Madsen <@file{ac608@@yfn.ysu.edu}>
+
+@unnumberedsec SEE ALSO
+
+The @samp{OS2::ExtAttr} in this node module provides access to extended attributes.
+

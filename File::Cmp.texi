@@ -1,0 +1,38 @@
+@node File/Cmp, File/Copy, File/CheckTree, Module List
+@unnumbered compare files
+
+
+@unnumberedsec NAME
+
+File::Cmp - compare files
+
+@unnumberedsec SYNOPSIS
+
+@example
+use File::Cmp;
+@end example
+
+@example
+$status = cmp_file "filename1", "filename2";
+@end example
+
+@unnumberedsec DESCRIPTION
+
+cmp_file() compares the contents of two files.  If they are identical
+cmp_file() return a value of 0.  Otherwise it returns a positive nonzero
+value.
+
+If one of the two files cannot be opened, cmp_file() returns -1.
+
+@unnumberedsec BUGS
+
+cmp_file() checks to see if files have identical filenames, but maybe 
+it should also check inode numbers?
+
+It might be nice to have a version that would return the location of
+the first difference found.
+
+@unnumberedsec AUTHOR
+
+Joseph N. Hall, joseph@@5sigma.com
+

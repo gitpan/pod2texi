@@ -1,0 +1,30 @@
+@node File/Tools, FileCache, File/Slurp, Module List
+@unnumbered This module is a wrapper for the various File moudles.
+
+
+@unnumberedsec NAME
+
+File::Tools - This module is a wrapper for the various File moudles.
+
+@unnumberedsec SYNOPSIS
+
+@example
+use File::Tools;
+copy("x", *STDOUT);
+recurse @{ print @} "/etc";
+@end example
+
+@unnumberedsec DESCRIPTION
+
+Provides the routines that are defined in File::Recurse and File::Copy.
+
+Other modules will be added at a later date, but File::Tools will
+always encapsulate them.
+
+@unnumberedsec SEE ALSO
+
+@xref{File/Copy,File/Copy}, and @xref{File/Recurse,File/Recurse},
+
+@unnumberedsec AUTHOR
+
+Written in 1996 by Aaron Sherman

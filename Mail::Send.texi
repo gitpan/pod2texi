@@ -1,0 +1,70 @@
+@node Mail/Send, Mail/Util, Mail/POP3Client, Module List
+@unnumbered Simple electronic mail interface
+
+
+@unnumberedsec NAME
+
+Mail::Send - Simple electronic mail interface
+
+@unnumberedsec SYNOPSIS
+
+@example
+require Mail::Send;
+@end example
+
+@example
+$msg = new Mail::Send;
+@end example
+
+@example
+$msg = new Mail::Send Subject=>@'example subject@', To=>@'timbo@';
+@end example
+
+@example
+$msg->to(@'user@@host@');
+$msg->subject(@'user@@host@');
+$msg->cc(@'user@@host@');
+$msg->bcc(@'someone@@else@');
+@end example
+
+@example
+$msg->set($header, @@values);
+$msg->add($header, @@values);
+$msg->delete($header);
+@end example
+
+@example
+# Launch mailer and set headers. The filehandle returned
+# by open() is an instance of the Mail::Mailer class.
+@end example
+
+@example
+$fh = $msg->open;
+@end example
+
+@example
+print $fh "Body of message";
+@end example
+
+@example
+$fh->close;         # complete the message and send it
+@end example
+
+@example
+$fh->cancel;        # not yet implemented
+@end example
+
+@unnumberedsec DESCRIPTION
+
+$Revision: 1.4 $
+
+@unnumberedsec SEE ALSO
+
+Mail::Mailer
+
+@unnumberedsec AUTHORS
+
+Tim Bunce <Tim.Bunce@@ig.co.uk>, with a kick start from Graham Barr
+<bodg@@tiuk.ti.com>. With contributions by Gerard Hickey <hickey@@ctron.com>
+For support please contact comp.lang.perl.misc.
+

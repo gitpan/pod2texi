@@ -1,0 +1,61 @@
+@node Parext, Pari, POSIX, Module List
+@unnumbered Parity (odd/even) handling functions
+
+
+@unnumberedsec NAME
+
+String::Parext, setSpaceParity, setMarkParity, showParext, SpaceBytes,
+MarkBytes, isSpaceParity, isMarkParity - Parity (odd/even) handling functions
+
+@unnumberedsec SYNOPSIS
+
+@example
+use String::Parext;
+@end example
+
+@unnumberedsec DESCRIPTION
+
+@table @asis
+@item setSpaceParity LIST
+Copies the elements of LIST to a new list and converts the new elements to
+strings of bytes with space parity (High bit cleared). In array context
+returns the new list.  In scalar context joins the elements of the new
+list into a single string and returns the string.
+
+@item setMarkParity LIST
+Does the same as the setSpaceParity function, but converts to strings with
+mark parity (High bit set).
+
+@item showParext LIST
+Does the same as the setSpaceParity function, but converts bytes with space
+parity to @'s@' and other bytes to @'m@'.
+
+@item SpaceBytes LIST
+Returns the number of space parity bytes in the elements of LIST.
+
+@item MarkBytes LIST
+Returns the number of mark parity bytes in the elements of LIST.
+
+@item isSpaceParity LIST
+Returns TRUE if the LIST contains no byte with mark parity, FALSE otherwise.
+
+@item isMarkParity LIST
+Returns TRUE if the LIST contains no byte with space parity, FALSE otherwise.
+
+@end table
+@unnumberedsec NOTES
+
+Don@'t use this module unless you have to communicate with some old device
+or protocol. Help the world and make your application 8 bit clean. Use the
+internationally standardized ISO-8859-1 character set.
+
+@unnumberedsec AUTHOR
+
+Winfried Koenig <win@@in.rhein-main.de>
+
+@example
+Copyright (c) 1995 Winfried Koenig. All rights reserved.
+This program is free software; you can redistribute it
+and/or modify it under the same terms as Perl itself.
+@end example
+

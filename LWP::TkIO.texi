@@ -1,0 +1,25 @@
+@node LWP/TkIO, LWP/UserAgent, LWP/Socket, Module List
+@unnumbered Tk I/O routines for the LWP library
+
+
+@unnumberedsec NAME
+
+LWP::TkIO - Tk I/O routines for the LWP library
+
+@unnumberedsec SYNOPSIS
+
+@example
+use Tk;
+require LWP::TkIO;
+require LWP::UserAgent;
+@end example
+
+@unnumberedsec DESCRIPTION
+
+This module provide replacement functions for the LWP::IO
+functions. Require this module if you use Tk and want non exclusive IO
+behaviour from LWP.  This does not allow LWP to run simultaneous
+requests though.
+
+See also @xref{LWP/IO,LWP/IO},.
+
